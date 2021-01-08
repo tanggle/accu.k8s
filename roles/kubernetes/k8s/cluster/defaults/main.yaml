@@ -1,0 +1,7 @@
+---
+
+default_cri_socket:
+  containerd: /run/containerd/containerd.sock
+  cri-o     : /var/run/crio/crio.sock
+  docker    : /var/run/dockershim.sock
+

@@ -1,0 +1,45 @@
+---
+
+- import_tasks: redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+
+- import_tasks: debian.yaml
+  when: ansible_os_family == 'Debian'
+
+
+# NOTE: 'mode' of export directory should be '777'
+- name: AccuInsight+ NFS Server | Create directories for {{ component }}
+  become: yes 
+  file:
+    path: "{{ accu_nfs_server_export_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0777'
+    recurse: true
+
+
+- name: AccuInsight+ NFS Server | Configure NFS Server (exports) (1/3)
+  become: yes 
+  lineinfile:
+    dest: /etc/exports
+    state: present
+    line: "{{ accu_nfs_server_export_path }} {{ accu_nfs_server_export_opts }}"
+
+
+- name: AccuInsight+ NFS Server | Configure NFS Server (systemd) (2/3)
+  become: yes 
+  systemd:
+    name: nfs-server
+    state: started
+    enabled: yes 
+    daemon_reload: yes 
+
+
+- name: AccuInsight+ NFS Server | Configure NFS Server (refresh) (3/3)
+  become: yes 
+  command:
+    cmd: "exportfs -ra"
+
+

@@ -1,0 +1,149 @@
+# /etc/haproxy/haproxy.cfg
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    daemon
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+
+{% if accu_load_balancer_stats %}
+frontend stats
+    bind *:{{ accu_load_balancer_stats_port }}
+    stats enable
+    stats uri /stats stats refresh 10s 
+    stats auth {{ accu_load_balancer_stats_user }}:{{ accu_load_balancer_stats_pass }}
+{% endif %}
+
+#---------------------------------------------------------------------
+# apiserver frontend which proxys to the masters
+#---------------------------------------------------------------------
+frontend k8s-apiserver
+    bind *:{{ ext_lb_port }}
+    mode tcp
+    option tcplog
+    default_backend k8s-apiserver
+
+#---------------------------------------------------------------------
+# round robin balancing for apiserver
+#---------------------------------------------------------------------
+backend k8s-apiserver
+    balance roundrobin
+    mode tcp
+#---TCP CHECK---------------------------------------------------------
+    option tcp-check
+#---SSL CHECK---------------------------------------------------------
+# kube-apiserver doesn't support SSL but TLS
+#---------------------------------------------------------------------
+#    option httpchk GET /healthz
+#    http-check expect status 200
+#    option ssl-hello-chk
+#---------------------------------------------------------------------
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:6443 check
+{% endfor %}
+
+frontend k8s-ingress-http
+    bind *:80
+    mode tcp 
+    option tcplog
+    default_backend k8s-ingress-http
+
+backend k8s-ingress-http
+    balance roundrobin
+    mode tcp 
+    option tcp-check
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ accu_ingress_controller_nodeport_insecure }} check
+{% endfor %}
+
+frontend k8s-ingress-https
+    bind *:443
+    mode tcp
+    option tcplog
+    default_backend k8s-ingress-https
+
+backend k8s-ingress-https
+    balance roundrobin
+    mode tcp
+    option tcp-check
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ accu_ingress_controller_nodeport_secure }} check
+{% endfor %}
+
+frontend pipeline
+    bind *:4201
+    mode tcp
+    option tcplog
+    default_backend pipeline
+
+backend pipeline
+    balance roundrobin
+    mode    tcp
+    option  tcp-check
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32431 check
+{% endfor %}
+
+frontend dhp
+    bind *:4202
+    mode tcp
+    option  tcplog
+    default_backend dhp
+
+backend dhp
+    balance roundrobin
+    mode    tcp
+    option  tcp-check
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32321 check
+{% endfor %}
+
+frontend modeler
+    bind *:4203
+    mode tcp
+    option  tcplog
+    default_backend modeler
+
+backend modeler
+    balance roundrobin
+    mode    tcp
+    option  tcp-check
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32721 check
+{% endfor %}
+
+frontend sso
+    bind *:4204
+    mode tcp
+    option  tcplog
+    default_backend sso
+
+backend sso
+    balance roundrobin
+    mode    tcp
+    option  tcp-check
+{% for host in groups['kube-master'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32000 check
+{% endfor %}

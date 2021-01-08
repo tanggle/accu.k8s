@@ -1,0 +1,54 @@
+---
+
+- name: AccuInsight+ Kubernetes | Set label for master nodes
+  become: yes
+  shell: |
+      kubectl label node {{ item }} node-role.kubernetes.io/master= --overwrite
+  run_once: true
+  loop: "{{ groups['kube-master'] }}"
+
+
+- name: AccuInsight+ Kubernetes | Set label for worker nodes
+  become: yes
+  shell: |
+      kubectl label node {{ item }} node-role.kubernetes.io/worker= --overwrite
+  run_once: true
+  loop: "{{ groups['kube-worker'] }}"
+
+
+- name: AccuInsight+ Kubernetes | Set label for ceph nodes
+  become: yes
+  shell: |
+      kubectl label node {{ item }} node-role.kubernetes.io/ceph=storage --overwrite
+  run_once: true
+  loop: "{{ groups['accu-ceph'] }}"
+
+
+- name: AccuInsight+ Kubernetes | Set label for accelerator nodes
+  become: yes
+  shell: |
+      kubectl label node {{ item }} node-role.kubernetes.io/accelerator=nvidia --overwrite
+  run_once: true
+  loop: "{{ groups['accu-nvidia'] }}"
+
+
+- name: AccuInsight+ Kubernetes | Set taint for ceph nodes
+  when:
+    - accu_rook_ceph_node_taint
+  become: yes
+  shell: |
+      kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule --overwrite
+  run_once: true
+  loop: "{{ groups['accu-ceph'] }}"
+
+
+- name: AccuInsight+ Kubernetes | Set taint for accelerator nodes
+  when:
+    - accu_accelerator_node_taint
+  become: yes
+  shell: |
+      kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule --overwrite
+  run_once: true
+  loop: "{{ groups['accu-nvidia'] }}"
+
+

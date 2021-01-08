@@ -1,0 +1,26 @@
+---
+
+- name: CRI | Restart
+  become: yes 
+  systemd:
+    name: "{{ kube_cri }}"
+    state: restarted
+    enabled: yes 
+    daemon_reload: yes 
+
+
+- name: CRI | Wait for Ready
+  become: yes 
+  command: crictl images
+  register: result
+  until: result is succeeded
+  retries: 10
+  delay: 5
+
+
+- name: OS | Reboot
+  become: yes 
+  reboot:
+    reboot_timeout: 300
+
+

@@ -1,0 +1,285 @@
+---
+
+# TODO: NEED TO CHECK IF PYTHON IS INSTALLED IN ANSIBLE MANAGED NODES.
+
+- name: AccuInsight+ OS Default Settings | Print OS Information
+  debug:
+    msg: "{{ ansible_os_family }} : {{ ansible_distribution }} : {{ ansible_distribution_version }} : {{ ansible_kernel }}"
+
+
+- name: AccuInsight+ OS Default Settings | Create ansible temporary directory
+  become: yes 
+  file:
+    path: "{{ ansible_env.HOME | default('/root') }}/.ansible/tmp"
+    mode: '0700'
+    state: directory
+
+
+#- name: AccuInsight+ OS Default Settings | Change permission of SSH KEY
+#  file:
+#    path: "{{ inventory_dir }}/../../accuinsight.pem"
+#    mode: '0600'
+#  delegate_to: localhost
+#  run_once: true
+
+
+- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
+  become: yes 
+  synchronize:
+    src: "{{ inventory_dir }}/../../accuinsight.pem"
+    dest: "{{ ansible_env.HOME | default('/root') }}/.ssh/id_rsa"
+    checksum: yes 
+    delete: yes
+
+
+- name: AccuInsight+ OS Default Settings | Set hostname with inventory hostname
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+
+- name: AccuInsight+ OS Default Settings | Add hostnames to /etc/hosts
+  become: yes
+# DELETE LATER  when: hostvars[item]['ansible_default_ipv4']['address'] is defined
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ item }}"
+    state: present
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ groups['all'] }}"
+
+
+- name: AccuInsight+ OS Default Settings | Set timezone to '{{ os_timezone | default('UTC') }}'
+  become: yes
+  timezone:
+    name: "{{ os_timezone | default('UTC') }}"
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin
+- name: AccuInsight+ OS Default Settings | Disable swap (/etc/fstab)
+  become: yes
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  loop:
+    - 'swap'
+    - 'none'
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin
+- name: AccuInsight+ OS Default Settings | Disable swap (swapoff -a)
+  become: yes
+  command:
+    cmd: swapoff -a
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: AccuInsight+ OS Default Settings | Letting iptables see bridged traffic (1/3)
+  become: yes
+  modprobe:
+    name: br_netfilter
+    state: present
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: AccuInsight+ OS Default Settings | Letting iptables see bridged traffic (2/3)
+  become: yes
+  lineinfile:
+    path: /etc/modules-load.d/kubernetes.conf
+    line: br_netfilter
+    state: present
+    owner: root
+    group: root
+    mode: '0644'
+    create: yes
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: AccuInsight+ OS Default Settings | Letting iptables see bridged traffic (3/3)
+  become: yes
+  sysctl:
+    name: "{{ item.key }}"
+    value: '{{ item.value }}'
+    state: present
+    sysctl_file: /etc/sysctl.d/kubernetes.conf
+    reload: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+
+
+#- name: AccuInsight+ OS Default Settings | Check OpenSSL CA Status
+#  when: inventory_hostname in groups['kube-master']
+#  become: yes 
+#  stat:
+#    path: "{{ accu_certificates_location }}/ca.key"
+#  run_once: true
+#  register: ca_status
+
+
+- name: AccuInsight+ OS Default Settings | Create Certificates directory
+  when: inventory_hostname in groups['kube-master']
+  become: yes
+  file:
+    path: "{{ accu_certificates_location }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+    recurse: yes
+  run_once: true
+
+
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ OS Default Settings | Generate OpenSSL CA KEY 
+  when: inventory_hostname in groups['kube-master']
+  become: yes 
+  shell: |
+    openssl genrsa -out {{ accu_certificates_location }}/ca.key {{ accu_certificates_bits }}
+  args:
+    executable: /bin/bash
+  run_once: true
+
+
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ OS Default Settings | Generate OpenSSL CA CRT 
+  when: inventory_hostname in groups['kube-master']
+  become: yes 
+  shell: |
+    openssl req -x509 -new -nodes -days {{ accu_certificates_expiration }} \
+                -subj "/C=KR/O=SK holdings C&C/CN=AccuInsight+ Kubernetes" \
+                -key {{ accu_certificates_location }}/ca.key \
+                -out {{ accu_certificates_location }}/ca.crt
+  args:
+    executable: /bin/bash
+  run_once: true
+
+
+# NOTE: openssl_privatekey module requires Python libraries cryptography (>= 1.3) or PyOpenSSL (>= 0.15)
+#- name: AccuInsight+ OS Default Settings | Generate OpenSSL KEY
+#  when: inventory_hostname in groups['kube-master']
+#  become: yes
+#  openssl_privatekey:
+#    path: "{{ accu_certificates_location }}/server.key"
+#    size: "{{ accu_certificates_bits }}"
+#  run_once: true
+
+
+# Replacing openssl_privatekey module above to openssl command for reducing python library dependancy
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ OS Default Settings | Generate OpenSSL KEY
+  when: inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+    openssl genrsa -out {{ accu_certificates_location }}/server.key {{ accu_certificates_bits }}
+  args:
+    executable: /bin/bash
+  run_once: true
+
+
+# NOTE: openssl_privatekey module requires Python libraries cryptography (>= 1.3) or PyOpenSSL (>= 0.15)
+#- name: AccuInsight+ OS Default Settings | Generate OpenSSL CSR
+#  when: inventory_hostname in groups['kube-master']
+#  become: yes
+#  openssl_csr:
+#    path: "{{ accu_certificates_location }}/server.csr"
+#    privatekey_path: "{{ accu_certificates_location }}/server.key"
+#    common_name: "{{ kube_default_domain }}"
+#    subject_alt_name:
+#      - 'DNS:*.{{ kube_default_domain }}'
+#      - 'DNS:gcr.io'
+#      - 'DNS:*.gcr.io'
+#      - 'DNS:quay.io'
+#      - 'DNS:*.quay.io'
+#      - 'DNS:docker.io'
+#      - 'DNS:*.docker.io'
+#  run_once: true
+
+
+# Replacing openssl_csr module above to openssl command for reducing python library dependancy
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ OS Default Settings | Generate OpenSSL SAN (Subject Alternative Names)
+  when: inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: san.cnf.j2
+    dest: "{{ accu_certificates_location }}/san.cnf"
+    owner: root
+    group: root
+    mode: '0644'
+  run_once: true
+
+
+- name: AccuInsight+ OS Default Settings | Generate OpenSSL CSR
+  when: inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+    openssl req -new -subj "/C=KR/O=SK holding C&C/CN={{ kube_default_domain }}" \
+                -key {{ accu_certificates_location }}/server.key \
+                -out {{ accu_certificates_location }}/server.csr \
+                -config {{ accu_certificates_location }}/san.cnf
+  args:
+    executable: /bin/bash
+  run_once: true
+
+
+# NOTE: openssl_certificate module requires Python libraries cryptography (>= 1.3) or PyOpenSSL (>= 0.15)
+#- name: AccuInsight+ OS Default Settings | Generate OpenSSL CRT
+#  when: inventory_hostname in groups['kube-master']
+#  become: yes
+#  openssl_certificate:
+#    path: "{{ accu_certificates_location }}/server.crt"
+#    csr_path: "{{ accu_certificates_location }}/server.csr"
+#    ownca_path: "{{ accu_certificates_location }}/ca.crt"
+#    ownca_privatekey_path: "{{ accu_certificates_location }}/ca.key"
+#    selfsigned_not_after: "+{{ accu_certificates_expiration }}d"
+#    provider: ownca
+#  run_once: true
+
+
+# Replacing openssl_certificate module above to openssl command for reducing python library dependancy
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ OS Default Settings | Generate OpenSSL CRT
+  when: inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+    openssl x509 -req -days {{ accu_certificates_expiration }} -CAcreateserial \
+                 -CA {{ accu_certificates_location }}/ca.crt \
+                 -CAkey {{ accu_certificates_location }}/ca.key \
+                 -in {{ accu_certificates_location }}/server.csr \
+                 -out {{ accu_certificates_location }}/server.crt \
+                 -extensions req_ext -extfile {{ accu_certificates_location }}/san.cnf
+  args:
+    executable: /bin/bash
+  run_once: true
+
+
+- name: AccuInsight+ OS Default Settings | Install OpenSSL CA CRT to System Trust Store
+  become: yes
+  synchronize:
+    src: "{{ accu_certificates_location }}/ca.crt"
+    dest: "{{ accu.trust_ca_store }}/accuinsight.crt"
+    checksum: yes
+    delete: yes
+  delegate_to: "{{ groups['kube-master'][0] }}"
+
+
+- name: AccuInsight+ OS Default Settings | Update System Trust Store
+  become: yes
+  command: "{{ accu.trust_ca_update }}"
+
+
+# TODO: NEED TO SUPPORT IPVS
+
+
+- import_tasks: redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+
+- import_tasks: debian.yaml
+  when: ansible_os_family == 'Debian'
+
+

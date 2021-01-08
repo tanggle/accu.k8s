@@ -1,0 +1,60 @@
+---
+
+- name: AccuInsight+ Collector | Collect Charts for Offline Installation
+  when:
+    - inventory_hostname == groups['accu-pkg-server'][0]
+  become: yes 
+  block:
+
+    - name: AccuInsight+ Collector | Load List of Charts
+      include_vars: charts.yaml
+
+
+    - name: AccuInsight+ Collector | Prepare Helm
+      get_url:
+        url: https://get.helm.sh/helm-v{{ accu_helm_version }}-linux-amd64.tar.gz
+        dest: "/tmp"
+
+
+    - name: AccuInsight+ Collector | Install Helm
+      unarchive:
+        src: "/tmp/helm-v{{ accu_helm_version }}-linux-amd64.tar.gz"
+        dest: /usr/bin
+        remote_src: yes 
+        exclude:
+          - 'LICENSE'
+          - 'README.md'
+        extra_opts:
+          - '--strip-components=1'
+
+
+    - name: AccuInsight+ Collector | Collect Charts
+      shell: |
+        # Create destination directories
+        mkdir -p {{ accu_collector_target }}/{{ item.0.component }}/charts/{{ item.1.dest }}
+
+        # Add helm repositories
+        helm repo add {{ item.1.repo_name }} {{ item.1.repo_url }}
+
+        # Save charts
+        helm fetch {{ item.1.name }} --version {{ item.1.version }} --destination {{ accu_collector_target }}/{{ item.0.component }}/charts/{{ item.1.dest }}
+      args:
+        executable: /bin/bash
+        warn: no
+      loop: "{{ charts | subelements('list') }}"
+      loop_control:
+        label: "{{ item.0.component }}, {{ item.1.name }}:{{ item.1.version }}"
+
+
+    - name: AccuInsight+ Collector | Synchronize Charts
+      synchronize:
+        mode: pull
+        src: "{{ accu_collector_target }}/{{ item.component }}/charts"
+        dest: "{{ accu_offline_source }}/{{ item.component }}"
+        checksum: yes 
+        delete: yes 
+      loop: "{{ charts }}"
+      loop_control:
+        label: "{{ item.component }}"
+
+

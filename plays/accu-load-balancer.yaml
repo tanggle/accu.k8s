@@ -1,0 +1,11 @@
+---
+# Playbook for AccuInsight+ Load Balancer
+
+- name: AccuInsight+ Load Balancer
+  hosts: kube-cluster,accu-server
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: true
+  roles:
+    - { role: accu-load-balancer }
+
+

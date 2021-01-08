@@ -1,0 +1,27 @@
+---
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/kubelet-integration/
+- name: AccuInsight+ Kubernetes | Check workers' initialization status
+  become: yes
+  stat:
+    path: /var/lib/kubelet/config.yaml
+  register: init_status
+
+
+- name: AccuInsight+ Kubernetes | Initialize workers
+  become: yes
+  when:
+    - not init_status.stat.exists
+  shell: |
+    kubeadm join --config {{ accu_manifests_location }}/{{ component }}/join-worker-config.yaml --ignore-preflight-errors DirAvailable--etc-kubernetes-manifests
+  args:
+    executable: /bin/bash
+  register: join_result
+  failed_when: join_result is failed
+  until: join_result is succeeded
+  retries: 3
+  delay: 60
+  notify:
+    - Kubelet | Restart
+
+

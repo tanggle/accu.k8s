@@ -1,0 +1,224 @@
+---
+# DOCS: https://wiki.debian.org/DebianRepository/Setup
+# There are many softwares to setup debian repository, but we use apt-ftparchive method.
+
+- name: AccuInsight+ Package Repository | Configure Repository for Server
+  when:
+    - accu_package_repository_enabled or accu_offline_enabled
+    - inventory_hostname in groups['accu-pkg-server']
+  become: yes
+  block:
+
+    - name: AccuInsight+ Package Repository | Create directories for {{ accu.os.distro }} {{ accu.os.version }}
+      file:
+        path: "{{ accu_package_repository_path }}/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - 'dists/ubuntu/accuinsight/binary-amd64'
+        - 'pool/ubuntu'
+
+
+    - name: AccuInsight+ Package Repository | Synchronize packages 
+      synchronize:
+        src: "{{ accu_offline_target }}/{{ component }}/files/{{ accu.os.distro }}-{{ accu.os.version }}/"
+        dest: "{{ accu_package_repository_path }}/pool/ubuntu/"
+        checksum: yes 
+        delete: yes 
+      delegate_to: "{{ inventory_hostname }}"
+
+
+    - name: AccuInsight+ Package Repository | Install web-frontend (Apache)
+      shell: |
+        # Change directory
+        cd {{ accu_package_repository_path }}/pool/ubuntu/accuinsight
+
+        # Install deb with dependancies
+        dpkg -i {{ accu.apache.pkgs | join(' ') }}
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+#    - name: AccuInsight+ Package Repository | Install web-frontend (Apache)
+#      apt:
+#        deb: "{{ item }}"
+#        state: present
+#        allow_unauthenticated: yes
+#      loop: "{{ accu.apache.pkgs }}"
+
+
+    - name: AccuInsight+ Package Repository | Configure web-frontend (path)
+      file:
+        src: "{{ accu_package_repository_path }}/{{ item }}"
+        dest: "/var/www/html/{{ item }}"
+        state: link
+      loop:
+        - 'dists'
+        - 'pool'
+
+
+    - name: AccuInsight+ Package Repository | Configure web-frontend (port)
+      lineinfile:
+        path: /etc/apache2/ports.conf
+        regexp: '^Listen '
+        insertafter: '^#Listen '
+        line: "Listen {{ accu_package_repository_port }}"
+      notify:
+        - Package Repository | Restart
+
+
+    - name: AccuInsight+ Package Repository | Flush Handlers to restart web-frontend
+      meta: flush_handlers
+
+
+    # DOCS: https://www.gnupg.org/documentation/manuals/gnupg-devel/Unattended-GPG-key-generation.html
+    - name: AccuInsight+ Package Repository | Generate GPG KEY for signing repository
+      when:
+        - inventory_hostname == groups['accu-pkg-server'][0]
+      shell: |
+        # Delete GPG KEY if already exists
+        rm -rf /root/.gnupg
+
+        # Generate GPG KEY unattendedly
+        gpg --batch --gen-key <<EOF
+        %no-protection
+        Key-Type: 1
+        Key-Length: 2048
+        Subkey-Type: 1
+        Subkey-Length: 2048
+        Name-Real: accuinsight
+        Name-Email: gpg@accuinsight.io
+        Expire-Date: 0
+        EOF
+
+        # Copy GPG keydb to repository path for later use
+        cp -av /root/.gnupg/pubring.kbx {{ accu_package_repository_path }}
+
+        # Change directory
+        cd {{ accu_package_repository_path }}
+
+        # Export private key
+        gpg --keyring {{ accu_package_repository_path }}/pubring.kbx --export-secret-keys accuinsight > accuinsight.key.gpg
+
+        # Export public key
+        gpg --keyring {{ accu_package_repository_path }}/pubring.kbx --armor --export accuinsight > accuinsight.pub.gpg
+      args:
+        executable: /bin/bash
+
+
+    - name: AccuInsight+ Package Repository | Synchronize GPG KEY to other repositories
+      when:
+        - groups['accu-pkg-server'] | length > 1
+        - inventory_hostname != groups['accu-pkg-server'][0]
+      synchronize:
+        src: "{{ accu_package_repository_path }}/{{ item }}"
+        dest: "{{ accu_package_repository_path }}/{{ item }}"
+        checksum: yes
+        delete: yes
+      delegate_to: "{{ groups['accu-pkg-server'][0] }}"
+      loop:
+        - 'pubring.kbx'
+        - 'accuinsight.key.gpg'
+        - 'accuinsight.pub.gpg'
+
+
+    # DOCS: https://unix.stackexchange.com/questions/403485/how-to-generate-the-release-file-on-a-local-package-repository/403489#403489
+    - name: AccuInsight+ Package Repository | Configure repository
+      shell: |
+        # Change directory
+        cd {{ accu_package_repository_path }}
+
+        # Generate apt-ftparchive configuration (accuinsight.conf)
+        cat > accuinsight.conf <<EOF
+        Dir::ArchiveDir ".";
+        Dir::CacheDir ".";
+        TreeDefault::Directory "pool/ubuntu";
+        Default::Packages::Extensions ".deb";
+        Default::Packages::Compress ". gzip bzip2";
+        
+        BinDirectory "dists/ubuntu/accuinsight/binary-amd64" {
+          Packages "dists/ubuntu/accuinsight/binary-amd64/Packages";
+        };
+        
+        Tree "dists/ubuntu" {
+          Sections "accuinsight";
+          Architectures "amd64";
+        };
+        
+        APT::FTPArchive::Release {
+          Origin "AccuInsight";
+          Label "AccuInsight";
+          Suite "accuinsight";
+          Codename "ubuntu";
+          Architectures "amd64";
+          Components "accuinsight";
+          Description "Package Repository for AccuInsight+";
+        };
+        EOF
+
+        # Generate Packages* and Release
+        apt-ftparchive --no-contents generate accuinsight.conf
+        apt-ftparchive -c accuinsight.conf release dists/ubuntu > dists/ubuntu/Release
+
+        # Sign Release (InRelease and Release.gpg)
+        gpg --yes --keyring {{ accu_package_repository_path }}/pubring.kbx -u accuinsight --clear-sign --output dists/ubuntu/InRelease dists/ubuntu/Release
+        gpg --yes --keyring {{ accu_package_repository_path }}/pubring.kbx -u accuinsight --armor --detach-sign --output dists/ubuntu/Release.gpg dists/ubuntu/Release
+
+        # Copy public key to repository
+        cp -a accuinsight.pub.gpg {{ accu_package_repository_path }}/dists/ubuntu/accuinsight/accuinsight.pub.gpg
+      args:
+        executable: /bin/bash
+
+
+
+- name: AccuInsight+ Package Repository | Configure Repository for Client
+  when:
+    - accu_package_repository_enabled or accu_offline_enabled
+  become: yes
+  block:
+
+    - name: AccuInsight+ Package Repository | Clean up repository cache
+      shell: |
+        rm -rf /var/lib/apt/lists/*
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    - name: AccuInsight+ Package Repository | Enable AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }} (Repository KEY)
+      apt_key:
+        url: "{{ item.key }}"
+        state: present
+      loop: "{{ accu.repo }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+
+    - name: AccuInsight+ Package Repository | Enable AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }} (Repository URL)
+      apt_repository:
+        repo: "{{ item.url }}"
+        filename: "{{ item.name }}"
+        state: present
+        mode: '0644'
+        update_cache: yes
+      loop: "{{ accu.repo }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+
+    # Set highest priority to AccuInsight+ repository
+    # Packages will be installed from AccuInsight+ repository first even though there are online repositores.
+    - name: AccuInsight+ Package Repository | Enable AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }} (Repository Preferences)
+      copy:
+        dest: /etc/apt/preferences.d/AccuInsight
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # for Priority of AccuInsight+ Repository
+          Package: *
+          Pin: release o=AccuInsight
+          Pin-Priority: 1001
+
+

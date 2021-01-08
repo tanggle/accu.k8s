@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: accu-vip-manager
+  namespace: {{ accu_load_balancer_namespace }}
+  labels:
+    app: accu-vip-manager
+spec:
+  containers:
+  - image: osixia/keepalived:2.0.20
+    name: keepalived
+    resources: {}
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+        - NET_BROADCAST
+        - NET_RAW
+    volumeMounts:
+    - mountPath: /usr/local/etc/keepalived/keepalived.conf
+      name: config
+    - mountPath: {{ accu_load_balancer_config_location }}/check-k8s-apiserver.sh
+      name: check
+  hostNetwork: true
+  volumes:
+  - hostPath:
+      path: {{ accu_load_balancer_config_location }}/accu-vip-manager.conf
+    name: config
+  - hostPath:
+      path: {{ accu_load_balancer_config_location }}/check-k8s-apiserver.sh
+    name: check
+status: {}

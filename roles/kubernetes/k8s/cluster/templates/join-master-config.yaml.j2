@@ -1,0 +1,19 @@
+---
+#
+# kubeadm config print join-defaults
+# https://godoc.org/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2
+#
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: JoinConfiguration
+controlPlane:
+  certificateKey: c8f8e3749f3a399ad68d704685c657d8c1b916ea1ef0d262b807453e40471c7d
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: {{ ext_lb_fqdn }}:{{ ext_lb_port }}
+    token: accuxx.0123456789abcdef
+    unsafeSkipCAVerification: true
+  timeout: 5m0s
+  tlsBootstrapToken: accuxx.0123456789abcdef
+nodeRegistration:
+  criSocket: {{ default_cri_socket[kube_cri] }}
+

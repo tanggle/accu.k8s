@@ -1,0 +1,83 @@
+---
+
+
+# Cluster
+- name: AccuInsight+ NFS provisioner | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ hostvars[groups['accu-nfs-server'][0]]['ansible_default_ipv4']['address'] }} {{ groups['accu-nfs-server'][0] }}"
+
+
+- import_tasks: redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+- import_tasks: debian.yaml
+  when: ansible_os_family == 'Debian'
+
+
+- name: AccuInsight+ NFS Provisioner | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                                           %}
+      {{ accu_offline_target }}/{{ component }}/charts/nfs-client-provisioner-{{ accu_nfs_provisioner_version }}.tgz
+      {% else                                                                                                     %}
+      stable/nfs-client-provisioner
+      {% endif                                                                                                    %}
+  run_once: yes
+
+
+# READ: https://github.com/helm/charts/tree/master/stable/nfs-client-provisioner#configuration
+- name: AccuInsight+ NFS Provisioner | Deploy {{ accu_nfs_provisioner_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_nfs_provisioner_release }}"
+    version: "{{ accu_nfs_provisioner_version }}"
+    namespace: "{{ accu_nfs_provisioner_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_nfs_provisioner_release }}'
+      - '--set nfs.server={{ accu_nfs_provisioner_server }}'
+      - '--set nfs.path={{ accu_nfs_provisioner_path }}'
+      - '--set replicaCount={{ accu_nfs_provisioner_replicas }}'
+      - '--set storageClass.name={{ accu_nfs_provisioner_storageclass_name }}'
+      - '--set storageClass.defaultClass=false'
+      - '--set storageClass.provisionerName=accu-nfs-provisioner'
+      - '--set storageClass.allowVolumeExpansion=true'
+      - '--set storageClass.archiveOnDelete=false'
+  run_once: yes
+
+
+- name: AccuInsight+ NFS Provisioner | Mount NFS Filesystem on Masters
+  when:
+    - accu_nfs_provisioner_mount_on_masters
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  block:
+
+    - name: AccuInsight+ NFS Provisioner | Create mount directory for NFS Filesystem
+      file:
+        path: /nfs
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+    
+    - name: AccuInsight+ NFS Provisioner | Mount NFS Filesystem on Masters
+      mount:
+        path: /nfs
+        src: "{{ accu_nfs_provisioner_server }}:{{ accu_nfs_provisioner_path }}"
+        fstype: nfs
+        state: mounted
+
+

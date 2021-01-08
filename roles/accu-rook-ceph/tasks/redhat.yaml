@@ -1,0 +1,48 @@
+---
+
+# Ceph requires additional third party libraries from EPEL repository
+# DOCS: https://docs.ceph.com/en/latest/install/get-packages/#id3
+- name: AccuInsight+ Storage Ceph | Add Package Repository 'EPEL'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  yum_repository:
+    description: Extra packages for Enterprise Linux {{ ansible_distribution_major_version }}
+    name: AccuInsight-EPEL
+    state: present
+    metalink: "https://mirrors.fedoraproject.org/metalink?repo=epel-{{ ansible_distribution_major_version }}&arch=$basearch&infra=$infra&content=$contentdir"
+    gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+    enabled: yes
+    gpgcheck: yes
+
+
+# DOCS: https://docs.ceph.com/en/latest/install/get-packages/#rpm-packages
+- name: AccuInsight+ Storage Ceph | Add Package Repository 'Ceph'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  yum_repository:
+    description: Official Ceph
+    name: AccuInsight-Ceph
+    state: present
+    baseurl: "https://download.ceph.com/rpm-{{ accu_ceph_image_version }}/el{{ ansible_distribution_major_version }}/$basearch"
+    gpgkey: https://download.ceph.com/keys/release.asc
+    enabled: yes
+    gpgcheck: yes
+    priority: "2"
+    exclude: ceph-common
+
+
+- name: AccuInsight+ Storage Ceph | Install Ceph common utilities for '{{ accu_ceph_image_version }}'
+  become: yes
+  yum:
+    name:
+      - 'ceph-common'
+      - 'lvm2'
+    state: present
+    disable_excludes: Ceph
+    update_cache: yes
+
+

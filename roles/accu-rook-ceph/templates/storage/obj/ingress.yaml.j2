@@ -1,0 +1,19 @@
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ceph-rgw-ingress
+  namespace: rook-ceph
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  rules:
+  - host: {{ accu_ceph_object_storage_fqdn  }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: "rook-ceph-rgw-{{ accu_ceph_object_pool_name }}"
+          servicePort: {{ accu_ceph_object_storage_port }}

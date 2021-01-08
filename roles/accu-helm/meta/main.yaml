@@ -1,0 +1,7 @@
+---
+
+dependencies:
+
+  - { role: accu-common/default, component: accu-helm }
+  - { role: accu-common/offline }
+

@@ -1,0 +1,10 @@
+---
+
+- name: AccuInsight+ NFS provisioner | Install NFS client
+  become: yes
+  apt:
+    name: nfs-common
+    state: latest
+    update_cache: yes
+
+

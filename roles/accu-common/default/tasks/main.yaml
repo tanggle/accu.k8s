@@ -1,0 +1,18 @@
+---
+
+- name: Set component for {{ component }}
+  set_fact:
+    component: "{{ component }}"
+
+
+- name: Include OS specific variables
+  include_vars: "{{ item }}"
+  vars:
+    params:
+      files:
+        - "vars/{{ ansible_distribution | lower }}{{ ansible_distribution_major_version }}.yaml"
+        - "vars/{{ ansible_distribution | lower }}.yaml"
+        - "vars/{{ ansible_os_family | lower }}.yaml"
+        - "vars/common.yaml"
+  loop: "{{ query('first_found', params, errors='ignore') }}"
+

@@ -1,0 +1,713 @@
+---
+
+- import_tasks: redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+
+- import_tasks: debian.yaml
+  when: ansible_os_family == 'Debian'
+
+
+- name: AccuInsight+ Storage Ceph | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF 
+    state: present
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ item }}"
+  loop:
+    - '{{ accu_rook_ceph_admin_fqdn }}'
+    - '{{ accu_ceph_object_storage_fqdn }}'
+
+
+- name: AccuInsight+ Storage Ceph | Override label for ceph nodes
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl label node {{ item }} node-role.kubernetes.io/ceph=storage --overwrite
+  run_once: true
+  loop: "{{ groups['accu-ceph'] }}"
+
+
+- name: AccuInsight+ Storage Ceph | Override taint for ceph nodes
+  when:
+    - accu_rook_ceph_node_taint
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule --overwrite
+  run_once: true
+  loop: "{{ groups['accu-ceph'] }}"
+
+
+- name: AccuInsight+ Storage Ceph | Add Chart Repository 'rook-release'
+  when:
+    - not accu_offline_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_repository:
+    name: rook-release
+    url: https://charts.rook.io/release
+    state: present
+  no_log: true
+
+
+- name: AccuInsight+ Storage Ceph | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                         %}
+      {{ accu_offline_target }}/{{ component }}/charts/rook-ceph-v{{ accu_rook_ceph_version }}.tgz
+      {% else                                                                                   %}
+      rook-release/rook-ceph
+      {% endif                                                                                  %}
+  run_once: yes
+
+
+- name: AccuInsight+ Storage Ceph | Deploy {{ accu_rook_ceph_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_rook_ceph_release }}"
+    version: "v{{ accu_rook_ceph_version }}"
+    namespace: "{{ accu_rook_ceph_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set rbacEnable=true'
+      - '--set pspEnable=true'
+      - '--set nodeSelector."node-role\.kubernetes\.io/ceph"=storage'
+      - '--set tolerations[0].effect=NoSchedule,tolerations[0].key=node-role.kubernetes.io/ceph,tolerations[0].operator=Equal,tolerations[0].value=storage'
+      - '--set agent.toleration=NoSchedule'
+      - '--set agent.tolerationKey=node-role.kubernetes.io/ceph'
+      - '--set discover.nodeAffinity="node-role.kubernetes.io/ceph=storage"'
+      - '--set discover.toleration=NoSchedule'
+      - '--set discover.tolerationKey=node-role.kubernetes.io/ceph'
+      - '--set csi.provisionerNodeAffinity="node-role.kubernetes.io/ceph=storage"'
+      - '--set csi.provisionerTolerations[0].effect=NoSchedule,csi.provisionerTolerations[0].key=node-role.kubernetes.io/ceph,csi.provisionerTolerations[0].operator=Equal,csi.provisionerTolerations[0].value=storage'
+  run_once: true
+
+
+#- name: AccuInsight+ Storage Ceph | Wait for Rook Operator to complete
+#  when:
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  shell: |
+#      kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep rook-discover
+#  args:
+#    executable: /bin/bash
+#  run_once: true
+#  register: rook_discover
+#  until: rook_discover.stdout.count("Running") >= 3
+#  retries: 10
+#  delay: 30
+
+
+- name: AccuInsight+ Storage Ceph | Create menifests directory for {{ component }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  file:
+    path: "{{ accu_manifests_location }}/{{ component }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0755'
+    recurse: true
+  loop:
+    - 'storage/rbd'
+    - 'storage/cfs'
+    - 'storage/obj'
+    - 'storage/nfs'
+
+
+- name: AccuInsight+ Storage Ceph | Create manifest for Ceph Dashboard (password)
+  when:
+    - accu_ceph_monitor_dashboard_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: dashboard-password.yaml.j2
+    dest: "{{ accu_manifests_location}}/{{ component }}/dashboard-password.yaml"
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Dashboard (password)
+  when:
+    - accu_ceph_monitor_dashboard_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl apply -f {{ accu_manifests_location}}/{{ component }}/dashboard-password.yaml
+  args:
+    executable: /bin/bash
+  run_once: true
+
+
+# DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-cluster-crd.md
+# SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/cluster.yaml
+- name: AccuInsight+ Storage Ceph | Create manifests for Ceph Cluster
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: cluster.yaml.j2
+    dest: "{{ accu_manifests_location}}/{{ component }}/cluster.yaml"
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Cluster
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl apply -f {{ accu_manifests_location}}/{{ component }}/cluster.yaml
+  args:
+    executable: /bin/bash  
+  run_once: true
+
+
+#- name: AccuInsight+ Storage Ceph | Wait for OSDs to prepare
+#  when:
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  shell: | 
+#      kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep ceph-osd-prepare
+#  args:
+#    executable: /bin/bash
+#  run_once: true
+#  register: ceph_osd_prepare
+#  until: ceph_osd_prepare.stdout.count("Completed") >= 3
+#  retries: 10
+#  delay: 60
+
+
+- name: AccuInsight+ Storage Ceph | Wait for Ceph Cluster to complete (checking osd)
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: | 
+      kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep ceph-osd
+  args:
+    executable: /bin/bash
+  run_once: true
+  register: ceph_osd
+  until: ceph_osd.stdout.count("Running") >= 3
+  retries: 10
+  delay: 60
+
+
+################################################################################
+# Deploy Ceph Toolbox                                              ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Deploy Ceph Toolbox
+  when:
+    - accu_ceph_filesystem_storage_enabled or accu_ceph_object_storage_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    # DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-toolbox.md
+    # SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/toolbox.yaml
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph Toolbox
+      template:
+        src: toolbox.yaml.j2
+        dest: "{{ accu_manifests_location}}/{{ component }}/toolbox.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Toolbox
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/toolbox.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Wait for Ceph Toolbox to complete
+      shell: |
+        kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep ceph-tools
+      args:
+        executable: /bin/bash
+      run_once: true
+      register: ceph_tools
+      until: ceph_tools.stdout.count("Running") >= 1
+      retries: 10
+      delay: 5
+################################################################################
+# Deploy Ceph Toolbox                                                ### END ###
+################################################################################
+
+
+################################################################################
+# Configure Ceph Dashboard Ingress                                 ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Configure Ceph Dashboard Ingress
+  when:
+    - accu_ceph_filesystem_storage_enabled or accu_ceph_object_storage_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    # DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-dashboard.md
+    # SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/dashboard-ingress-https.yaml
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph Dashboard Ingress
+      template:
+        src: dashboard-ingress.yaml.j2
+        dest: "{{ accu_manifests_location}}/{{ component }}/dashboard-ingress.yaml"
+        force: yes
+
+    - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Dashboard Ingress
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/dashboard-ingress.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+################################################################################
+# Configure Ceph Dashboard Ingress                                   ### END ###
+################################################################################
+
+
+################################################################################
+# Get JWT Token for Ceph API access                                ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Get JWT Token for Ceph API access
+  uri:
+    url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/auth"
+    validate_certs: no
+    method: POST
+    body: '{"username": "admin", "password": "{{ accu_rook_ceph_admin_pass }}"}'
+    status_code: 201
+    body_format: json
+    headers:
+      accept: "application/vnd.ceph.api.v1.0+json"
+      Content-Type: "application/json"
+  register: auth
+  run_once: true
+  until: auth.status == 201
+  retries: 10
+  delay: 10
+################################################################################
+# Get JWT Token for Ceph API access                                  ### END ###
+################################################################################
+
+
+################################################################################
+# Set device class for OSDs                                        ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Set device class for OSDs
+  become: yes
+  block:
+
+    - name: AccuInsight+ Storage Ceph | Get OSDs information
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/osd"
+        validate_certs: no
+        method: GET
+        status_code: 200
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      register: osds
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Get device information for each OSD
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/osd/{{ item.osd }}/devices"
+        validate_certs: no
+        method: GET
+        status_code: 200
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      register: devices
+      run_once: true
+      loop: "{{ osds.json }}"
+      loop_control:
+        label: "{{ item.osd }}"
+
+    - name: AccuInsight+ Storage Ceph | Set device class for each OSD
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/osd/{{ item[0].json.0.daemons.0 | regex_replace('osd.')}}"
+        validate_certs: no
+        method: PUT
+        body_format: json
+        body: '{"device_class": "{{ item[1].class }}"}'
+        status_code: 200
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      run_once: true
+      loop: "{{ devices.results |product(accu_ceph_storage_devices)|list }}"
+      loop_control:
+        label: "{{ item[1] }}"
+      when: item[0].json.0.location.0.host == item[1].host and item[0].json.0.location.0.dev == item[1].device
+################################################################################
+# Set device class for OSDs                                          ### END ###
+################################################################################
+
+
+################################################################################
+# Deploy Ceph Block Storage                                        ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Deploy Ceph Block Storage
+  when:
+    - accu_ceph_block_storage_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    # DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-pool-crd.md
+    #       https://github.com/rook/rook/blob/master/Documentation/ceph-block.md
+    # SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/pool.yaml
+    #         https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/pool-ec.yaml
+    #         https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/csi/rbd/storageclass.yaml
+    #         https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/csi/rbd/storageclass-ec.yaml
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph Block Storage (Pool & StorageClass)
+      template:
+        src: "storage/rbd/{{ item }}-{{ accu_ceph_block_pool_type }}.yaml.j2"
+        dest: "{{ accu_manifests_location}}/{{ component }}/storage/rbd/{{ item }}-{{ accu_ceph_block_pool_type }}.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - 'pool'
+        - 'storageclass'
+
+    - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Block Storage (Pool & StorageClass)
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/storage/rbd/{{ item }}-{{ accu_ceph_block_pool_type }}.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+      loop:
+        - 'pool'
+        - 'storageclass'
+################################################################################
+# Deploy Ceph Block Storage                                          ### END ###
+################################################################################
+
+
+################################################################################
+# Deploy Ceph Filesystem Storage                                   ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Deploy Ceph Filesystem Storage
+  when:
+    - accu_ceph_filesystem_storage_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    # DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-filesystem-crd.md
+    #       https://github.com/rook/rook/blob/master/Documentation/ceph-filesystem.md
+    # SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/filesystem.yaml
+    #         https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/filesystem-ec.yaml
+    #         https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/csi/cephfs/storageclass.yaml
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph Filesystem Storage (Pool & StorageClass)
+      template:
+        src: "storage/cfs/{{ item }}.yaml.j2"
+        dest: "{{ accu_manifests_location}}/{{ component }}/storage/cfs/{{ item }}.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - 'filesystem-{{ accu_ceph_filesystem_pool_type }}'
+        - 'storageclass'
+
+    - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Filesystem Storage (Pool & StorageClass)
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/storage/cfs/{{ item }}.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+      loop:
+        - 'filesystem-{{ accu_ceph_filesystem_pool_type }}'
+        - 'storageclass'
+
+    - name: AccuInsight+ Storage Ceph | Wait for Ceph Filesystem to complete (checking mds)
+      shell: |
+        kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep ceph-mds
+      args:
+        executable: /bin/bash
+      run_once: true
+      register: ceph_mds
+      until: ceph_mds.stdout.count("Running") >= 2
+      retries: 10
+      delay: 30
+
+
+- name: AccuInsight+ Storage Ceph | Mount Ceph Filesystem on Masters
+  when:
+    - accu_ceph_filesystem_storage_enabled
+    - accu_ceph_filesystem_mount_on_masters
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    - name: AccuInsight+ Storage Ceph | Get MONs information
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/monitor"
+        validate_certs: no
+        method: GET
+        status_code: 200
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      register: mons
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Generate MONs endpoints (list)
+      set_fact:
+        mon_endpoints: "{{ mon_endpoints | default([]) + [item.addr | replace('/0','')] }}"
+      loop: "{{ mons.json.in_quorum }}"
+      loop_control:
+        label: "{{ item.addr | replace('/0','') }}"
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Generate MONs endpoints (string)
+      set_fact:
+        mon_endpoints: "{{ mon_endpoints | join(',') }}"
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Generate Ceph Admin Secret file to specific nodes
+      shell:
+        kubectl -n {{ accu_rook_ceph_namespace }} get secrets rook-ceph-mon -o jsonpath='{.data.ceph-secret}' | base64 --decode > /etc/ceph/admin.secret
+      args:
+        executable: /bin/bash
+
+    - name: AccuInsight+ Storage Ceph | Create mount directory for Ceph Filesystem
+      file:
+        path: /cephfs
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      
+    - name: AccuInsight+ Storage Ceph | Mount Ceph Filesystem on Masters
+      mount:
+        path: /cephfs
+        src: "{{ mon_endpoints }}:/"
+        fstype: ceph
+        opts: name=admin,secretfile=/etc/ceph/admin.secret
+        state: mounted
+################################################################################
+# Deploy Ceph Filesystem Storage                                     ### END ###
+################################################################################
+
+
+################################################################################
+# Deploy Ceph Object Storage                                       ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Deploy Ceph Object Storage
+  when:
+    - accu_ceph_object_storage_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    # DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-object-store-crd.md
+    #       https://github.com/rook/rook/blob/master/Documentation/ceph-object.md
+    # SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/object.yaml
+    #         https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/object-ec.yaml
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph Object Storage
+      template:
+        src: "storage/obj/object-{{ accu_ceph_object_pool_type }}.yaml.j2"
+        dest: "{{ accu_manifests_location}}/{{ component }}/storage/obj/object-{{ accu_ceph_object_pool_type }}.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name:  AccuInsight+ Storage Ceph | Apply manifests for Ceph Object Storage
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/storage/obj/object-{{ accu_ceph_object_pool_type }}.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Wait for Ceph Object Storage to complete (checking rgw)
+      shell: |
+        kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep ceph-rgw
+      args:
+        executable: /bin/bash
+      run_once: true
+      register: ceph_rgw
+      until: ceph_rgw.stdout.count("Running") > 0
+      retries: 10
+      delay: 30
+
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph Object Storage Ingress
+      template:
+        src: storage/obj/ingress.yaml.j2
+        dest: "{{ accu_manifests_location}}/{{ component }}/storage/obj/ingress.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Object Storage Ingress
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/storage/obj/ingress.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+
+    #- name: AccuInsight+ Storage Ceph | Template Object Storage Class manifest
+    #  template:
+    #   src: object-storageclass.yaml.j2
+    #    dest: "{{ accu_ceph_k8s_manifest_temp_dir }}/object-storageclass.yaml"
+
+    #- name: AccuInsight+ Storage Ceph | Deploy Object Storage Class
+    #  shell: |
+    #         kubectl apply -f {{ accu_ceph_k8s_manifest_temp_dir }}/object-storageclass.yaml
+    #  args:
+    #    executable: /bin/bash  
+################################################################################
+# Deploy Ceph Object Storage                                         ### END ###
+################################################################################
+
+
+################################################################################
+# Deploy Ceph NFS Ganesha                                          ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Storage Ceph | Deploy Ceph NFS Ganesha
+  when:
+    - accu_ceph_filesystem_storage_enabled and accu_ceph_ganesha_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  block:
+
+    - name: AccuInsight+ Storage Ceph | Create Pool for Ceph NFS Ganesha
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/pool"
+        validate_certs: no
+        method: POST
+        body_format: json
+        body: '{
+                  "application_metadata": ["cephfs"],
+                  "pg_num": 8,
+                  "pool": "{{ accu_ceph_ganesha_pool_name }}",
+                  "pool_type": "replicated"
+               }'
+        status_code: 201
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      run_once: true
+
+    # DOCS: https://github.com/rook/rook/blob/master/Documentation/ceph-nfs-crd.md
+    # SOURCE: https://github.com/rook/rook/blob/v1.5.4/cluster/examples/kubernetes/ceph/nfs.yaml
+    - name: AccuInsight+ Storage Ceph | Create manifests for Ceph NFS Ganesha
+      template:
+        src: storage/nfs/ganesha.yaml.j2
+        dest: "{{ accu_manifests_location}}/{{ component }}/storage/nfs/ganesha.yaml"
+        force: yes
+
+    - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph NFS Ganesha
+      shell: |
+        kubectl apply -f {{ accu_manifests_location}}/{{ component }}/storage/nfs/ganesha.yaml
+      args:
+        executable: /bin/bash
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Wait for Ceph NFS Ganesha to complete (checking nfs)
+      when:
+        - inventory_hostname in groups['kube-master']
+      shell: |
+        kubectl get pods -n {{ accu_rook_ceph_namespace }} | grep {{ accu_ceph_ganesha_pool_name }}
+      args:
+        executable: /bin/bash
+      run_once: true
+      register: ceph_nfs
+      until: ceph_nfs.stdout.count("Running") >= 1
+      retries: 10
+      delay: 10
+
+    - name: AccuInsight+ Storage Ceph | Enable Ceph NFS Ganesha on Ceph Dashboard
+      become: yes 
+      shell: |
+        kubectl -n {{ accu_rook_ceph_namespace }} exec -it $(kubectl -n {{ accu_rook_ceph_namespace }} get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- \ 
+          ceph dashboard set-ganesha-clusters-rados-pool-namespace {{ accu_ceph_ganesha_pool_name }}/{{ accu_ceph_ganesha_pool_namespace }}
+      args:
+        executable: /bin/bash
+      run_once: true
+    
+    - name: AccuInsight+ Storage Ceph | Get Ceph NFS Ganesha configuration (exports)
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/nfs-ganesha/export"
+        validate_certs: no
+        method: GET
+        status_code: 200
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      register: exports
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Delete export if pseudo path already exists
+      when: item.pseudo | regex_replace('/') == accu_ceph_ganesha_export_path
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/nfs-ganesha/export/{{ item.cluster_id }}/{{ item.export_id}}"
+        validate_certs: no
+        method: DELETE
+        status_code: 204
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      run_once: true
+      loop: "{{ exports.json }}"
+      loop_control:
+        label: "{{ item.pseudo }}"
+
+
+#                  "daemons": [
+#                      "{{ accu_ceph_ganesha_pool_name }}.a"
+#                  ],
+    - name: AccuInsight+ Storage Ceph | Configure Ceph NFS Ganesha Export
+      uri:
+        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/nfs-ganesha/export"
+        validate_certs: no
+        method: POST
+        body_format: json
+        body: '{
+                  "path": "/{{ accu_ceph_ganesha_export_path }}",
+                  "fsal": {
+                      "name": "CEPH",
+                      "user_id": "admin",
+                      "fs_name": "{{ accu_ceph_filesystem_pool_name }}",
+                      "sec_label_xattr": null
+                  },
+                  "cluster_id": "_default_",
+                  "daemons": [
+                      "nfs.ganesha-{{ accu_ceph_ganesha_pool_name }}"
+                  ],
+                  "pseudo": "/{{ accu_ceph_ganesha_export_path }}",
+                  "tag": null,
+                  "access_type": "RW",
+                  "squash": "no_root_squash",
+                  "security_label": false,
+                  "protocols": [
+                      3,4
+                  ],
+                  "transports": [
+                      "TCP","UDP"
+                  ],
+                  "clients": []
+               }'
+        status_code: 201
+        headers:
+          Authorization: "Bearer {{ auth.json.token }}"
+          Content-Type: "application/json"
+      run_once: true
+################################################################################
+# Deploy Ceph NFS Ganesha                                            ### END ###
+################################################################################
+
+

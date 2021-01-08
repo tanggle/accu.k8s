@@ -1,0 +1,40 @@
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# System Files
+.DS_Store
+Thumbs.db
+dhp.web.ini
+
+# compiled output
+/dist
+/dist-server
+/tmp
+/out-tsc
+/*.tar.gz
+/*.tar
+/*.zip
+.idea
+.project
+.classpath
+*.iml
+.idea
+
+# AccuInsight+ Offline Data
+/data
+/data.pull.bns.sh
+/data.push.bns.sh
+
+# AccuInsight+ Terraform modules and state
+*.tfstate*
+.terraform/
+
+# AccuInsight+ Terraform generated files
+hosts.*
+

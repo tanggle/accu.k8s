@@ -1,0 +1,323 @@
+---
+
+os_update: false
+os_timezone: Asia/Seoul # default is UTC
+
+# AccuInsight+ Kubernetes Environment ################################ BEGIN ###
+
+ext_lb_fqdn: "{{ accu_load_balancer_fqdn }}"
+ext_lb_addr: "{{ accu_load_balancer_addr }}"
+ext_lb_port: 8443
+
+kube_version: 1.18.14
+# NOTE: kube_pod_cidr and kube_svc_cidr MUST NOT be overlaped with customer's existing network subnet.
+# DOCS: https://en.wikipedia.org/wiki/Private_network
+# TOOL: http://www.subnet-calculator.com
+kube_pod_cidr: 10.0.0.0/16
+kube_svc_cidr: 10.10.0.0/16
+kube_proxy_mode: iptables
+kube_cgroup_driver: "{{ cri_cgroup_driver }}"
+
+kube_cni: calico
+
+# containerd | cri-o | docker
+kube_cri: cri-o
+# NOTE: Specify cri version to be installed.
+# This will be calculated automatically according to cri compatible matrix if leave it blank.
+# See roles/kubernetes/cri/*/vars/*.yaml for more details
+kube_cri_version:
+
+cri_cgroup_driver: systemd # systemd or cgroupfs
+cri_insecure_registries: # 0.0.0.0/0 can be used
+  - "0.0.0.0/0"
+#  - "{{ accu_registry_fqdn }}"
+
+# Configure the MTU to use for workload interfaces and tunnels.
+# By default, MTU is auto-detected, and explicitly setting this field should not be required.
+# You can override auto-detection by providing a non-zero value.
+# Refer to the following link for recommended mtu based on platform.
+# https://docs.projectcalico.org/networking/mtu
+cni_calico_mtu: 0
+cni_calico_version: 3.17.1
+# Choose Calico iptables backend: "Legacy", "Auto" or "NFT"
+# If iptables >= 1.8, Auto or NFT should be set.
+cni_calico_iptablesbackend: Auto
+
+
+# Choose default registry between accu-registry and accu-harbor
+kube_default_registry: accu-registry
+
+# Choose default storageclass among accu-nfs-provisioner, accu-ceph-block and accu-ceph-cephfs
+kube_default_storage: accu-nfs-provisioner
+
+# Define default domain name which is used for base service.
+kube_default_domain: accuinsight.io
+
+######################################################################## END ###
+
+# AccuInsight+ Offline Mode
+accu_offline_enabled: true
+accu_offline_source: "{{ inventory_dir }}/../../data/offline"
+accu_offline_target: /accuinsight/offline
+
+# AccuInsight+ Service Materials
+accu_service_source: "{{ inventory_dir }}/../../data/service"
+accu_service_target: /accuinsight/service
+
+# AccuInsight+ Collector
+accu_collector_target: /accuinsight/collector
+
+# AccuInsight+ Menifess Location
+accu_manifests_location: /etc/kubernetes/accuinsight
+
+# AccuInsight+ Certificates Location
+accu_certificates_location: /etc/kubernetes/accuinsight/certificates
+accu_certificates_bits: 2048
+accu_certificates_expiration: 3650 # specify in days
+
+# AccuInsight+ Namespace
+accu_system_namespace: accu-system
+
+# AccuInsight+ Package Repository
+accu_package_repository_enabled: true
+accu_package_repository_path: /repo
+accu_package_repository_port: 1234
+
+# AccuInsight+ K8S Tools
+accu_tools_enabled: true
+
+# AccuInsight+ Helm
+accu_helm_enabled: true
+accu_helm_version: 3.4.2
+accu_helm_max_history: 10
+accu_helm_stable_repo: "https://charts.helm.sh/stable"
+
+# AccuInsight+ Helm Operator
+accu_helm_operator_enabled: true
+accu_helm_operator_version: 1.2.0
+accu_helm_operator_release: accu-helm-operator
+accu_helm_operator_namespace: "{{ accu_system_namespace }}"
+
+# AccuInsight+ Load Balancer
+accu_vip_manager_enabled: true
+accu_vip_manager_version: 2.0.20
+accu_load_balancer_enabled: true
+accu_load_balancer_version: 2.2.5
+accu_load_balancer_namespace: "{{ accu_system_namespace }}"
+accu_load_balancer_stats: true
+accu_load_balancer_stats_port: 8888
+accu_load_balancer_stats_user: admin
+accu_load_balancer_stats_pass: admin
+accu_load_balancer_vip: 1.1.1.1
+accu_load_balancer_fqdn: k8s.accuinsight.io
+accu_load_balancer_addr: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }}"
+accu_load_balancer_config_location: "/etc/accuinsight"
+# NOTE: see roles/accu-load-balancer/vars/*.yaml for more details about 'accu_load_balancer_nic'
+#       Not, default NIC is detected automatically. this parameter is deprecated
+# accu_load_balancer_nic:
+
+# AccuInsight+ Metrics Server
+accu_metrics_server_enabled: true
+accu_metrics_server_release: accu-metrics-server
+accu_metrics_server_version: 2.11.1
+accu_metrics_server_namespace: "{{ accu_system_namespace }}"
+accu_metrics_server_replicas: 1
+
+# AccuInsight+ Ingress Controller
+accu_ingress_controller_enabled: true
+accu_ingress_controller_release: accu-ingress
+accu_ingress_controller_version: 3.16.1
+accu_ingress_controller_namespace: "{{ accu_system_namespace }}"
+accu_ingress_controller_replicas: 2
+accu_ingress_controller_tlssecret: tls.accuinsight.io
+accu_ingress_controller_nodeport_insecure: 30080
+accu_ingress_controller_nodeport_secure: 30443
+accu_ingress_backend_enabled: true
+accu_ingress_backend_replicas: 1
+
+# AccuInsight+ NFS Server
+accu_nfs_server_enabled: true
+accu_nfs_server_export_path: /nfs
+accu_nfs_server_export_opts: "*(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
+
+# AccuInsight+ Rook Ceph
+accu_rook_ceph_enabled: true
+accu_rook_ceph_release: accu-rook-ceph
+accu_rook_ceph_version: 1.5.4
+accu_rook_ceph_namespace: rook-ceph
+accu_rook_ceph_hostnetwork: true
+accu_rook_ceph_node_taint: false
+accu_rook_ceph_admin_fqdn: ceph.accuinsight.io
+accu_rook_ceph_admin_pass: admin
+accu_rook_ceph_image_version: 15.2.8
+#accu_rook_ceph_node_taint_key: "accuinsight.io/ceph"
+
+accu_ceph_image_version: 15.2.8
+
+# NOTE: THIS PARAMETERS SHOULD BE CONFIGURED ACCORDING TO CUSTOMER SYSTEM ENVIRONMENT !!!
+#       The following values work only with VMs created by terraform on AWS and 3 Ceph nodes.
+accu_ceph_storage_devices:
+  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: ssd }
+  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: ssd }
+  - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w01, device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w01, device: nvme2n1, class: hdd }
+#  - { host: k8s-tanggle-redhat-w02, device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w02, device: nvme2n1, class: hdd }
+#  - { host: k8s-tanggle-redhat-w03, device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w03, device: nvme2n1, class: hdd }
+
+# AccuInsight+ Ceph Block Storage (rbd)
+accu_ceph_block_storage_enabled: true
+accu_ceph_block_pool_name: accu-block
+accu_ceph_block_pool_type: e # 'e' for Erasure Coding, 'r' for Replication
+accu_ceph_block_pool_class: ssd
+accu_ceph_block_storage_class_name: accu-ceph-block
+accu_ceph_block_stroage_class_fstype: ext4
+
+# AccuInsight+ Ceph Filesystem Storage (cephfs)
+accu_ceph_filesystem_storage_enabled: true
+accu_ceph_filesystem_pool_name: accu-cephfs
+accu_ceph_filesystem_pool_type: e # 'e' for Erasure Coding, 'r' for Replication
+accu_ceph_filesystem_pool_class: ssd
+accu_ceph_filesystem_storage_class_name: accu-ceph-cephfs
+accu_ceph_filesystem_mount_on_masters: true
+
+# AccuInsight+ Ceph Object Storage (s3)
+accu_ceph_object_storage_enabled: true
+accu_ceph_object_storage_fqdn: s3.accuinsight.io
+accu_ceph_object_storage_port: 8080
+accu_ceph_object_pool_name: accu-object
+accu_ceph_object_pool_type: e # 'e' for Erasure Coding, 'r' for Replication
+accu_ceph_object_pool_class: ssd
+
+# AccuInsight+ Ceph NFS Ganesha
+accu_ceph_ganesha_enabled: true
+accu_ceph_ganesha_instances: 1
+accu_ceph_ganesha_pool_name: accu-ganesha
+accu_ceph_ganesha_pool_namespace: conf-ganesha
+accu_ceph_ganesha_export_path: ganesha
+
+
+
+# AccuInsight+ NFS Provisioner
+accu_nfs_provisioner_enabled: true
+accu_nfs_provisioner_release: accu-nfs-provisioner
+accu_nfs_provisioner_version: 1.2.9
+accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
+accu_nfs_provisioner_server: "{{ groups['accu-nfs-server'][0] }}"
+accu_nfs_provisioner_path: /nfs
+accu_nfs_provisioner_replicas: 2
+accu_nfs_provisioner_storageclass_name: accu-nfs-provisioner
+accu_nfs_provisioner_mount_on_masters: true
+
+# AccuInsight+ Harbor
+accu_harbor_enabled: true
+accu_harbor_release: accu-harbor
+accu_harbor_version: 1.5.2
+accu_harbor_namespace: accu-harbor
+accu_harbor_fqdn_core: harbor.accuinsight.io
+accu_harbor_fqdn_notary: notary.accuinsight.io
+accu_harbor_pass: admin
+accu_harbor_registry_storage_class: accu-ceph-block
+accu_harbor_registry_storage_size: 100Gi
+accu_harbor_chartmuseum_storage_class: accu-ceph-block
+accu_harbor_chartmuseum_storage_size: 1Gi
+accu_harbor_jobservice_storage_class: accu-ceph-block
+accu_harbor_jobservice_storage_size: 1Gi
+accu_harbor_database_storage_class: accu-ceph-block
+accu_harbor_database_storage_size: 1Gi
+accu_harbor_redis_storage_class: accu-ceph-block
+accu_harbor_redis_storage_size: 1Gi
+accu_harbor_trivy_storage_class: accu-ceph-block
+accu_harbor_trivy_storage_size: 1Gi
+
+
+# AccuInsight+ Docker Registry
+accu_registry_enabled: true
+accu_registry_release: accu-registry
+accu_registry_version: 1.9.4
+accu_registry_namespace: "{{ accu_system_namespace }}"
+accu_registry_replicas: 1
+accu_registry_storage_class: accu-ceph-block
+accu_registry_storage_mode: ReadWriteOnce # ReadWriteMany / ReadWriteOnce
+accu_registry_storage_size: 100Gi
+accu_registry_fqdn: images.accuinsight.io
+accu_registry_user: dpcore
+accu_registry_pass: dpcore
+
+# AccuInsight+ Chartmuseum
+accu_chartmuseum_enabled: true
+accu_chartmuseum_release: accu-chartmuseum
+accu_chartmuseum_version: 2.13.2
+accu_chartmuseum_namespace: "{{ accu_system_namespace }}"
+accu_chartmuseum_replicas: 1
+accu_chartmuseum_storage_class: accu-ceph-block
+accu_chartmuseum_storage_mode: ReadWriteOnce # ReadWriteMany / ReadWriteOnce
+accu_chartmuseum_storage_size: 1Gi
+accu_chartmuseum_fqdn: charts.accuinsight.io
+accu_chartmuseum_name: accu-repo
+accu_chartmuseum_user: dpcore
+accu_chartmuseum_pass: dpcore
+
+# AccuInsight+ Prometheus
+accu_monitoring_enabled: true
+accu_monitoring_release: accu-monitor
+accu_monitoring_version: 12.8.1
+accu_monitoring_namespace: accu-monitor
+accu_monitoring_prometheus_fqdn: accupc.accuinsight.io
+accu_monitoring_prometheus_storage_class: accu-ceph-block
+accu_monitoring_prometheus_storage_size: 50Gi
+accu_monitoring_grafana_fqdn: accupm.accuinsight.io
+accu_monitoring_grafana_pass: admin
+accu_monitoring_grafana_storage_class: accu-ceph-block
+accu_monitoring_grafana_storage_size: 1Gi
+
+# AccuInsight+ EFK
+accu_logging_enabled: false
+#accu_logging_elastic_release:
+#accu_logging_elastic_version:
+#accu_logging_fluent_release:
+#accu_logging_fluent_version:
+
+
+# AccuInsight+ GPU Accelerator
+accu_accelerator_enabled: true
+accu_accelerator_namespace: "{{ accu_system_namespace }}"
+accu_accelerator_node_taint: true
+#accu_accelerator_node_taint_key: "accuinsight.io/accelerator"
+accu_accelerator_nvidia_type: tesla # tesla or gtx
+accu_accelerator_driver_version: 418.126.02
+# NVIDIA K8S Device Plugin Version
+# refer to  https://github.com/NVIDIA/k8s-device-plugin/releases
+accu_accelerator_device_plugin_version: "v0.7.3"
+# NVIDIA DCGM Exporter Version
+# refer to https://github.com/NVIDIA/gpu-monitoring-tools/releases
+#          https://hub.docker.com/r/nvidia/dcgm-exporter/tags?page=1&ordering=last_updated
+accu_accelerator_device_metric_version: "2.0.13-2.1.2-ubuntu18.04"
+
+
+### AccuInsight+ Service ##############################################################
+
+# accuinsight application
+accu_app_install_enabled: true
+accu_common_namespace: accu-common
+accu_pipeline_namespace: accu-pipeline
+accu_dhp_namespace: accu-dhp
+accu_modeler_namespace: accu-modeler
+accu_modeler_nfs_enabled: true
+accu_modeler_gitlabToken: My3jcvrLWaPWAL3SiMTC # gitlab 설치 후 변경 해야함
+
+
+dns_enpoint: accuinsight-test.co.kr
+registry_endpoint: images.accuinsight.io
+metadb_endpoint: accu-mariadb.accu-common:3306
+
+L4_ip: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_host'] }}"
+L4_pipeline_port: 4201
+L4_dhp_port: 4202
+L4_modeler_port: 4203
+
+#######################################################################################
+
+

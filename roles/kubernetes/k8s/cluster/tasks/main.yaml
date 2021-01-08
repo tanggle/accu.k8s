@@ -1,0 +1,63 @@
+---
+
+- import_tasks: redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+
+- import_tasks: debian.yaml
+  when: ansible_os_family == 'Debian'
+
+
+- name: AccuInsight+ Kubernetes | Add '{{ accu_load_balancer_fqdn }}' to /etc/hosts
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ accu_load_balancer_fqdn }}"
+
+
+- name: AccuInsight+ Kubernetes | Set default configuration for Kubernetes (crictl)
+  become: yes 
+  template:
+    src: crictl.yaml.j2
+    dest: /etc/crictl.yaml
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: AccuInsight+ Kubernetes | Set command completion for Kubernetes (crictl)
+  become: yes 
+  shell: |
+    crictl completion bash > /etc/bash_completion.d/crictl
+  args:
+    executable: /bin/bash
+
+
+- name: AccuInsight+ Kubernetes | Create menifests directory for Kubernetes
+  become: yes
+  file:
+    path: "{{ accu_manifests_location}}/{{ component }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    recurse: true
+
+
+- name: AccuInsight+ Kubernetes | Create manifests for Kubernetes
+  when:
+    - inventory_hostname in groups[item.dest]
+  become: yes
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ accu_manifests_location }}/{{ component }}/{{ item.file }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - { file: init-master-config.yaml, dest: kube-master }
+    - { file: join-master-config.yaml, dest: kube-master }
+    - { file: join-worker-config.yaml, dest: kube-worker }
+
+

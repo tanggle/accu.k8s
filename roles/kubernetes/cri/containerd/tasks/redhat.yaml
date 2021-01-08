@@ -1,0 +1,102 @@
+---
+
+- name: AccuInsight+ Kubernetes | Include compatibility matrix for Containerd 
+  include_vars: redhat.yaml
+
+
+- name: Print compatible containerd packages with kubernetes '{{ kube_version }}'
+  debug:
+    msg: "{{ item }}={{ containerd_pkg_version }}"
+  loop:
+    - "containerd.io"
+
+
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
+# https://docs.docker.com/engine/install/centos/
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Containerd'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  yum_repository:
+    description: Official Containerd
+    name: AccuInsight-Containerd
+    state: present
+    baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    enabled: yes
+    gpgcheck: yes
+    exclude: containerd.io
+
+
+- name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for Docker repository
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version | int == 8
+  become: yes 
+  ini_file:
+    path: /etc/yum.repos.d/AccuInsight-Containerd.repo
+    state: present
+    section: AccuInsight-Containerd
+    option: module_hotfixes
+    value: "True"
+
+# Containerd package has a dependency with container-selinux package provided by CentOS Extras Repository.
+# but the package does not exist on RHEL 7 Repository. CentOS Extras Repository is required if target OS is RHEL 7.
+
+- name: AccuInsight+ Kubernetes | Check if CentOS Extras repository is required
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 7
+  become: yes
+  yum:
+    list: container-selinux
+  register: repo_status
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'CentOS Extras'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 7
+    - repo_status.results | length == 0
+  become: yes
+  yum_repository:
+    description: CentOS Extras
+    name: AccuInsight-CentOS-Extras
+    state: present
+    baseurl: http://mirror.centos.org/centos/7/extras/$basearch/
+    gpgkey: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+    enabled: yes
+    gpgcheck: yes
+
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
+- name: AccuInsight+ Kubernetes | Install Containerd
+  become: yes
+  yum:
+    name:
+      - 'containerd.io-{{ containerd_pkg_version }}'
+      - 'yum-utils'
+      - 'device-mapper-persistent-data'
+      - 'lvm2'
+    state: present
+#    allow_downgrade: yes
+    disable_excludes: AccuInsight-Containerd
+    update_cache: yes
+
+- name: AccuInsight+ Kubernetes | Enable Containerd CRI Plugin
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^disabled_plugins'
+    line: disabled_plugins = []
+  become: yes
+  notify:
+    - CRI | Containerd | Restart
+    - CRI | Containerd | Wait for Ready
+
+

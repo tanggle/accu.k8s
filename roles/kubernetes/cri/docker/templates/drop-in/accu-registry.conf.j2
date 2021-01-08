@@ -1,0 +1,2 @@
+[Service]
+Environment="ACCU_REGISTRY={% for registry in cri_insecure_registries %}--insecure-registry={{ registry }} {% endfor %}"

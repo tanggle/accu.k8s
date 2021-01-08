@@ -1,0 +1,58 @@
+---
+
+- name: AccuInsight+ Kubernetes | Include compatibility matrix for Containerd 
+  include_vars: ubuntu.yaml
+
+
+- name: Print compatible docker packages with kubernetes '{{ kube_version }}'
+  debug:
+    msg: "{{ item }}-{{ containerd_pkg_version }}"
+  loop:
+    - "containerd.io"
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Docker' (1/2)
+  # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Docker' (2/2)
+  # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    filename: AccuInsight-Containerd
+    state: present
+    mode: '0644'
+    update_cache: yes
+
+
+- name: AccuInsight+ Kubernetes | Install Containerd '{{ containerd_version }}'
+  # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
+  # https://docs.docker.com/engine/install/ubuntu/
+  become: yes
+  apt:
+    name:
+      - 'containerd.io={{ containerd_pkg_version }}'
+    state: present
+    force: yes
+    update_cache: yes
+  notify:
+    - CRI | Containerd | Restart
+    - CRI | Containerd | Wait for Ready
+
+
+- name: AccuInsight+ Kubernetes | Mark packages as held back for Containerd
+  become: yes
+  command: apt-mark hold containerd.io
+
+

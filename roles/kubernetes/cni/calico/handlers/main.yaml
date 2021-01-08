@@ -1,0 +1,9 @@
+---
+
+- name: CNI | Calico | Reload NetworkManager
+  become: yes
+  systemd:
+    name: NetworkManager
+    state: reloaded
+
+

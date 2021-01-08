@@ -1,0 +1,44 @@
+---
+
+- name: AccuInsight+ Collector | Clean up Collector
+  when:
+    - inventory_hostname == groups['accu-pkg-server'][0]
+  become: yes 
+  block:
+
+    - name: AccuInsight+ Collector | Clean up Collector
+      shell: |
+        # Remove package repositories for RedHat family.
+        rm -rf /etc/yum.repos.d/Collector-*
+        # Remove package repositories for Debian family.
+        rm -rf /etc/apt/sources.list.d/Collector-* /etc/apt/preferences.d/Collector
+        # Delete helm repositories and binary.
+        rm -rf /root/.config/helm /usr/bin/helm
+        # Delete collector data
+        rm -rf {{ accu_collector_target }}
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    - name: AccuInsight+ Collector | Remove Container Management Tool
+      when:
+        - ansible_os_family == 'RedHat'
+      yum:
+        name: podman
+        state: absent
+        update_cache: yes
+        autoremove: yes 
+
+
+    - name: AccuInsight+ Collector | Remove Container Management Tool
+      when:
+        - ansible_os_family == 'Debian'
+      apt:
+        name: podman-rootless
+        state: absent
+        update_cache: yes
+        autoremove: yes 
+        autoclean: yes
+
+

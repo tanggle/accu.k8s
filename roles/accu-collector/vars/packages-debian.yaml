@@ -1,0 +1,80 @@
+---
+
+kernel_version: "{{ ansible_kernel }}" # NOTE: Replace this with customer's kernel version (uname -a)
+
+# DOCS: roles/kubernetes/cri/docker/vars/ubuntu.yaml
+docker_matrix:
+  "1.17": 19.03.4
+  "1.18": 19.03.11
+  "1.19": 19.03.14
+
+docker_version: "{{ lookup('vars', 'kube_cri_version') | default(docker_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
+#docker_pkg_version: "5:{{ docker_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"
+
+# DOCS: roles/kubernetes/cri/cri-o/vars/ubuntu.yaml
+crio_matrix:
+  "1.13": 1.13
+  "1.14": 1.14
+  "1.15": 1.15
+  "1.16": 1.16
+  "1.17": 1.17
+  "1.18": 1.18 # NOTE: CRI-O 1.18 is not supported on Ubuntu 18.04 (https://github.com/cri-o/cri-o/issues/3844)
+  "1.19": 1.19
+
+crio_version: "{{ lookup('vars', 'kube_cri_version') | default(crio_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
+
+
+repos:
+  - name: Kubernetes
+    url: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    key: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  - name: Docker
+    url: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    key: https://download.docker.com/linux/ubuntu/gpg
+  - name: OCI
+    url: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+    key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+  - name: "CRI-O-{{ crio_version }}"
+    url: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/ /"
+    key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+  - name: Ceph
+    url: "deb https://download.ceph.com/debian-{{ accu_ceph_image_version }}/ {{ ansible_distribution_release }} main"
+    key: https://download.ceph.com/keys/release.asc
+
+
+pkgs:
+  core: >
+        [
+          "kubeadm kubelet kubectl",
+          {#% if kube_cri == 'containerd' %#}
+          "containerd.io",
+          {#% endif                       %#}
+          {#% if kube_cri == 'cri-o'      %#}
+          "cri-o cri-o-runc podman-rootless",
+          {#% endif                       %#}
+          {#% if kube_cri == 'docker'     %#}
+          "docker-ce docker-ce-cli",
+          {#% endif                       %#}
+        ]
+  reqs:
+    # for kubernetes
+    - 'skopeo'
+    # for accu-accelerator (kernel)
+    - 'linux-image-{{ kernel_version }} linux-headers-{{ kernel_version }}'
+    - 'build-essential'
+    # for accu-accelerator (nvidia)
+    - 'nvidia-container-toolkit'
+    - 'nvidia-container-runtime'
+    # for accu-nfs-server
+    - 'nfs-kernel-server'
+    # for accu-nfs-provisioner
+    - 'nfs-common'
+    # for accu-repository-server
+    - 'apache2'
+    - 'gpg'
+    # for accu-rook-ceph
+    - 'ceph-common'
+    - 'lvm2'
+    # for utilities (ifconfig, netstat)
+    - 'net-tools'
+

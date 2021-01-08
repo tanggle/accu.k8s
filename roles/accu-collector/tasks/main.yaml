@@ -1,0 +1,16 @@
+---
+
+- import_tasks: packages-redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+- import_tasks: packages-debian.yaml
+  when: ansible_os_family == 'Debian'
+
+- import_tasks: images.yaml
+
+- import_tasks: files.yaml
+
+- import_tasks: charts.yaml
+
+- import_tasks: clean.yaml
+

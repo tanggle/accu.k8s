@@ -1,0 +1,36 @@
+---
+
+- name: AccuInsight+ Metrics Server | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                                  %}
+      {{ accu_offline_target }}/{{ component }}/charts/metrics-server-{{ accu_metrics_server_version }}.tgz
+      {% else                                                                                            %}
+      stable/metrics-server
+      {% endif                                                                                           %}
+  run_once: yes
+
+
+# READ: https://github.com/helm/charts/tree/master/stable/metrics-server#configuration
+- name: AccuInsight+ Metrics Server | Deploy {{ accu_metrics_server_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_metrics_server_release }}"
+    version: "{{ accu_metrics_server_version }}"
+    namespace: "{{ accu_metrics_server_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_metrics_server_release }}'
+      - '--set replicas={{ accu_metrics_server_replicas }}'
+      - '--set args="{--kubelet-insecure-tls,--kubelet-preferred-address-types=InternalIP}"'
+  run_once: yes
+
+

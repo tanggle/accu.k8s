@@ -1,0 +1,11 @@
+---
+# Playbook for AccuInsight+ K8S Tools
+
+- name: AccuInsight+ K8S Tools
+  hosts: kube-master
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: true
+  roles:
+    - role: accu-tools
+
+

@@ -1,0 +1,44 @@
+---
+
+- name: AccuInsight+ Collector | Collect Files for Offline Installation
+  when:
+    - inventory_hostname == groups['accu-pkg-server'][0]
+  become: yes 
+  block:
+
+    - name: AccuInsight+ Collector | Load List of Files
+      include_vars: files.yaml
+
+
+    - name: AccuInsight+ Collector | Prepare Files (directory)
+      file:
+        path: "{{ accu_collector_target }}/{{ item.0.component }}/files/{{ item.1.dest }}"
+        state: directory
+        recurse: yes
+        mode: '0755'
+      loop: "{{ files | subelements('list') }}"
+      loop_control:
+        label: "{{ item.0.component }}/files/{{ item.1.dest }}"
+
+
+    - name: AccuInsight+ Collector | Collect Files
+      get_url:
+        url: "{{ item.1.url }}"
+        dest: "{{ accu_collector_target }}/{{ item.0.component }}/files/{{ item.1.dest }}"
+      loop: "{{ files | subelements('list') }}"
+      loop_control:
+        label: "{{ item.0.component }}, {{ item.1.url }}"
+
+
+    - name: AccuInsight+ Collector | Synchronize Files
+      synchronize:
+        mode: pull
+        src: "{{ accu_collector_target }}/{{ item.component }}/files"
+        dest: "{{ accu_offline_source }}/{{ item.component }}"
+        checksum: yes 
+        delete: yes 
+      loop: "{{ files }}"
+      loop_control:
+        label: "{{ item.component }}"
+
+

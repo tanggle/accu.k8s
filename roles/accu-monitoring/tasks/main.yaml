@@ -1,0 +1,83 @@
+---
+# SOURCE: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+
+- name: AccuInsight+ Monitoring | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ item }}"
+  loop:
+    - '{{ accu_monitoring_prometheus_fqdn }}'
+    - '{{ accu_monitoring_grafana_fqdn }}'
+
+
+- name: AccuInsight+ Storage Ceph | Add Chart Repository 'prometheus-community'
+  when:
+    - not accu_offline_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  helm_repository:
+    name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+    state: present
+  no_log: true
+
+
+- name: AccuInsight+ Storage Ceph | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                                     %}
+      {{ accu_offline_target }}/{{ component }}/charts/kube-prometheus-stack-{{ accu_monitoring_version }}.tgz
+      {% else                                                                                               %}
+      prometheus-community/kube-prometheus-stack
+      {% endif                                                                                              %}
+  run_once: yes
+
+
+- name: AccuInsight+ Monitoring | Deploy {{ accu_monitoring_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: accu-monitor
+    version: "{{ accu_monitoring_version }}"
+    namespace: "{{ accu_monitoring_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_monitoring_release }}'
+      - '--set kubeEtcd.service.port=2381'
+      - '--set kubeEtcd.service.targetPort=2381'
+      - '--set kubeControllerManager.serviceMonitor.https=true'
+      - '--set kubeControllerManager.serviceMonitor.insecureSkipVerify=true'
+      - '--set kubeControllerManager.service.port=10257'
+      - '--set kubeControllerManager.service.targetPort=10257'
+      - '--set kubeScheduler.serviceMonitor.https=true'
+      - '--set kubeScheduler.serviceMonitor.insecureSkipVerify=true'
+      - '--set kubeScheduler.service.port=10259'
+      - '--set kubeScheduler.service.targetPort=10259'
+      - '--set prometheus.prometheusSpec.retention=4w'
+      - '--set prometheus.ingress.enabled=true'
+      - '--set prometheus.ingress.hosts[0]={{ accu_monitoring_prometheus_fqdn }}'
+      - '--set grafana.adminPassword={{ accu_monitoring_grafana_pass }}'
+      - '--set grafana.plugins[0]=grafana-piechart-panel'
+      - '--set grafana.persistence.enabled=true'
+      - '--set grafana.persistence.size={{ accu_monitoring_grafana_storage_size }}'
+      - '--set grafana.persistence.storageClassName={{ accu_monitoring_grafana_storage_class }}'
+      - '--set grafana.defaultDashboardsEnabled=true'
+      - '--set grafana.initChownData.enabled=false'
+      - '--set grafana.ingress.enabled=true'
+      - '--set grafana.ingress.hosts[0]={{ accu_monitoring_grafana_fqdn }}'
+  run_once: yes
+
+# TODO: piechart should be installed manually in air-gapped env.
+# http://accupm.accuinsight.io/plugins/grafana-piechart-panel/
+# https://grafana.com/api/plugins/grafana-piechart-panel/versions/1.6.1/download
+# https://github.com/grafana/piechart-panel/releases/download/v1.6.1/grafana-piechart-panel-1.6.1.zip

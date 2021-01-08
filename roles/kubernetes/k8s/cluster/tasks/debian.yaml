@@ -1,0 +1,70 @@
+---
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Kubernetes' (Repository KEY)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Kubernetes' (Repository URL)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    filename: AccuInsight-Kubernetes
+    state: present
+    mode: '0644'
+    update_cache: yes
+
+
+- name: AccuInsight+ Kubernetes | Set Package Repository 'Kubernetes' (Repository Preferences)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes 
+  copy:
+    dest: /etc/apt/preferences.d/AccuInsight-Kubernetes
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Set package candiate version to 'kube_version' defined in accuinsight.yaml
+      Package: kubeadm kubelet kubectl
+      Pin: version {{ kube_version }}* 
+      Pin-Priority: 1001
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+- name: AccuInsight+ Kubernetes | Install Kubernetes '{{ kube_version }}'
+  become: yes
+  apt:
+    name:
+      - 'kubelet'
+      - 'kubeadm'
+      - 'kubectl'
+      - 'cri-tools'
+#     - 'kubelet={{ kube_version }}-00'
+#     - 'kubeadm={{ kube_version }}-00'
+#     - 'kubectl={{ kube_version }}-00'
+#     - 'cri-tools'
+    state: present
+    force: yes
+    update_cache: yes
+  notify:
+    - Kubelet | Restart
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+- name: AccuInsight+ Kubernetes | Mark packages as held back for Kubernetes
+  become: yes 
+  command: apt-mark hold kubeadm kubectl kubelet
+
+

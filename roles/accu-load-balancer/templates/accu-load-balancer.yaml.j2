@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: accu-load-balancer
+  namespace: {{ accu_load_balancer_namespace }}
+  labels:
+    app: accu-load-balancer
+spec:
+  containers:
+  - image: haproxy:2.2.5
+    name: haproxy
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: localhost
+        path: /healthz
+        port: {{ ext_lb_port }}
+        scheme: HTTPS
+    volumeMounts:
+    - mountPath: /usr/local/etc/haproxy/haproxy.cfg
+      name: config
+      readOnly: true
+  hostNetwork: true
+  volumes:
+  - hostPath:
+      path: {{ accu_load_balancer_config_location }}/accu-load-balancer.conf
+      type: FileOrCreate
+    name: config
+status: {}

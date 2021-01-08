@@ -1,0 +1,7 @@
+---
+
+dependencies:
+
+  - { role: accu-common/default, component: accu-chartmuseum }
+  - { role: accu-common/offline, when: accu_offline_enabled }
+

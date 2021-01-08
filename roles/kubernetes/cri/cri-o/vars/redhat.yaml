@@ -1,0 +1,25 @@
+---
+# CRI-O compatiblity matrix for Kubernetes
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cri-o
+# The CRI-O major and minor versions must match the Kubernetes major and minor versions.
+# https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes
+
+
+# The recommended cri-o version will be selected automatically if 'kube_cri_version' is not defined.
+crio_matrix: # crio_matrix['kube_version']
+  "1.13": 1.13
+  "1.14": 1.14
+  "1.15": 1.15
+  "1.16": 1.16
+  "1.17": 1.17
+  "1.18": 1.18
+  "1.19": 1.19
+
+
+crio_version: "{{ lookup('vars', 'kube_cri_version') | default(crio_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
+
+
+# Use 'yum search cri-o --showduplicates' command for checking available packages in docker repository.
+crio_pkg_version: "{{ crio_version }}"
+
+crio_os: "CentOS_{{ ansible_distribution_major_version }}"

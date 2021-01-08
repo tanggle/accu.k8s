@@ -1,0 +1,63 @@
+---
+
+# DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages
+#       https://docs.ceph.com/en/latest/install/get-packages/#add-keys
+- name: AccuInsight+ Storage Ceph | Add Package Repository 'Ceph' (Repository KEY)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_key:
+    url: https://download.ceph.com/keys/release.asc
+    state: present
+
+
+# DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages
+- name: AccuInsight+ Storage Ceph | Add Package Repository 'Ceph' (Repository URL)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_repository:
+    repo: "deb https://download.ceph.com/debian-{{ accu_ceph_image_version }}/ {{ ansible_distribution_release }} main"
+    filename: AccuInsight-Ceph
+    state: present
+    mode: '0644'
+    update_cache: yes
+
+
+- name: AccuInsight+ Storage Ceph | Set Package Repository 'Ceph' (Repository Preferences)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  copy:
+    dest: /etc/apt/preferences.d/AccuInsight-Ceph
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # for Priority of Ceph Official Repository
+      Package: *
+      Pin: release o=ceph.com
+      Pin-Priority: 1001
+
+
+# DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages
+- name: AccuInsight+ Storage Ceph | Install Ceph common utilities for '{{ accu_ceph_image_version }}'
+  become: yes
+  apt:
+    name:
+      - 'ceph-common'
+      - 'lvm2'
+    state: present
+    force: yes
+    update_cache: yes
+
+
+# DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages
+- name: AccuInsight+ Storage Ceph | Mark packages as held back for Ceph
+  become: yes
+  command: apt-mark hold ceph-common
+
+

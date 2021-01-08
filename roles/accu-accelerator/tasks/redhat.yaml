@@ -1,0 +1,91 @@
+---
+
+- name: AccuInsight+ GPU Accelerator | Upgrade Kernel to the latest version
+  become: yes
+  yum:
+    name: kernel
+    state: latest
+  notify:
+    - OS | Reboot
+
+
+- name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
+  meta: flush_handlers
+
+
+- name: AccuInsight+ GPU Accelerator | Add Package Repository 'NVIDIA'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes 
+  shell: |
+      # for more details, refer to https://nvidia.github.io/nvidia-docker/
+      # Supported distributions are CentOS 7/8, RHEL 7.4/7.5/7.6/7.7/8.0/8.1/8.2.
+      # All of RHEL-based distributions are using 'centos7' as a distribution id.
+      # NOTE: distribution id problem was fixed (2020.08.25)
+
+      DIST=$(. /etc/os-release; echo $ID$VERSION_ID)
+      # DIST="centos7"
+
+      curl -s -L https://nvidia.github.io/nvidia-docker/$DIST/nvidia-docker.repo | tee /etc/yum.repos.d/AccuInsight-NVIDIA.repo
+  args:
+    executable: /bin/bash
+
+
+- name: AccuInsight+ GPU Accelerator | Set module_hotfixes to 'True' for NVIDIA repository
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version | int == 8
+  become: yes 
+  ini_file:
+    path: /etc/yum.repos.d/AccuInsight-NVIDIA.repo
+    state: present
+    section: "{{ item }}"
+    option: module_hotfixes
+    value: "True"
+  loop:
+    - nvidia-docker
+    - nvidia-container-runtime
+    - libnvidia-container
+
+
+- name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
+  when:
+    - kube_cri == 'docker'
+  become: yes
+  yum:
+    name:
+      # Use nvidia-container-runtime instead of nvidia-docker2.
+      # nvidia-docker2 makes hard to handle docker daemon.json in ansible level.
+      # https://github.com/nvidia/nvidia-container-runtime#installation
+#     - 'nvidia-docker2'
+#     - 'nvidia-container-runtime-3.3.0'
+      - 'nvidia-container-runtime'
+      - 'kernel-devel'
+#      - 'kernel-devel-{{ ansible_kernel }}'
+      - 'elfutils-libelf-devel'
+      - 'gcc'
+      - 'make'
+#     - '@Development tools'
+    state: latest
+
+
+- name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
+  when:
+    - kube_cri == 'cri-o'
+  become: yes
+  yum:
+    name:
+      # cri-o uses standard oci hook for device access.
+      # use nvidia-container-toolkit instead of nvidia-container-runtime.
+      # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
+      - 'nvidia-container-toolkit'
+      - 'kernel-devel'
+      - 'elfutils-libelf-devel'
+      - 'gcc'
+      - 'make'
+    state: latest
+
+

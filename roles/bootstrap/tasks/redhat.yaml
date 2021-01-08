@@ -1,0 +1,53 @@
+---
+
+- name: AccuInsight+ OS Default Settings | Put SELinux in permissive mode
+  become: yes
+  selinux:
+    policy: targeted
+    state: permissive
+
+
+- name: AccuInsight+ OS Default Settings | Update OS to the latest version
+  when: os_update
+  become: yes
+  yum:
+    name: '*'
+    state: latest
+  notify: OS | Reboot
+
+
+#- name: AccuInsight+ OS Default Settings | Install Requirements
+#  become: yes 
+#  yum:
+#    name:
+#      - 'lvm2'
+#    state: present
+#    update_cache: yes
+
+
+# Rarely, some AWS EC2 fail to lookup ip address for OS repository, it looks like a network bug in AWS.
+#- name: AccuInsight+ OS Default Settings | Fix AWS EC2 DNS issue which fails to lookup OS repository
+#  when:
+#    - ansible_system_vendor == 'Amazon EC2'
+#    - ansible_distribution == 'RedHat'
+#  become: yes
+#  lineinfile:
+#    dest: /etc/hosts
+#    insertafter: EOF
+#    state: present
+#    line: "13.125.22.170 rhui3.ap-northeast-2.aws.ce.redhat.com"
+
+
+# Rarely, some AWS EC2 fail to lookup ip address for OS repository, it looks like a network bug in AWS.
+#- name: AccuInsight+ OS Default Settings | Fix AWS EC2 DNS issue which fails to lookup OS repository
+#  when:
+#    - ansible_system_vendor == 'Amazon EC2'
+#    - ansible_distribution == 'CentOS'
+#  become: yes
+#  lineinfile:
+#    dest: /etc/hosts
+#    insertafter: EOF
+#    state: present
+#    line: "160.116.15.18 mirror.centos.org"
+
+

@@ -1,0 +1,20 @@
+---
+
+- name: CRI | Docker | Restart
+  become: yes
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+# TODO: using 'crictl images' instead of 'docker images'.
+- name: CRI | Docker | Wait for Ready
+  become: yes
+  command: docker images
+  register: result
+  until: result is succeeded
+  retries: 10
+  delay: 5
+
+

@@ -1,0 +1,84 @@
+---
+
+kernel_version: "{{ ansible_kernel }}" # NOTE: Replace this with customer's kernel version (uname -a)
+
+# DOCS: roles/kubernetes/cri/docker/vars/redhat.yaml
+docker_matrix:
+  "1.17": 19.03.4
+  "1.18": 19.03.11
+  "1.19": 19.03.14
+
+docker_version: "{{ lookup('vars', 'kube_cri_version') | default(docker_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
+
+# DOCS: roles/kubernetes/cri/cri-o/vars/redhat.yaml
+crio_matrix:
+  "1.13": 1.13
+  "1.14": 1.14
+  "1.15": 1.15
+  "1.16": 1.16
+  "1.17": 1.17
+  "1.18": 1.18
+  "1.19": 1.19
+
+crio_version: "{{ lookup('vars', 'kube_cri_version') | default(crio_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
+
+
+repos:
+  - name: Kubernetes
+    url: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+    key: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+  - name: Docker
+    url: https://download.docker.com/linux/centos/7/$basearch/stable
+    key: https://download.docker.com/linux/centos/gpg
+  - name: OCI
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/"
+    key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/repodata/repomd.xml.key"
+  - name: "CRI-O-{{ crio_version }}"
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/CentOS_{{ ansible_distribution_major_version }}/"
+    key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/CentOS_{{ ansible_distribution_major_version }}/repodata/repomd.xml.key"
+  - name: Ceph
+    url: "https://download.ceph.com/rpm-{{ accu_ceph_image_version }}/el{{ ansible_distribution_major_version }}/$basearch"
+    key: https://download.ceph.com/keys/release.asc
+
+pkgs:
+  core: >
+        [
+          "kubeadm-{{ kube_version }} kubelet-{{ kube_version }} kubectl-{{ kube_version }}",
+          {#% if kube_cri == 'containerd' %#}
+          "containerd.io",
+          {#% endif                       %#}
+          {#% if kube_cri == 'cri-o'      %#}
+          "cri-o podman",
+          {#% endif                       %#}
+          {#% if kube_cri == 'docker'     %#}
+          "docker-ce-{{ docker_version }} docker-ce-cli-{{ docker_version }}",
+          {#% endif                       %#}
+        ]
+  reqs:
+    # for kubernetes
+    - 'skopeo'
+    # for accu-accelerator (kernel)
+    - 'kernel kernel-devel kernel-tools kernel-tools-libs kernel-headers'
+    - 'elfutils-libelf-devel'
+    - 'gcc'
+    - 'make'
+    # for accu-accelerator (nvidia)
+    - 'nvidia-container-toolkit'
+    - 'nvidia-container-runtime'
+    # for accu-nfs-server and accu-nfs-provisioner
+    - 'nfs-utils'
+    # for accu-repository-server
+    - 'httpd'
+    - 'createrepo_c'
+    # for accu-rook-ceph
+    - 'ceph-common'
+    - 'lvm2'
+    # for accu-tools
+    - 'bash-completion'
+    # for containerd and docker
+    # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
+    # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
+    - 'yum-utils'
+    - 'device-mapper-persistent-data'
+    - 'lvm2'
+

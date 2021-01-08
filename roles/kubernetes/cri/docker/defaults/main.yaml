@@ -1,0 +1,7 @@
+---
+
+cri_insecure_registries:
+  - "{{ accu_registry_fqdn }}"
+
+cri_cgroup_driver: systemd
+

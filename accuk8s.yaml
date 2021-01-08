@@ -1,0 +1,133 @@
+---
+
+- name: AccuInsight+ OS Default Settings
+  hosts: kube-cluster,accu-server
+  gather_facts: true
+  become: yes
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: bootstrap }
+
+
+# TODO: This should be the first play.
+# AccuInsight+ OS Package Repository
+- import_playbook: plays/accu-package-repository.yaml
+  when: accu_offline_enabled or accu_package_repository_enabled
+
+
+# AccuInsight+ NFS server
+- import_playbook: plays/accu-nfs-server.yaml
+  when: accu_nfs_server_enabled
+
+
+- name: AccuInsight+ Kubernetes (kube-cluster)
+  hosts: kube-cluster
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: false
+  roles:
+    - { role: kubernetes/k8s/cluster }
+    - { role: kubernetes/cri }
+
+
+# AccuInsight+ Load Balancer
+- import_playbook: plays/accu-load-balancer.yaml
+  when: accu_load_balancer_enabled
+
+
+- name: AccuInsight+ Kubernetes (kube-master)
+  hosts: kube-master
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: false
+  roles:
+    - { role: kubernetes/k8s/master }
+    - { role: kubernetes/cni/calico }
+
+
+- name: AccuInsight+ Kubernetes (kube-worker)
+  hosts: kube-worker
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: false
+  roles:
+    - { role: kubernetes/k8s/worker }
+    
+
+- name: AccuInsight+ Kubernetes (Labeling and Tainting)
+  hosts: kube-master
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: false
+  roles:
+    - { role: kubernetes/set }
+
+
+# AccuInsight+ K8S Tools
+- import_playbook: plays/accu-tools.yaml
+  when: accu_tools_enabled
+
+
+# AccuInsight+ Helm
+- import_playbook: plays/accu-helm.yaml
+  when: accu_helm_enabled
+
+
+- import_playbook: plays/accu-helm-operator.yaml
+  when: accu_helm_operator_enabled
+
+
+# AccuInsight+ Ingress Controller
+- import_playbook: plays/accu-ingress-controller.yaml
+  when: accu_ingress_controller_enabled
+
+
+# AccuInsight+ Rook Ceph
+- import_playbook: plays/accu-rook-ceph.yaml
+  when: accu_rook_ceph_enabled
+
+
+# AccuInsight+ NFS provisioner
+- import_playbook: plays/accu-nfs-provisioner.yaml
+  when: accu_nfs_provisioner_enabled
+
+
+# AccuInsight+ Harbor
+- import_playbook: plays/accu-harbor.yaml
+  when: accu_harbor_enabled
+
+
+# AccuInsight+ Docker Registry
+- import_playbook: plays/accu-registry.yaml
+  when: accu_registry_enabled
+
+
+# AccuInsight+ Chartmuseum
+- import_playbook: plays/accu-chartmuseum.yaml
+  when: accu_chartmuseum_enabled
+
+
+# AccuInsight+ Metrics Server
+- import_playbook: plays/accu-metrics-server.yaml
+  when: accu_metrics_server_enabled
+
+
+# AccuInsight+ Prometheus
+- import_playbook: plays/accu-monitoring.yaml
+  when: accu_monitoring_enabled
+
+
+# AccuInsight+ EFK
+#- import_playbook: plays/accu-logging.yaml
+#  when: accu_logging_enabled
+
+
+# AccuInsight+ GPU accelerator
+- import_playbook: plays/accu-accelerator.yaml
+  when: accu_accelerator_enabled
+
+# AccuInsight+ Service Prepare
+#- import_playbook: plays/accu-service.yaml
+
+
+# AccuInsight+ Applicaiton
+#- import_playbook: plays/accu-app-install.yaml
+#  when: accu_app_install_enabled
+
+

@@ -1,0 +1,91 @@
+---
+
+#- name: AccuInsight+ Service | Prepare AccuInsight+ service (images & charts)
+#  become: yes
+#  copy:
+#    src: "{{ accu_service_source }}/{{ item }}"
+#    dest: "{{ accu_service_target }}"
+#    force: no
+#  with_items:
+#    - charts
+#    - images
+
+
+- name: AccuInsight+ Service | Create directories for AccuInsight+ service
+  become: yes 
+  file:
+    path: "{{ accu_service_target }}/{{ item.path }}"
+    state: directory
+    mode: '0755'
+    recurse: true
+  with_items:
+    - { path: 'charts' }
+    - { path: 'files' }
+    - { path: 'images' }
+
+
+- name: AccuInsight+ Service | Synchronize AccuInsight+ service (images & charts)
+  become: yes 
+  synchronize:
+    src: "{{ accu_service_source }}/{{ item.path }}/"
+    dest: "{{ accu_service_target }}/{{ item.path }}/"
+    checksum: yes 
+    delete: yes 
+  with_items:
+    - { path: 'charts' }
+    - { path: 'images' }
+  run_once: yes
+
+
+- name: AccuInsight+ Service | Import AccuInsight+ service charts
+  become: yes 
+  shell: |
+      shopt -s nullglob
+      for CHART in {{ accu_service_target }}/charts/*.tgz
+      do
+          {{ helm }} push ${CHART} {{ accu_chartmuseum_name }} --force
+      done
+      {{ helm }} repo update
+  args:
+    executable: /bin/bash
+  run_once: yes
+
+
+- name: AccuInsight+ Service | Import AccuInsight+ service images (load)
+  become: yes 
+  shell: |
+      shopt -s nullglob
+      for IMAGE in {{ accu_service_target }}/images/*.tar.gz
+      do
+          docker load -i ${IMAGE}
+      done
+  args:
+    executable: /bin/bash
+  run_once: yes
+
+#- name: AccuInsight+ Service | Import AccuInsight+ service images (tag)
+#  become: yes 
+#  shell: |
+#      do something to tag (need some considereations for offline environment)
+#  args:
+#    executable: /bin/bash
+
+# TODO: have to use 'crictl images' instead of 'docker images'
+
+- name: AccuInsight+ Service | Import AccuInsight+ service images (push)
+  become: yes 
+  shell: |
+      IMAGES=$(docker images \
+             | grep "{{ accu_registry_fqdn }}" \
+             | awk '{print $1":"$2}'
+      )
+
+      for IMAGE in ${IMAGES[@]}
+      do  
+          docker push ${IMAGE}
+      done
+  args:
+    executable: /bin/bash
+  run_once: yes
+
+

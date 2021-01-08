@@ -1,0 +1,11 @@
+---
+# Playbook for AccuInsight+ Service
+
+- name: Prepare for AccuInsight+ Service (images & charts)
+  hosts: kube-master
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: false
+  roles:
+    - role: accu-service/master
+
+

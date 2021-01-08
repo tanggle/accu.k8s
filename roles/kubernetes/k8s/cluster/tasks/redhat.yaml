@@ -1,0 +1,52 @@
+---
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Kubernetes'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes 
+  yum_repository:
+    description: Official Kubernetes
+    name: AccuInsight-Kubernetes
+    state: present
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    enabled: yes 
+    gpgcheck: yes 
+    #repo_gpgcheck: yes
+    exclude: kubelet kubeadm kubectl
+
+
+- name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for Kubernetes repository
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version | int == 8
+  become: yes 
+  ini_file:
+    path: /etc/yum.repos.d/AccuInsight-Kubernetes.repo
+    state: present
+    section: AccuInsight-Kubernetes
+    option: module_hotfixes
+    value: "True"
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+- name: AccuInsight+ Kubernetes | Install Kubernetes '{{ kube_version }}'
+  become: yes 
+  yum:
+    name:
+      - 'kubelet-{{ kube_version }}'
+      - 'kubeadm-{{ kube_version }}'
+      - 'kubectl-{{ kube_version }}'
+      - 'cri-tools'
+    state: present
+#    allow_downgrade: yes
+    disable_excludes: AccuInsight-Kubernetes
+    update_cache: yes
+  notify:
+    - Kubelet | Restart
+
+

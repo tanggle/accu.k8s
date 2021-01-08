@@ -1,0 +1,140 @@
+---
+# all variables starting with 'accu.*" are defined in vars/ directory.
+# all variables starting with 'accu_*" are defined in inventory/accuinsight/groups/all/accuinsight.yaml file.
+
+- name: AccuInsight+ Package Repository | Configure Repository for Server
+  when:
+    - accu_package_repository_enabled or accu_offline_enabled
+    - inventory_hostname in groups['accu-pkg-server']
+  become: yes
+  block:
+
+    - name: AccuInsight+ Package Repository | Create directories for {{ accu.os.distro }} {{ accu.os.version }}
+      file:
+        path: "{{ accu_package_repository_path }}/accuinsight"
+        state: directory
+        mode: '0755'
+
+
+    - name: AccuInsight+ Package Repository | Synchronize packages 
+      synchronize:
+        src: "{{ accu_offline_target }}/{{ component }}/files/{{ accu.os.distro }}-{{ accu.os.version }}/"
+        dest: "{{ accu_package_repository_path }}/"
+        checksum: yes
+        delete: yes
+      delegate_to: "{{ inventory_hostname }}"
+
+
+    - name: AccuInsight+ Package Repository | Install web-frontend (Apache)
+      shell: |
+        # Change directory
+        cd {{ accu_package_repository_path }}/accuinsight
+
+        # Install rpm with dependancies.
+        # Always return true even if the package is already installed.
+        # https://docs.ansible.com/ansible/latest/user_guide/playbooks_error_handling.html#ensuring-success-for-command-and-shell
+        yum install -y {{ accu.apache.pkgs | join(' ') }} || /bin/true
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+#    - name: AccuInsight+ Package Repository | Install web-frontend (Apache)
+#      yum:
+#        name: "{{ accu.apache.pkgs }}"
+#        state: present
+#        disable_gpg_check: yes
+
+
+    - name: AccuInsight+ Package Repository | Configure web-frontend (path)
+      file:
+        src: "{{ accu_package_repository_path }}/accuinsight"
+        dest: /var/www/html/accuinsight
+        state: link
+
+
+    - name: AccuInsight+ Package Repository | Configure web-frontend (port)
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^Listen '
+        insertafter: '^#Listen '
+        line: "Listen {{ accu_package_repository_port }}"
+      notify:
+        - Package Repository | Restart
+
+
+    - name: AccuInsight+ Package Repository | Install metadata tool (createrepo)
+      shell: |
+        # Change directory
+        cd {{ accu_package_repository_path }}/accuinsight
+
+        # Install rpm with dependancies.
+        # Always return true even if the package is already installed.
+        # https://docs.ansible.com/ansible/latest/user_guide/playbooks_error_handling.html#ensuring-success-for-command-and-shell
+        yum install -y {{ accu.createrepo.pkgs | join(' ') }} || /bin/true
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+#    - name: AccuInsight+ Package Repository | Install metadata tool (createrepo)
+#      yum:
+#        name: "{{ accu.createrepo.pkgs }}"
+#        state: present
+#        disable_gpg_check: yes
+
+
+    - name: AccuInsight+ Package Repository | Generate createrepo metadata
+      command:
+        cmd: "createrepo_c {{ accu_package_repository_path }}/accuinsight"
+
+
+
+- name: AccuInsight+ Package Repository | Configure Repository for Client
+  when:
+    - accu_package_repository_enabled or accu_offline_enabled
+  become: yes
+  block:
+
+    - name: AccuInsight+ Package Repository | Clean up repository cache
+      command: yum clean all
+      args:
+        warn: no
+
+
+    - name: AccuInsight+ Package Repository | Enable AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }}
+      yum_repository:
+        name: "{{ item.name }}"
+        description: "{{ item.desc }}"
+        file: "{{ item.file }}"
+        baseurl: "{{ item.base }}"
+        gpgcheck: no
+        enabled: yes
+      loop: "{{ accu.repo }}"
+      loop_control:
+        label: "{{ item.desc }}, {{ item.base }}"
+
+
+    - name: AccuInsight+ Package Repository | Set module_hotfixes to 'True' for AccuInsight+ repository
+      when:
+        - ansible_distribution_major_version | int == 8
+      ini_file:
+        path: "/etc/yum.repos.d/{{ item.file }}.repo"
+        state: present
+        section: "{{ item.name }}"
+        option: module_hotfixes
+        value: "True"
+      loop: "{{ accu.repo }}"
+      loop_control:
+        label: "{{ item.desc }}"
+
+    #- name: AccuInsight+ Package Repository | Enable fastestmirror plugin
+    #  become: yes
+    #  ini_file:
+    #    path: /etc/yum/pluginconf.d/fastestmirror.conf
+    #    section: main
+    #    option: enabled
+    #    value: "1"
+    #    no_extra_spaces: yes
+
+

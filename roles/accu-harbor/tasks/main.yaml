@@ -1,0 +1,89 @@
+---
+
+- name: AccuInsight+ Image Registry | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ item }}"
+  loop:
+    - '{{ accu_harbor_fqdn_core }}'
+    - '{{ accu_harbor_fqdn_notary }}'
+
+
+- name: AccuInsight+ Harbor | Add Chart Repository 'harbor'
+  when:
+    - not accu_offline_enabled
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_repository:
+    name: harbor
+    url: https://helm.goharbor.io
+    state: present
+  no_log: true
+
+
+- name: AccuInsight+ Harbor | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                  %}
+      {{ accu_offline_target }}/{{ component }}/charts/harbor-{{ accu_harbor_version }}.tgz
+      {% else                                                                            %}
+      harbor/harbor
+      {% endif                                                                           %}
+  run_once: yes
+
+
+# READ: https://github.com/goharbor/harbor-helm#configuration
+- name: AccuInsight+ Harbor | Deploy {{ accu_harbor_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_harbor_release }}"
+    version: "{{ accu_harbor_version }}"
+    namespace: "{{ accu_harbor_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_harbor_release }}'
+      - '--set logLevel=info'
+      - '--set expose.type=ingress'
+      - '--set expose.tls.enabled=false'
+      - '--set expose.ingress.hosts.core={{ accu_harbor_fqdn_core }}'
+      #- '--set expose.ingress.hosts.notary={{ accu_harbor_fqdn_notary }}'
+      - '--set persistence.enabled=true'
+      - '--set persistence.resourcePolicy='
+      - '--set persistence.persistentVolumeClaim.registry.storageClass={{ accu_harbor_registry_storage_class }}'
+      - '--set persistence.persistentVolumeClaim.registry.size={{ accu_harbor_registry_storage_size }}'
+      - '--set persistence.persistentVolumeClaim.chartmuseum.storageClass={{ accu_harbor_chartmuseum_storage_class }}'
+      - '--set persistence.persistentVolumeClaim.chartmuseum.size={{ accu_harbor_chartmuseum_storage_size }}'
+      - '--set persistence.persistentVolumeClaim.jobservice.storageClass={{ accu_harbor_jobservice_storage_class }}'
+      - '--set persistence.persistentVolumeClaim.jobservice.size={{ accu_harbor_jobservice_storage_size }}'
+      - '--set persistence.persistentVolumeClaim.database.storageClass={{ accu_harbor_database_storage_class }}'
+      - '--set persistence.persistentVolumeClaim.database.size={{ accu_harbor_database_storage_size }}'
+      - '--set persistence.persistentVolumeClaim.redis.storageClass={{ accu_harbor_redis_storage_class }}'
+      - '--set persistence.persistentVolumeClaim.redis.size={{ accu_harbor_redis_storage_size }}'
+      - '--set persistence.persistentVolumeClaim.trivy.storageClass={{ accu_harbor_trivy_storage_class }}'
+      - '--set persistence.persistentVolumeClaim.trivy.size={{ accu_harbor_trivy_storage_size }}'
+      - '--set persistence.imageChartStorage.type=filesystem'
+      - '--set externalURL=https://{{ accu_harbor_fqdn_core }}'
+      - '--set harborAdminPassword={{ accu_harbor_pass }}'
+      - '--set secretkey=secure-key'
+      - '--set chartmuseum.enabled=true'
+      - '--set clair.enabled=false'
+      #- '--set notary.enabled=true'
+      - '--set notary.enabled=false'
+      #- '--set trivy.enabled=true'
+      - '--set trivy.enabled=false'
+      - '--set database.type=internal'
+      - '--set redis.type=internal'
+  run_once: yes
+
+

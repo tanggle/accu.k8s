@@ -1,0 +1,19 @@
+---
+
+cni_calico_version: 3.17.1
+
+# Configure the MTU to use for workload interfaces and tunnels.
+# By default, MTU is auto-detected, and explicitly setting this field should not be required.
+# You can override auto-detection by providing a non-zero value.
+# Refer to the following link for recommended mtu based on platform.
+# https://docs.projectcalico.org/networking/mtu
+cni_calico_mtu: 0
+
+# Choose Calico iptables backend: "Legacy", "Auto" or "NFT"
+# If iptables >= 1.8, Auto or NFT should be set.
+cni_calico_iptablesbackend: Auto
+
+# Deploy calicoctl using Kubernetes API datastore.
+cni_calico_calicoctl: true
+
+

@@ -1,0 +1,22 @@
+---
+
+- name: Print inventory hostname
+  debug:
+    msg: "{{ inventory_hostname }}"
+
+
+- name: Set chart location
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                            %}
+      {{ accu_offline_target }}/charts/{{ component }}/chartmuseum-{{ accu_chartmuseum_version }}.tgz
+      {% else                                                                                      %}
+      stable/chartmuseum
+      {% endif                                                                                     %}
+
+
+- name: Print chart location
+  debug:
+    msg: "{{ chartname }}"
+
+

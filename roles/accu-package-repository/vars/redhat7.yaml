@@ -1,0 +1,41 @@
+---
+
+accu:
+
+  os:
+    distro: "{{ ansible_distribution | lower }}"
+    version: "{{ ansible_distribution_version }}"
+
+  apache:
+    name: httpd
+    pkgs:
+      - 'httpd-*'
+      - 'httpd-tools-*'
+      - 'apr-*'
+      - 'apr-util-*'
+      - 'mailcap-*'
+      - 'redhat-logos-*'
+
+#    pkgs:
+#      - "{{ accu_package_repository_path }}/accuinsight/httpd-2.4.6-97.el7_9.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/httpd-tools-2.4.6-97.el7_9.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/apr-1.4.8-7.el7.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/apr-util-1.5.2-6.el7.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/mailcap-2.1.41-2.el7.noarch.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/redhat-logos-70.7.0-1.el7.noarch.rpm"
+
+  createrepo:
+    pkgs:
+      - 'createrepo_c-*'
+      - 'createrepo_c-libs-*'
+
+#    pkgs:
+#      - "{{ accu_package_repository_path }}/accuinsight/createrepo_c-0.10.0-20.el7.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/createrepo_c-libs-0.10.0-20.el7.x86_64.rpm"
+
+  repo:
+  - name: AccuInsight
+    file: AccuInsight
+    desc: AccuInsight+ Repository - {{ ansible_distribution }} {{ ansible_distribution_version }}
+    base: "{% for host in groups['accu-pkg-server'] %}http://{{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ accu_package_repository_port }}/accuinsight {% endfor %}"
+

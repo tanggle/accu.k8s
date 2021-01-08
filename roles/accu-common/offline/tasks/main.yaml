@@ -1,0 +1,155 @@
+---
+# - { role: accu-common/offline, when: accu_offline_enabled }
+
+
+#- name: Debug 'dirs'
+#  debug:
+#    msg: "{{ dirs }}"
+#  run_once: true
+
+
+- name: AccuInsight+ Offline | Analyze offline materials (types)
+  shell: |
+    ls -l {{ accu_offline_source }}/{{ component }} | grep ^d | awk '{ print $NF }'
+  args:
+    executable: /bin/bash
+  delegate_to: localhost
+  run_once: true
+  register: type
+
+
+#- name: Debug 'type'
+#  debug:
+#    msg: "{{ type }}"
+#  run_once: true
+
+
+- name: AccuInsight+ Offline | Analyze offline materials (destinations)
+  shell: |
+    ls -l {{ accu_offline_source }}/{{ component }}/{{ item }} | grep ^d | awk '{ print $NF }'
+  args:
+    executable: /bin/bash
+  loop: "{{ type.stdout_lines }}"
+  delegate_to: localhost
+  run_once: true
+  register: dest
+
+
+#- name: Debug 'dest'
+#  debug:
+#    msg: "{{ dest }}"
+#  run_once: true
+
+
+- name: AccuInsight+ Offline | Generate offline materials structure
+  set_fact:
+    dirs: |
+      [
+      {# Generate materials' structure from dest register #}
+      {% set ns = namespace(valid=false)                  %}
+      {% for type in dest.results                         %}
+      {%   for dest in type.stdout_lines                  %}
+      {%     if dest in groups                            %}
+      {%       set ns.valid = true                        %}
+      {%     endif                                        %}
+      {%   endfor                                         %}
+      {%   if ns.valid                                    %}
+        {
+          "type": "{{ type.item }}",
+          "dest": [
+      {%     for dest in type.stdout_lines                %}
+      {%       if dest in groups                          %}
+            "{{ dest }}",
+      {%       endif                                      %}
+      {%     endfor                                       %}
+          ]
+      {%   endif                                          %}
+        },
+      {% endfor                                           %}
+      ]
+
+
+- name: Debug 'dirs'
+  debug:
+    msg: "{{ dirs }}"
+  run_once: true
+
+
+- name: AccuInsight+ Offline | Prepare offline materials (directory)
+  when:
+    - inventory_hostname in groups[item.1]
+  become: yes
+  file:
+    path: "{{ accu_offline_target }}/{{ component }}/{{ item.0.type }}"
+    mode: '0755'
+    state: directory
+    recurse: yes
+  loop: "{{ dirs | subelements('dest') }}"
+  loop_control:
+    label: "{{ item.0.type }}, {{ item.1 }}'"
+
+
+- name: AccuInsight+ Offline | Synchronize offline materials ({{ component }})
+  when:
+    - inventory_hostname in groups[item.1]
+  become: yes
+  synchronize:
+    src: "{{ accu_offline_source }}/{{ component }}/{{ item.0.type }}/{{ item.1 }}/"
+    dest: "{{ accu_offline_target }}/{{ component }}/{{ item.0.type }}/"
+    checksum: yes
+#    delete: yes
+  loop: "{{ dirs | subelements('dest') }}"
+  loop_control:
+    label: "{{ item.0.type }}, {{ item.1 }}'"
+
+
+- name: AccuInsight+ Offline | Preload offline images ({{ component }})
+  when:
+    - accu_offline_enabled
+    - item.0.type == 'images'
+    - inventory_hostname in groups[item.1]
+  become: yes
+  shell: |
+    if [ "{{ kube_cri }}" == "docker" ]
+    then
+        LOAD="docker load -i"
+    fi
+
+    if [ "{{ kube_cri }}" == "cri-o" ]
+    then
+        LOAD="podman load -i"
+    fi
+
+    if [ "{{ kube_cri }}" == "containerd" ]
+    then
+        LOAD="ctr image import"
+    fi
+
+    shopt -s nullglob
+
+    for IMAGE in {{ accu_offline_target }}/{{ component }}/{{ item.0.type }}/*.tar.gz
+    do
+        ${LOAD} ${IMAGE}
+    done
+  args:
+    executable: /bin/bash
+  loop: "{{ dirs | subelements('dest') }}"
+  loop_control:
+    label: "{{ item.0.type }}, {{ item.1 }}'"
+
+
+# - name: AccuInsight+ Offline | Push charts to '{{ accu_chartmuseum_fqdn }}'
+#   when:
+#     - inventory_hostname in groups[item]
+#   shell: |
+#     shopt -s nullglob
+#     for CHART in {{ accu_offline_target }}/charts/{{ component }}/*.tgz
+#     do
+#       helm push --force --username {{ accu_chartmuseum_user }} --password {{ accu_chartmuseum_pass }} ${CHART} {{ accu_chartmuseum_name }}
+#     done
+#   args:
+#     executable: /bin/bash
+#   loop: "{{ dirs.charts }}"
+#   run_once: true
+
+

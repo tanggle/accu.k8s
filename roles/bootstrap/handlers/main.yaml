@@ -1,0 +1,8 @@
+---
+
+- name: OS | Reboot
+  become: yes
+  reboot:
+    reboot_timeout: 300
+
+

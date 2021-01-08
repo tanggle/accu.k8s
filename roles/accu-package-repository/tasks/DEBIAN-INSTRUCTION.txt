@@ -1,0 +1,65 @@
+
+# --keyring option
+gpg --keyring ~/pubring.kbx --list-keys
+
+
+
+
+# Change directory
+cd /repo
+
+# Create repository structure
+mkdir -p pool/ubuntu
+mkdir -p dists/ubuntu/accuinsight/binary-amd64
+
+# Copy packages (*.deb)
+cp -av /accuinsight/offline/accu-package-repository/files/ubuntu-20.04/accuinsight pool/ubuntu/
+
+# Export GPG public
+gpg --output accuinsight.key --armor --export accuinsight
+cp accuinsight.key dists/ubuntu/accuinsight/
+
+
+# Generate apt-ftparchive configuration
+
+cat > accuinsight.conf <<EOF
+Dir::ArchiveDir ".";
+Dir::CacheDir ".";
+TreeDefault::Directory "pool/ubuntu";
+Default::Packages::Extensions ".deb";
+Default::Packages::Compress ". gzip bzip2";
+
+BinDirectory "dists/ubuntu/accuinsight/binary-amd64" {
+  Packages "dists/ubuntu/accuinsight/binary-amd64/Packages";
+};
+
+Tree "dists/ubuntu" {
+  Sections "accuinsight";
+  Architectures "amd64";
+};
+
+APT::FTPArchive::Release {
+  Origin "Your origin";
+  Label "Your label";
+  Suite "accuinsight";
+  Codename "ubuntu";
+  Architectures "amd64";
+  Components "accuinsight";
+  Description "Your description";
+};
+EOF
+
+# Generate Package.* and Release
+
+apt-ftparchive --no-contents generate accuinsight.conf
+apt-ftparchive -c accuinsight.conf release dists/ubuntu > dists/ubuntu/Release
+
+# Sign Release (InReleas and Release.gpg
+gpg -u accuinsight --clear-sign --output dists/ubuntu/InRelease dists/ubuntu/Release
+gpg -u accuinsight --armor --detach-sign --output dists/ubuntu/Release.gpg dists/ubuntu/Release
+
+
+curl -s http://13.125.52.184:1234/dists/ubuntu/accuinsight/accuinsight.key | sudo apt-key add -
+
+# /etc/apt/sources.list.d/AccuInsight.list
+deb http://172.31.13.36:1234 ubuntu accuinsight

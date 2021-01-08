@@ -1,0 +1,8 @@
+---
+
+accu:
+
+  trust_ca_store: /usr/local/share/ca-certificates
+  trust_ca_update: update-ca-certificates
+
+

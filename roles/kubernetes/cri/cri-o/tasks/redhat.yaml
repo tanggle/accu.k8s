@@ -1,0 +1,104 @@
+---
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cri-o
+# https://github.com/cri-o/cri-o/blob/master/install.md#other-yum-based-operating-systems
+
+- name: AccuInsight+ Kubernetes | Include compatibility matrix for CRI-O
+  include_vars: redhat.yaml
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'OCI'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  yum_repository:
+    description: Official OCI 
+    name: AccuInsight-OCI
+    state: present
+    baseurl: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/"
+    gpgkey: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/repodata/repomd.xml.key"
+    enabled: yes
+    gpgcheck: yes
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'CRI-O-{{ crio_version }}'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  yum_repository:
+    description: "Official CRI-O {{ crio_version }}"
+    name: "AccuInsight-CRI-O-{{ crio_version }}"
+    state: present
+    baseurl: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/"
+    gpgkey: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/repodata/repomd.xml.key"
+    enabled: yes
+    gpgcheck: yes
+    exclude: cri-o
+
+
+- name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for CRI-O-{{ crio_version }} and OCI repositories
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version | int == 8
+  become: yes 
+  ini_file:
+    path: "/etc/yum.repos.d/{{ item }}.repo"
+    state: present
+    section: "{{ item }}"
+    option: module_hotfixes
+    value: "True"
+  loop:
+    - 'AccuInsight-OCI'
+    - 'AccuInsight-CRI-O-{{ crio_version }}'
+
+
+# CRI-O package has a dependency with container-selinux package provided by CentOS Extras Repository.
+# but the package does not exist on RHEL 7 Repository. CentOS Extras Repository is required if target OS is RHEL 7.
+- name: AccuInsight+ Kubernetes | Check if CentOS Extras repository is required
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 7
+  become: yes 
+  yum:
+    list: container-selinux
+  register: repo_status
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'CentOS Extras'
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int == 7
+    - repo_status.results | length == 0
+  become: yes 
+  yum_repository:
+    description: CentOS Extras
+    name: AccuInsight-CentOS-Extras
+    state: present
+    baseurl: http://mirror.centos.org/centos/7/extras/$basearch/
+    gpgkey: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+    enabled: yes
+    gpgcheck: yes
+
+
+- name: AccuInsight+ Kubernetes | Install CRI-O '{{ crio_version }}' and podman
+  become: yes
+  yum:
+    name:
+      - 'cri-o'
+      - 'podman'
+    state: present
+#    allow_downgrade: yes
+    disable_excludes: "AccuInsight-CRI-O-{{ crio_version }}"
+    update_cache: yes
+  notify:
+    - CRI | CRI-O | Restart
+    - CRI | CRI-O | Wait for Ready
+
+

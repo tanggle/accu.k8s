@@ -1,0 +1,10 @@
+---
+# Playbook for AccuInsight+ Collector
+
+- name: AccuInsight+ Collector
+  hosts: accu-pkg-server
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: true
+  roles:
+    - { role: accu-collector }
+

@@ -1,0 +1,99 @@
+---
+
+- name: AccuInsight+ Chart Registry | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ item }}"
+  loop:
+    - '{{ accu_chartmuseum_fqdn }}'
+
+
+- name: AccuInsight+ Chart Registry | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                            %}
+      {{ accu_offline_target }}/{{ component }}/charts/chartmuseum-{{ accu_chartmuseum_version }}.tgz
+      {% else                                                                                      %}
+      stable/chartmuseum
+      {% endif                                                                                     %}
+  run_once: yes
+
+
+# READ: https://github.com/helm/charts/tree/master/stable/chartmuseum#configuration
+- name: AccuInsight+ Chart Registry | Deploy {{ accu_chartmuseum_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_chartmuseum_release }}"
+    version: "{{ accu_chartmuseum_version }}"
+    namespace: "{{ accu_chartmuseum_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_chartmuseum_release }}'
+      - '--set persistence.enabled=true'
+      - '--set persistence.accessMode={{ accu_chartmuseum_storage_mode }}'
+      - '--set persistence.size={{ accu_chartmuseum_storage_size }}'
+      - '--set persistence.storageClass={{ accu_chartmuseum_storage_class }}'
+      - '--set replicaCount={{ accu_chartmuseum_replicas }}'
+      - '--set env.open.DISABLE_API=false'
+      - '--set env.secret.BASIC_AUTH_USER={{ accu_chartmuseum_user }}'
+      - '--set env.secret.BASIC_AUTH_PASS={{ accu_chartmuseum_pass }}'
+      - '--set service.externalTrafficPolicy=Cluster'
+      - '--set ingress.enabled=true'
+      - '--set ingress.hosts[0].name={{ accu_chartmuseum_fqdn }}'
+      - '--set ingress.hosts[0].path=/'
+      - '--set-string ingress.annotations."nginx\.ingress\.kubernetes\.io/proxy-body-size"=0'
+  run_once: yes
+
+# TODO: Need to add checking chartmuseum pod status before doing this task
+#- name: AccuInsight+ Chart Registry | Add '{{ accu_chartmuseum_fqdn }}' to chart registries
+#  when:
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  helm_repository:
+#    name: "{{ accu_chartmuseum_name }}"
+#    url: "http://{{ accu_chartmuseum_fqdn }}"
+#    username: "{{ accu_chartmuseum_user }}"
+#    password: "{{ accu_chartmuseum_pass }}"
+#    state: present
+#  no_log: true
+
+
+#- name: AccuInsight+ Chart Registry | Remove unnecessary chart registry in offline mode
+#  when:
+#    - accu_offline_enabled
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  shell: |
+#      {{ helm }} repo remove stable local
+#  args:
+#    executable: /bin/bash
+
+
+#- name: AccuInsight+ Chart Registry | Add chart registries in offline mode
+#  when:
+#    - accu_offline_enabled
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  helm_repository:
+#    name: "{{ item }}"
+#    url: "http://{{ accu_chartmuseum_fqdn }}"
+#    username: "{{ accu_chartmuseum_user }}"
+#    password: "{{ accu_chartmuseum_pass }}"
+#    state: present
+#  loop:
+#    - 'stable'
+#    - '{{ accu_chartmuseum_name }}'
+#  no_log: true
+
+

@@ -1,0 +1,93 @@
+---
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cri-o
+# https://github.com/cri-o/cri-o/blob/master/install.md#apt-based-operating-systems
+
+- name: AccuInsight+ Kubernetes | Include compatibility matrix for CRI-O
+  include_vars: ubuntu.yaml
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'OCI' (Repository KEY)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_key:
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/Release.key"
+    state: present
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'OCI' (Repository URL)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes
+  apt_repository:
+    repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/ /"
+    filename: AccuInsight-OCI
+    state: present
+    mode: '0644'
+    update_cache: yes
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'CRI-O-{{ crio_version}}' (Repository KEY)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes 
+  apt_key:
+    url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/Release.key"
+    state: present
+
+
+- name: AccuInsight+ Kubernetes | Add Package Repository 'CRI-O {{ crio_version }}' (Repository URL)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes 
+  apt_repository:
+    repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/ /"
+    filename: "AccuInsight-CRI-O-{{ crio_version }}"
+    state: present
+    mode: '0644'
+    update_cache: yes
+
+
+- name: AccuInsight+ Kubernetes | Set Package Repository 'CRI-O {{ crio_version }}' (Repository Preferences)
+  when:
+    - not accu_offline_enabled
+    - not accu_package_repository_enabled
+  become: yes 
+  copy:
+    dest: /etc/apt/preferences.d/AccuInsight-CRI-O
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Set package candiate version to 'crio_version' defined in vars/ubuntu.yaml
+      Package: cri-o
+      Pin: version {{ crio_version }}* 
+      Pin-Priority: 1001
+
+
+# Why should we use 'podman-rootless' instead of 'podman' on Ubuntu?
+# https://github.com/containers/podman/issues/5296
+- name: AccuInsight+ Kubernetes | Install CRI-O '{{ crio_version }}'
+  become: yes
+  apt:
+    name:
+      - 'cri-o'
+      - 'cri-o-runc'
+      - 'podman-rootless'
+    state: present
+    force: yes
+    update_cache: yes
+  notify: 
+    - CRI | CRI-O | Restart
+    - CRI | CRI-O | Wait for Ready
+
+
+- name: AccuInsight+ Kubernetes | Mark packages as held back for CRI-O
+  become: yes
+  command: apt-mark hold cri-o cri-o-runc
+
+

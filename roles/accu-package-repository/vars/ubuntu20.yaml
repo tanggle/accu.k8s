@@ -1,0 +1,40 @@
+---
+
+accu:
+
+  os: 
+    distro: "{{ ansible_distribution | lower }}"
+    version: "{{ ansible_distribution_version }}"
+
+  apache:
+    name: apache2
+    pkgs:
+      - 'apache2_*'
+      - 'apache2-bin_*'
+      - 'apache2-data_*'
+      - 'apache2-utils_*'
+      - 'libapr1_*'
+      - 'libaprutil1_*'
+      - 'libaprutil1-dbd-sqlite3_*'
+      - 'libaprutil1-ldap_*'
+      - 'libjansson4_*'
+      - 'liblua5.2-0_*'
+      - 'ssl-cert_*'
+#    pkgs:
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/liblua5.2-0_5.2.4-1.1build3_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/ssl-cert_1.0.39_all.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/apache2_2.4.41-4ubuntu3.1_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/apache2-bin_2.4.41-4ubuntu3.1_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/apache2-data_2.4.41-4ubuntu3.1_all.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/apache2-utils_2.4.41-4ubuntu3.1_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/libapr1_1.6.5-1ubuntu1_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/libaprutil1_1.6.1-4ubuntu2_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/libaprutil1-dbd-sqlite3_1.6.1-4ubuntu2_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/libaprutil1-ldap_1.6.1-4ubuntu2_amd64.deb"
+#      - "{{ accu_package_repository_path }}/pool/ubuntu/accuinsight/libjansson4_2.12-1build1_amd64.deb"
+
+  repo:
+    - name: AccuInsight
+      key: "http://{{ hostvars[groups['accu-pkg-server'][0]]['ansible_default_ipv4']['address'] }}:{{ accu_package_repository_port }}/dists/ubuntu/accuinsight/accuinsight.pub.gpg"
+      url: "deb http://{{ hostvars[groups['accu-pkg-server'][0]]['ansible_default_ipv4']['address'] }}:{{ accu_package_repository_port }} ubuntu accuinsight"
+

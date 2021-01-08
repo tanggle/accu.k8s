@@ -1,0 +1,53 @@
+---
+
+accu:
+
+  os:
+    distro: "{{ ansible_distribution | lower }}"
+    version: "{{ ansible_distribution_version }}"
+
+  apache:
+    name: httpd
+    pkgs:
+      - "httpd-*"
+      - "httpd-filesystem-*"
+      - "httpd-tools-*"
+      - "apr-*"
+      - "apr-util-*"
+      - "apr-util-bdb-*"
+      - "apr-util-openssl-*"
+      - "mailcap-*"
+      - "mod_http2-*"
+      - "redhat-logos-httpd-*"
+
+#    pkgs:
+#      - "{{ accu_package_repository_path }}/accuinsight/httpd-2.4.37-30.module+el8.3.0+7001+0766b9e7.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/httpd-filesystem-2.4.37-30.module+el8.3.0+7001+0766b9e7.noarch.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/httpd-tools-2.4.37-30.module+el8.3.0+7001+0766b9e7.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/apr-1.6.3-11.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/apr-util-1.6.1-6.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/apr-util-bdb-1.6.1-6.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/apr-util-openssl-1.6.1-6.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/mailcap-2.1.48-3.el8.noarch.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/mod_http2-1.15.7-2.module+el8.3.0+7670+8bf57d29.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/redhat-logos-httpd-81.1-1.el8.noarch.rpm"
+
+  createrepo:
+    pkgs:
+      - "createrepo_c-*"
+      - "createrepo_c-libs-*"
+      - "drpm-*"
+      - "libmodulemd-2.9.4-2.el8.x86_64.rpm"
+
+#    pkgs:
+#      - "{{ accu_package_repository_path }}/accuinsight/createrepo_c-0.15.11-2.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/createrepo_c-libs-0.15.11-2.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/drpm-0.4.1-3.el8.x86_64.rpm"
+#      - "{{ accu_package_repository_path }}/accuinsight/libmodulemd-2.9.4-2.el8.x86_64.rpm"
+
+  repo:
+    - name: AccuInsight
+      file: AccuInsight
+      desc: AccuInsight+ Repository - {{ ansible_distribution }} {{ ansible_distribution_version }}
+      base: "{% for host in groups['accu-pkg-server'] %}http://{{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ accu_package_repository_port }}/accuinsight {% endfor %}"
+

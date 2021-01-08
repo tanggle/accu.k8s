@@ -1,0 +1,10 @@
+---
+
+- name: Package Repository | Restart
+  become: yes 
+  systemd:
+    name: "{{ accu.apache.name }}"
+    enabled: yes 
+    state: restarted
+
+

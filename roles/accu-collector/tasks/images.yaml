@@ -1,0 +1,88 @@
+---
+
+- name: AccuInsight+ Collector | Collect Images for Offline Installation
+  when:
+    - inventory_hostname == groups['accu-pkg-server'][0]
+  become: yes 
+  block:
+
+    - name: AccuInsight+ Collector | Load List of Images
+      include_vars: images.yaml
+
+
+    - name: AccuInsight+ Collector | Install Container Management Tool (podman)
+      when:
+        - ansible_os_family == 'RedHat'
+      yum:
+        name: podman
+        state: latest
+        update_cache: yes
+
+
+    - name: AccuInsight+ Collector | Configure OCI Containers Storage Setting
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 7
+      shell: |
+        sed -i -e 's/,metacopy=on//g' /etc/containers/storage.conf
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    - name: AccuInsight+ Collector | Install Container Management Tool (podman)
+      when:
+        - ansible_os_family == 'Debian'
+      apt:
+        name: podman-rootless
+        state: latest
+        update_cache: yes
+
+
+    - name: AccuInsight+ Collector | Collect Images
+      shell: |
+        # Create directoryies.
+        mkdir -p {{ accu_collector_target }}/{{ item.0.component }}/images
+
+        # Delete *.lst (image information) file if it esists.
+        # rm -rf {{ accu_collector_target }}/{{ item.0.component }}/images/*.lst
+
+        # Create dest directory
+        mkdir -p {{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.1.dest }}
+
+        # Pull images
+        podman pull {{ item.1.tags }}
+
+        # Save images (This step will be skipped if the saved images already exist.)
+        FILE="{{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.1.dest }}/{{ item.1.tags | replace(    '/', '--') | replace(':', '--') }}.tar.gz"
+
+        if [ ! -f ${FILE} ];
+        then
+          podman save {{ item.1.tags }} | gzip -9 > ${FILE}
+        fi
+
+        # Delete images after saving.
+        podman rmi {{ item.1.tags }}
+
+        ## Update images information. this file is not used in any codes but just information.
+        echo {{ item.1.tags }} >> {{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.0.component }}.lst
+      args:
+        executable: /bin/bash
+        warn: no
+      loop: "{{ images | subelements('list') }}"
+      loop_control:
+        label: "{{ item.0.component }}, {{ item.1.tags }}"
+
+
+    - name: AccuInsight+ Collector | Synchronize Images
+      synchronize:
+        mode: pull
+        src: "{{ accu_collector_target }}/{{ item.component }}/images"
+        dest: "{{ accu_offline_source }}/{{ item.component }}"
+        checksum: yes
+        delete: yes
+      loop: "{{ images }}"
+      loop_control:
+        label: "{{ item.component }}"
+
+

@@ -1,0 +1,135 @@
+---
+
+- name: AccuInsight+ Collector | Collect Packages and Dependancies for Offline Installation
+  when:
+    - inventory_hostname == groups['accu-pkg-server'][0]
+  become: yes
+  block:
+
+    - name: AccuInsight+ Collector | Load List of OS Packages
+      include_vars: packages-redhat.yaml
+
+
+    - name: AccuInsight+ Collector | Add Package Repositories
+      yum_repository:
+        description: "Collector-{{ item.name }}"
+        name: "Collector-{{ item.name }}"
+        state: present
+        baseurl: "{{ item.url }}"
+        gpgkey: "{{ item.key }}"
+        enabled: yes 
+        gpgcheck: yes 
+      loop: "{{ repos }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+
+    - name: AccuInsight+ Collector | Set module_hotfixes to 'True' for Repositories
+      when:
+        - ansible_distribution_major_version | int == 8
+      ini_file:
+        path: "/etc/yum.repos.d/Collector-{{ item.name }}.repo"
+        state: present
+        section: "Collector-{{ item.name }}"
+        option: module_hotfixes
+        value: "True"
+      loop: "{{ repos }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+
+    # docker-ce on CentOS 7 and RHEL 7 requires 'container-selinux' package which is provided by CentOS7 Extra Repository
+    - name: AccuInsight+ Collector | Add Package Repository 'CentOS Extras'
+      when:
+        - ansible_distribution_major_version | int == 7
+      yum_repository:
+        description: Collector-CentOS-Extras
+        name: Collector-CentOS-Extras
+        state: present
+        baseurl: http://mirror.centos.org/centos/7/extras/$basearch/
+        gpgkey: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+        enabled: yes
+        gpgcheck: yes
+
+
+    # ceph-common requires EPEL for package dependancies
+    - name: AccuInsight+ Collector | Add Package Repository 'Fedora EPEL'
+      yum_repository:
+        description: Collector-EPEL
+        name: Collector-EPEL
+        state: present
+        metalink: "https://mirrors.fedoraproject.org/metalink?repo=epel-{{ ansible_distribution_major_version }}&arch=$basearch&infra=$infra&content=$contentdir"
+        gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+        enabled: yes 
+        gpgcheck: yes 
+
+    - name: AccuInsight+ Collector | Add Package Repository 'NVIDIA'
+      shell: |
+          # for more details, refer to https://nvidia.github.io/nvidia-docker/
+          # Supported distributions are CentOS 7/8, RHEL 7.4/7.5/7.6/7.7/8.0/8.1/8.2.
+          # All of RHEL-based distributions are using 'centos7' as a distribution id.
+          # NOTE: distribution id problem was fixed (2020.08.25)
+
+          DIST=$(. /etc/os-release; echo $ID$VERSION_ID)
+          # DIST="centos7"
+
+          curl -s -L https://nvidia.github.io/nvidia-docker/$DIST/nvidia-docker.repo | tee /etc/yum.repos.d/Collector-NVIDIA.repo
+      args:
+        executable: /bin/bash
+      
+
+    - name: AccuInsight+ Collector | Set facts for RedHat (releasever)
+      when:
+        - ansible_distribution == "RedHat"
+      set_fact:
+        releasever: "{{ ansible_distribution_major_version }}Server"
+        
+
+    - name: AccuInsight+ Collector | Set facts for Centos (releasever)
+      when:
+        - ansible_distribution == "CentOS"
+      set_fact:
+        releasever: "{{ ansible_distribution_major_version }}"
+
+
+    - name: AccuInsight+ Collector | Set facts for Packages and Locations
+      set_fact:
+        packages: "{{ (pkgs.core + pkgs.reqs) | join(' ') }}"
+        down_location: "{{ accu_collector_target }}/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}/accuinsight"
+        pull_location: "{{ accu_offline_source }}/accu-package-repository/files/accu-pkg-server/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}"
+
+
+    - name: AccuInsight+ Collector | Collect Packages and Dependancies
+      shell: |
+        # Setup installroot.
+        rm -rf /tmp/xxx; mkdir -p /tmp/xxx/etc; cp /etc/os-release /tmp/xxx/etc
+
+        # Create download directory.
+        mkdir -p {{ down_location }}
+
+        # Dwonload packages defined in 'accu.pkgs' and all of their dependancies recursively even if they were already installed.
+        yum install -y --releasever={{ releasever }} --installroot=/tmp/xxx --downloadonly --downloaddir={{ down_location }} {{ packages }}
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    - name: AccuInsight+ Collector | Prepare Packages (directory)
+      become: no
+      file:
+        path: "{{ pull_location }}"
+        state: directory
+        recurse: yes
+        mode: '0755'
+      delegate_to: localhost
+
+
+    - name: AccuInsight+ Collector | Synchronize Packages
+      synchronize:
+        mode: pull
+        src: "{{ down_location }}"
+        dest: "{{ pull_location }}"
+        checksum: yes 
+        delete: yes
+
+

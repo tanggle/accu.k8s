@@ -1,0 +1,64 @@
+---
+#
+# kubeadm config print init-defaults --component-configs KubeProxyConfiguration,KubeletConfiguration
+# https://godoc.org/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2
+#
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: accuxx.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+nodeRegistration:
+  criSocket: {{ default_cri_socket[kube_cri] }}
+certificateKey: c8f8e3749f3a399ad68d704685c657d8c1b916ea1ef0d262b807453e40471c7d
+
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: v{{ kube_version }}
+controlPlaneEndpoint: {{ ext_lb_fqdn }}:{{ ext_lb_port }}
+networking:
+  podSubnet: {{ kube_pod_cidr }}
+  serviceSubnet: {{ kube_svc_cidr }}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
+apiServer:
+  certSANs:
+  - {{ ext_lb_fqdn }}
+  - {{ ext_lb_addr }}
+  extraArgs:
+  # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/control-plane-flags/#apiserver-flags
+    bind-address: 0.0.0.0
+controllerManager:
+  extraArgs:
+  # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/control-plane-flags/#controllermanager-flags
+    bind-address: 0.0.0.0
+scheduler:
+  extraArgs:
+  # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/control-plane-flags/#scheduler-flags
+    bind-address: 0.0.0.0
+
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+bindAddress: 0.0.0.0
+healthzBindAddress: 0.0.0.0
+metricsBindAddress: 0.0.0.0
+mode: {{ kube_proxy_mode }}
+
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: {{ cri_cgroup_driver }}
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#configure-cgroup-driver-used-by-kubelet-on-control-plane-node
+healthzBindAddress: 0.0.0.0
+healthzPort: 10248
+

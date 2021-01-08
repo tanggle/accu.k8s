@@ -1,0 +1,55 @@
+---
+
+# Cluster
+- name: AccuInsight+ Image Registry | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ item }}"
+  loop:
+    - '{{ accu_registry_fqdn }}'
+
+
+- name: AccuInsight+ Image Registry | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                             %}
+      {{ accu_offline_target }}/{{ component }}/charts/docker-registry-{{ accu_registry_version }}.tgz
+      {% else                                                                                       %}
+      stable/docker-registry
+      {% endif                                                                                      %}
+  run_once: yes
+
+
+# READ: https://github.com/helm/charts/tree/master/stable/docker-registry#configuration
+- name: AccuInsight+ Image Registry | Deploy {{ accu_registry_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_registry_release }}"
+    version: "{{ accu_registry_version }}"
+    namespace: "{{ accu_registry_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_registry_release }}'
+      - '--set persistence.enabled=true'
+      - '--set persistence.accessMode={{ accu_registry_storage_mode }}'
+      - '--set persistence.deleteEnabled=true'
+      - '--set persistence.size={{ accu_registry_storage_size }}'
+      - '--set persistence.storageClass={{ accu_registry_storage_class }}'
+      - '--set replicaCount={{ accu_registry_replicas }}'
+      - '--set ingress.enabled=true'
+      - '--set ingress.hosts[0]={{ accu_registry_fqdn }}'
+      - '--set-string ingress.annotations."nginx\.ingress\.kubernetes\.io/proxy-body-size"=0'
+  run_once: yes
+
+

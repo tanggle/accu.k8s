@@ -1,0 +1,85 @@
+---
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/kubelet-integration/
+- name: AccuInsight+ Kubernetes | Check masters' initialization status
+  become: yes
+  stat:
+    path: /var/lib/kubelet/config.yaml
+  register: init_status
+
+
+- name: AccuInsight+ Kubernetes | Prepare for Kubernetes '{{ kube_version }}' images
+  become: yes
+  when:
+    - not init_status.stat.exists
+    - not accu_offline_enabled
+  shell: |
+    kubeadm config images pull --config {{ accu_manifests_location }}/{{ component }}/init-master-config.yaml
+  args:
+    executable: /bin/bash
+
+
+- name: AccuInsight+ Kubernetes | Initialize first master
+  become: yes
+  when:
+    - inventory_hostname == groups['kube-master'][0]
+    - not init_status.stat.exists
+  shell: |
+    kubeadm init --config {{ accu_manifests_location }}/{{ component }}/init-master-config.yaml --upload-certs --ignore-preflight-errors DirAvailable--etc-kubernetes-manifests
+  args:
+    executable: /bin/bash
+  register: init_result
+  failed_when: init_result is failed
+  until: init_result is succeeded
+  retries: 3
+  delay: 60
+  notify:
+    - Kubelet | Restart
+
+
+- name: AccuInsight+ Kubernetes | Initialize other master
+  become: yes
+  when:
+    - inventory_hostname != groups['kube-master'][0]
+    - not init_status.stat.exists
+  shell: |
+    kubeadm join --config {{ accu_manifests_location }}/{{ component }}/join-master-config.yaml --ignore-preflight-errors DirAvailable--etc-kubernetes-manifests
+  args:
+    executable: /bin/bash
+  register: join_result
+  failed_when: join_result is failed
+  until: join_result is succeeded
+  retries: 3
+  delay: 60
+  notify:
+    - Kubelet | Restart
+ 
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information
+- name: AccuInsight+ Kubernetes | Set Superuser privileges (1/2)
+  become: yes
+  file:
+    path: "{{ ansible_env.HOME | default('/root') }}/.kube"
+    mode: '0700'
+    state: directory
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information
+- name: AccuInsight+ Kubernetes | Set Superuser privileges (2/2)
+  become: yes
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ ansible_env.HOME | default('/root') }}/.kube/config"
+    remote_src: yes 
+    mode: '0600'
+
+
+- name: AccuInsight+ Kubernetes | Set command completion for Kubernetes
+  become: yes
+  shell: |
+    kubeadm completion bash > /etc/bash_completion.d/kubeadm
+    kubectl completion bash > /etc/bash_completion.d/kubectl
+  args:
+    executable: /bin/bash
+
+

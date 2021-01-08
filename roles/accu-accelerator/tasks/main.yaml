@@ -1,0 +1,178 @@
+---
+
+- name: AccuInsight+ GPU Accelerator | Configure Accelerator Nodes
+  when:
+    - inventory_hostname in groups['accu-nvidia']
+  become: yes 
+  block:
+
+    - name: AccuInsight+ GPU Accelerator | Set NVIDIA Driver ({{ accu_accelerator_nvidia_type }}, {{ accu_accelerator_driver_version }})
+      set_fact:
+        runfile: "{{ accu_offline_target }}/{{ component }}/files/NVIDIA-Linux-x86_64-{{ accu_accelerator_driver_version }}.run" 
+
+
+    - name: AccuInsight+ GPU Accelerator | Manage kernel module (1/2) (nouveau)
+      copy:
+        dest: /etc/modprobe.d/accu-accelerator-nvidia.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          blacklist nouveau
+          options nouveau modeset=0
+
+
+    - name: AccuInsight+ GPU Accelerator | Manage kernel module (2/2) (nouveau)
+      modprobe:
+        name: nouveau
+        state: absent
+
+
+    - name: AccuInsight+ GPU Accelerator | Manage kernel module (1/2) (ipmi)
+      copy:
+        dest: /etc/modules-load.d/accu-accelerator-nvidia.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          ipmi_devintf
+
+
+    - name: AccuInsight+ GPU Accelerator | Manage kernel module (2/2) (ipmi)
+      modprobe:
+        name: ipmi_devintf
+        state: present
+
+
+    - import_tasks: redhat.yaml
+      when: ansible_os_family == 'RedHat'
+
+
+    - import_tasks: debian.yaml
+      when: ansible_os_family == 'Debian'
+
+
+#   - name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
+#     become: yes 
+#     when: kernel_update_status is changed
+#     reboot:
+#       reboot_timeout: 300
+
+
+    - name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Driver)
+      shell: |
+          # Install nvidia driver in silent mode.
+          sh {{ runfile }} --no-install-compat32-libs --no-drm --silent --accept-license
+
+          # Load nvidia kernel modules.
+          nvidia-modprobe
+      args:
+        executable: /bin/bash
+
+
+    # SOURCE: https://github.com/NVIDIA/nvidia-container-toolkit/blob/master/oci-nvidia-hook.json
+    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (cri-o)
+      when:
+        - kube_cri == 'cri-o'
+      copy:
+        dest: "/usr/share/containers/oci/hooks.d/oci-nvidia-hook.json"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          {
+              "version": "1.0.0",
+              "hook": {
+                  "path": "/usr/bin/nvidia-container-toolkit",
+                  "args": ["nvidia-container-toolkit", "prestart"],
+                  "env": [
+                      "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                  ]
+              },
+              "when": {
+                  "always": true,
+                  "commands": [".*"]
+              },
+              "stages": ["prestart"]
+          }
+      notify:
+        - CRI | Restart
+        - CRI | Wait for Ready
+
+
+    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (docker)
+      when:
+        - kube_cri == 'docker'
+      copy:
+        dest: "/etc/systemd/system/docker.service.d/accu-accelerator-nvidia.conf"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Service]
+          Environment="ACCU_ACCELERATOR=--add-runtime=nvidia=/usr/bin/nvidia-container-runtime --default-runtime=nvidia"
+      notify:
+        - CRI | Restart
+        - CRI | Wait for Ready
+
+
+
+- name: AccuInsight+ GPU Accelerator | Configure Kubernetes for Accelerator
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  block:
+
+    - name: AccuInsight+ GPU Accelerator | Override label for accelerator nodes
+      shell: |
+          kubectl label node {{ item }} node-role.kubernetes.io/accelerator=nvidia --overwrite
+      run_once: true
+      loop: "{{ groups['accu-nvidia'] }}"
+    
+    
+    - name: AccuInsight+ GPU Accelerator | Override taint for accelerator nodes
+      when:
+        - accu_accelerator_node_taint
+      shell: |
+          kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule --overwrite
+      run_once: true
+      loop: "{{ groups['accu-nvidia'] }}"
+
+
+    - name: AccuInsight+ GPU Accelerator | Create menifests directory for component
+      file:
+        path: "{{ accu_manifests_location}}/{{ component }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        recurse: true
+    
+    
+    - name: AccuInsight+ GPU Accelerator | Create manifests for Accelerator
+      template:
+        src: "{{ item }}.j2"
+        dest: "{{ accu_manifests_location }}/{{ component }}/{{ item }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        # SOURCE: https://github.com/NVIDIA/k8s-device-plugin/blob/master/nvidia-device-plugin.yml
+        - 'accu-nvidia-device-plugin.yaml'
+        # SOURCE: https://github.com/NVIDIA/gpu-monitoring-tools/blob/master/dcgm-exporter.yaml
+        - 'accu-nvidia-device-metric.yaml'
+        # SOURCE: https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#using-device-plugins
+        - 'accu-accelerator-test.yaml'
+    
+    
+    - name: AccuInsight+ GPU Accelerator | Apply manifests for Accelerator
+      shell: |
+          kubectl apply -f {{ accu_manifests_location}}/{{ component }}/{{ item }}
+      args:
+        executable: /bin/bash
+      run_once: true
+      loop:
+        - 'accu-nvidia-device-plugin.yaml'
+        - 'accu-nvidia-device-metric.yaml'
+
+

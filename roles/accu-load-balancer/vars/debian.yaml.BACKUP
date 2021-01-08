@@ -1,0 +1,11 @@
+---
+
+# Set 'accu_vip_manager_nic' value if 'accu_load_balancer_nic' is not defined or null (empty string) in accuinsight.yaml
+#
+# nic (Network Interface Card) name is depend on system configuration. for example, how many nics are attached to the system.
+# In AWS EC2 created by terraform, default nic is 'eth0' in redhat os family and 'ens5' in debian os family.
+# IF CUSTOMER'S SYSTEM HAS OTHER NAME, DEFIND 'accu_load_balancer_nic' IN accuinsight.yaml EXPLICITLY !!!
+
+accu_vip_manager_nic: "{{ lookup('vars', 'accu_load_balancer_nic') | default('ens5', true) }}"
+
+

@@ -1,0 +1,7 @@
+accu:
+
+  pkgs:
+    nfs-client:
+      - nfs-utils
+
+

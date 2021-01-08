@@ -1,0 +1,19 @@
+---
+
+- name: CRI | Containerd | Restart
+  become: yes
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: CRI | Containerd | Wait for Ready
+  become: yes
+  command: ctr images list
+  register: result
+  until: result is succeeded
+  retries: 10
+  delay: 5
+
+

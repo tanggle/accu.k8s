@@ -1,0 +1,76 @@
+---
+
+charts:
+
+  - component: accu-chartmuseum
+    list:
+      - name: stable/chartmuseum
+        version: "{{ accu_chartmuseum_version }}"
+        dest: kube-master
+        repo_name: stable
+        repo_url: https://charts.helm.sh/stable
+
+  - component: accu-harbor
+    list:
+      - name: harbor/harbor
+        version: "{{ accu_harbor_version }}"
+        dest: kube-master
+        repo_name: harbor
+        repo_url: https://helm.goharbor.io
+
+  - component: accu-helm-operator
+    list:
+      - name: fluxcd/helm-operator
+        version: "v{{ accu_helm_operator_version }}"
+        dest: kube-master
+        repo_name: fluxcd
+        repo_url: https://charts.fluxcd.io
+
+  - component: accu-ingress-controller
+    list:
+      - name: ingress-nginx/ingress-nginx
+        version: "{{ accu_ingress_controller_version }}"
+        dest: kube-master
+        repo_name: ingress-nginx
+        repo_url: https://kubernetes.github.io/ingress-nginx
+
+  - component: accu-metrics-server
+    list:
+      - name: stable/metrics-server
+        version: "{{ accu_metrics_server_version }}"
+        dest: kube-master
+        repo_name: stable
+        repo_url: https://charts.helm.sh/stable
+
+  - component: accu-monitoring
+    list:
+      - name: prometheus-community/kube-prometheus-stack
+        version: "{{ accu_monitoring_version }}"
+        dest: kube-master
+        repo_name: prometheus-community
+        repo_url: https://prometheus-community.github.io/helm-charts
+
+  - component: accu-nfs-provisioner
+    list:
+      - name: stable/nfs-client-provisioner
+        version: "{{ accu_nfs_provisioner_version }}"
+        dest: kube-master
+        repo_name: stable
+        repo_url: https://charts.helm.sh/stable
+
+  - component: accu-registry
+    list:
+      - name: stable/docker-registry
+        version: "{{ accu_registry_version }}"
+        dest: kube-master
+        repo_name: stable
+        repo_url: https://charts.helm.sh/stable
+
+  - component: accu-rook-ceph
+    list:
+      - name: rook-release/rook-ceph
+        version: "v{{ accu_rook_ceph_version }}"
+        dest: kube-master
+        repo_name: rook-release
+        repo_url: https://charts.rook.io/release
+
