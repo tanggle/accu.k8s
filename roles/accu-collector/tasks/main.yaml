@@ -1,16 +1,24 @@
 ---
 
-- import_tasks: packages-redhat.yaml
-  when: ansible_os_family == 'RedHat'
+- include_tasks: packages-redhat.yaml
+  when:
+    - accu_collector_gathering_packages
+    - ansible_os_family == 'RedHat'
 
-- import_tasks: packages-debian.yaml
-  when: ansible_os_family == 'Debian'
+- include_tasks: packages-debian.yaml
+  when:
+    - accu_collector_gathering_packages
+    - ansible_os_family == 'Debian'
 
-- import_tasks: images.yaml
+- include_tasks: charts.yaml
+  when: accu_collector_gathering_charts
 
-- import_tasks: files.yaml
+- include_tasks: files.yaml
+  when: accu_collector_gathering_files
 
-- import_tasks: charts.yaml
+- include_tasks: images.yaml
+  when: accu_collector_gathering_images
 
-- import_tasks: clean.yaml
+- include_tasks: clean.yaml
+  when: accu_collector_cleanup
 

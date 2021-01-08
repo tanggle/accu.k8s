@@ -8,9 +8,9 @@
 
 * 지원 OS
 
-  - RedHat 7.8 / 8.2 (오프라인을 위한 OS 저장소 지원)
-  - CentOS 7.8 / 8.2 (오프라인을 위한 OS 저장소 지원)
-  - Ubuntu 18.04 / 20.04 (OS 저장소 추가작업 필요)
+  - RedHat 7.8 / 8.2 (Air-gapped 환경을 위한 OS 저장소 지원)
+  - CentOS 7.8 / 8.2 (Air-gapped 환경을 위한 OS 저장소 지원)
+  - Ubuntu 18.04 / 20.04 (Air-gapped 환경을 위한 OS 저장소 지원)
 
 
 * 지원 K8S
@@ -20,9 +20,9 @@
 
 * 지원 CRI (Kubernetes Container Runtime Interface)
 
-  - docker (완료)
-  - containerd (예정)
-  - cri-o (검증)
+  - cri-o
+  - docker
+  - containerd (진행중)
 
 
 * 지원 CSI (Kubernetes Container Storage Interface)
@@ -58,3 +58,39 @@
 
     > ansible-playbook -i inventory/accuinsight/**hosts.redhat** accuk8s.yaml --flush-cache
 
+
+### Air-gapped 환경을 위한 데이터 수집
+
+* 설정 (고객 환경에 맞게 아래의 파일을 수정)
+
+  - inventory/accuinsight/group_vars/all/accuinsight.yaml
+  - roles/accu-collector/vars/*.yaml
+
+* 실행
+
+  > ansible-playbook -i inventory/accuinsight/**hosts.`<OS>`** plays/accu-collector.yaml --flush-cache
+
+* 구조
+  > **참고**: charts, files, images 는 OS 와 무관하게 동일한 데이터
+
+  - data
+    - offline
+      - **`<component>`**
+        - charts
+          - `<inventory group name>`
+        - files
+          - `<inventory group name>`
+        - images
+          - `<inventory group name>`
+
+* OS 패키지 데이터
+
+  - data
+    - offline
+      - accu-package-repository
+        - files
+          - **`<OS-VERSION>`**
+          - redhat-8.2
+          - centos-8.2
+          - ubuntu-20.04
+          - ...
