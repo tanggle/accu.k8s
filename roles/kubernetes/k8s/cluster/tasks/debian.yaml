@@ -3,8 +3,8 @@
 # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
 - name: AccuInsight+ Kubernetes | Add Package Repository 'Kubernetes' (Repository KEY)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -14,8 +14,8 @@
 # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
 - name: AccuInsight+ Kubernetes | Add Package Repository 'Kubernetes' (Repository URL)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_repository:
     repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
@@ -27,8 +27,8 @@
 
 - name: AccuInsight+ Kubernetes | Set Package Repository 'Kubernetes' (Repository Preferences)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-Kubernetes
@@ -51,13 +51,7 @@
       - 'kubeadm'
       - 'kubectl'
       - 'cri-tools'
-#     - 'kubelet={{ kube_version }}-00'
-#     - 'kubeadm={{ kube_version }}-00'
-#     - 'kubectl={{ kube_version }}-00'
-#     - 'cri-tools'
     state: present
-    force: yes
-    update_cache: yes
   notify:
     - Kubelet | Restart
 

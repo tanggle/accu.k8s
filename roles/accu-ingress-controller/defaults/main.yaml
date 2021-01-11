@@ -1,7 +1,7 @@
 ---
 
 
-accu_ingress_controller_namespace: "kube-system"
+accu_ingress_controller_namespace: accu-system
 accu_ingress_controller_nodeport_insecure: 30080
 accu_ingress_controller_nodeport_secure: 30443
 

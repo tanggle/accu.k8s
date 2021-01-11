@@ -4,7 +4,7 @@
 
 - name: AccuInsight+ Package Repository | Configure Repository for Server
   when:
-    - accu_package_repository_enabled or accu_offline_enabled
+    - accu_package_repository_enabled | bool or accu_offline_enabled | bool
     - inventory_hostname in groups['accu-pkg-server']
   become: yes
   block:
@@ -39,13 +39,6 @@
         warn: no
 
 
-#    - name: AccuInsight+ Package Repository | Install web-frontend (Apache)
-#      yum:
-#        name: "{{ accu.apache.pkgs }}"
-#        state: present
-#        disable_gpg_check: yes
-
-
     - name: AccuInsight+ Package Repository | Configure web-frontend (path)
       file:
         src: "{{ accu_package_repository_path }}/accuinsight"
@@ -77,13 +70,6 @@
         warn: no
 
 
-#    - name: AccuInsight+ Package Repository | Install metadata tool (createrepo)
-#      yum:
-#        name: "{{ accu.createrepo.pkgs }}"
-#        state: present
-#        disable_gpg_check: yes
-
-
     - name: AccuInsight+ Package Repository | Generate createrepo metadata
       command:
         cmd: "createrepo_c {{ accu_package_repository_path }}/accuinsight"
@@ -92,7 +78,7 @@
 
 - name: AccuInsight+ Package Repository | Configure Repository for Client
   when:
-    - accu_package_repository_enabled or accu_offline_enabled
+    - accu_package_repository_enabled | bool or accu_offline_enabled | bool
   become: yes
   block:
 

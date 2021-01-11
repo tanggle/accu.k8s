@@ -15,7 +15,7 @@
 
 - name: AccuInsight+ Storage Ceph | Add Chart Repository 'prometheus-community'
   when:
-    - not accu_offline_enabled
+    - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes 
   helm_repository:

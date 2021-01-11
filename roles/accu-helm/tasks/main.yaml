@@ -1,6 +1,6 @@
 ---
 
-- name: AccuInsight+ Helm | Install helm on master nodes
+- name: AccuInsight+ Helm | Install helm on masters
   when:
     - inventory_hostname in groups['kube-master']
   become: yes
@@ -15,7 +15,7 @@
       - '--strip-components=1'
 
 
-- name: AccuInsight+ Helm | Prepare helm plugin (push) on master nodes
+- name: AccuInsight+ Helm | Prepare helm plugin (push) on masters
   when:
     - inventory_hostname in groups['kube-master']
   become: yes
@@ -24,7 +24,7 @@
     state: directory
 
 
-- name: AccuInsight+ Helm | Install helm plugin (push) on master nodes
+- name: AccuInsight+ Helm | Install helm plugin (push) on masters
   when:
     - inventory_hostname in groups['kube-master']
   become: yes
@@ -36,7 +36,7 @@
 
 - name: AccuInsight+ Helm | Update charts repository (obsolete stable)
   when:
-    - not accu_offline_enabled
+    - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   helm_repository: 
@@ -48,7 +48,7 @@
 
 - name: AccuInsight+ Helm | Update charts repository (metadata)
   when:
-    - not accu_offline_enabled
+    - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
@@ -66,16 +66,4 @@
   args:
     executable: /bin/bash
 
-
-- name: AccuInsight+ Helm | Add Chartmuseum as stable repo
-  when:
-    - accu_offline_enabled
-    - accu_chartmuseum_enabled
-    - inventory_hostname in groups['kube-master']
-  become: yes
-  helm_repository:
-    name: stable
-    url: "http://{{ accu_chartmuseum_fqdn }}"
-    state: present
-  no_log: true
 

@@ -61,7 +61,7 @@ spec:
           operator: "Exists"
           effect: "NoExecute"
           tolerationSeconds: 5
-{% if accu_rook_ceph_node_taint %}
+{% if accu_rook_ceph_node_taint | bool %}
         - key: accuinsight.io/ceph
           operator: Exists
           effect: NoSchedule

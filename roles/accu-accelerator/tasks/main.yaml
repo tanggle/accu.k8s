@@ -132,7 +132,7 @@
     
     - name: AccuInsight+ GPU Accelerator | Override taint for accelerator nodes
       when:
-        - accu_accelerator_node_taint
+        - accu_accelerator_node_taint | bool
       shell: |
           kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule --overwrite
       run_once: true

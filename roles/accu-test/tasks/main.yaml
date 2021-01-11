@@ -20,3 +20,14 @@
     msg: "{{ chartname }}"
 
 
+- name: Print private_ip
+  debug:
+    msg: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+#    msg: "{{ hostvars[item]['private_ip'] }}"
+  loop: "{{ groups['all'] }}"
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+
+- name: Print ansible_user
+  debug:
+    msg: "{{ groups['kube-master'][1-2] }}"

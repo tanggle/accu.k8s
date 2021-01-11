@@ -66,7 +66,7 @@ spec:
       - name: pod-gpu-resources
         hostPath:
           path: /var/lib/kubelet/pod-resources
-{% if accu_accelerator_node_taint %}
+{% if accu_accelerator_node_taint | bool %}
       tolerations:
       - key: accuinsight.io/accelerator
         effect: NoSchedule
@@ -89,7 +89,7 @@ spec:
   - name: metrics
     port: 9400
 
-{% if accu_monitoring_enabled %}
+{% if accu_monitoring_enabled | bool %}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor

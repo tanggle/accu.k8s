@@ -60,7 +60,7 @@
 
 - name: AccuInsight+ NFS Provisioner | Mount NFS Filesystem on Masters
   when:
-    - accu_nfs_provisioner_mount_on_masters
+    - accu_nfs_provisioner_mount_on_masters | bool
     - inventory_hostname in groups['kube-master']
   become: yes 
   block:

@@ -8,21 +8,12 @@
 
 
 - name: AccuInsight+ OS Default Settings | Update OS to the latest version
-  when: os_update
+  when: os_update | bool
   become: yes
   yum:
     name: '*'
     state: latest
   notify: OS | Reboot
-
-
-#- name: AccuInsight+ OS Default Settings | Install Requirements
-#  become: yes 
-#  yum:
-#    name:
-#      - 'lvm2'
-#    state: present
-#    update_cache: yes
 
 
 # Rarely, some AWS EC2 fail to lookup ip address for OS repository, it looks like a network bug in AWS.

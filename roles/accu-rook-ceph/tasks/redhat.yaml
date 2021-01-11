@@ -4,8 +4,8 @@
 # DOCS: https://docs.ceph.com/en/latest/install/get-packages/#id3
 - name: AccuInsight+ Storage Ceph | Add Package Repository 'EPEL'
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   yum_repository:
     description: Extra packages for Enterprise Linux {{ ansible_distribution_major_version }}
@@ -20,8 +20,8 @@
 # DOCS: https://docs.ceph.com/en/latest/install/get-packages/#rpm-packages
 - name: AccuInsight+ Storage Ceph | Add Package Repository 'Ceph'
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   yum_repository:
     description: Official Ceph
@@ -43,6 +43,4 @@
       - 'lvm2'
     state: present
     disable_excludes: Ceph
-    update_cache: yes
-
 

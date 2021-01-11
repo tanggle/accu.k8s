@@ -8,8 +8,8 @@
 
 - name: AccuInsight+ Kubernetes | Add Package Repository 'OCI' (Repository KEY)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_key:
     url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/Release.key"
@@ -18,8 +18,8 @@
 
 - name: AccuInsight+ Kubernetes | Add Package Repository 'OCI' (Repository URL)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_repository:
     repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ crio_os }}/ /"
@@ -31,8 +31,8 @@
 
 - name: AccuInsight+ Kubernetes | Add Package Repository 'CRI-O-{{ crio_version}}' (Repository KEY)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   apt_key:
     url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/Release.key"
@@ -41,8 +41,8 @@
 
 - name: AccuInsight+ Kubernetes | Add Package Repository 'CRI-O {{ crio_version }}' (Repository URL)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   apt_repository:
     repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/ /"
@@ -54,8 +54,8 @@
 
 - name: AccuInsight+ Kubernetes | Set Package Repository 'CRI-O {{ crio_version }}' (Repository Preferences)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-CRI-O
@@ -79,8 +79,6 @@
       - 'cri-o-runc'
       - 'podman-rootless'
     state: present
-    force: yes
-    update_cache: yes
   notify: 
     - CRI | CRI-O | Restart
     - CRI | CRI-O | Wait for Ready

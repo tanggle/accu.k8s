@@ -3,5 +3,5 @@
 dependencies:
 
   - { role: accu-common/default, component: accu-package-repository }
-  - { role: accu-common/offline, when: accu_offline_enabled or accu_package_repository_enabled }
+  - { role: accu-common/offline, when: accu_offline_enabled | bool or accu_package_repository_enabled | bool }
 

@@ -55,34 +55,38 @@
       - '--set-string ingress.annotations."nginx\.ingress\.kubernetes\.io/proxy-body-size"=0'
   run_once: yes
 
+
 # TODO: Need to add checking chartmuseum pod status before doing this task
-#- name: AccuInsight+ Chart Registry | Add '{{ accu_chartmuseum_fqdn }}' to chart registries
-#  when:
-#    - inventory_hostname in groups['kube-master']
-#  become: yes
-#  helm_repository:
-#    name: "{{ accu_chartmuseum_name }}"
-#    url: "http://{{ accu_chartmuseum_fqdn }}"
-#    username: "{{ accu_chartmuseum_user }}"
-#    password: "{{ accu_chartmuseum_pass }}"
-#    state: present
-#  no_log: true
+- name: AccuInsight+ Chart Registry | Add '{{ accu_chartmuseum_fqdn }}' as a registry (accuinsight)
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_repository:
+    name: "{{ accu_chartmuseum_name }}"
+    url: "http://{{ accu_chartmuseum_fqdn }}"
+    username: "{{ accu_chartmuseum_user }}"
+    password: "{{ accu_chartmuseum_pass }}"
+    state: present
+  no_log: true
 
 
-#- name: AccuInsight+ Chart Registry | Remove unnecessary chart registry in offline mode
-#  when:
-#    - accu_offline_enabled
-#    - inventory_hostname in groups['kube-master']
-#  become: yes
-#  shell: |
-#      {{ helm }} repo remove stable local
-#  args:
-#    executable: /bin/bash
+- name: AccuInsight+ Chart Registry | Add '{{ accu_chartmuseum_fqdn }}' as a registry (stable)
+  when:
+    - accu_offline_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  helm_repository:
+    name: stable
+    url: "http://{{ accu_chartmuseum_fqdn }}"
+    username: "{{ accu_chartmuseum_user }}"
+    password: "{{ accu_chartmuseum_pass }}"
+    state: present
+  no_log: true
 
 
 #- name: AccuInsight+ Chart Registry | Add chart registries in offline mode
 #  when:
-#    - accu_offline_enabled
+#    - accu_offline_enabled | bool
 #    - inventory_hostname in groups['kube-master']
 #  become: yes
 #  helm_repository:

@@ -5,6 +5,4 @@
   yum:
     name: nfs-utils
     state: latest
-    update_cache: yes
-
 

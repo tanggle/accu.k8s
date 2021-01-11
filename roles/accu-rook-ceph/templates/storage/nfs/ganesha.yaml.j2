@@ -26,7 +26,7 @@ spec:
               values:
               - storage
     #  topologySpreadConstraints:
-{% if accu_rook_ceph_node_taint %}
+{% if accu_rook_ceph_node_taint | bool %}
       tolerations:
       - key: accuinsight.io/ceph
         operator: Exists

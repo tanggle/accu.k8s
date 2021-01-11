@@ -1,4 +1,8 @@
 ---
+# DOCS: https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html#running-a-role-multiple-times-in-one-playbook
+# roles/kubernetes/cluster, roles/kubernetes/master and roles/kubernetes/worker use the same component 'kubernetes'.
+# in this case, ansible only executes each role once, if three roles are defined in one play.
+allow_duplicates: true
 
 dependencies:
 

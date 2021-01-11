@@ -25,7 +25,7 @@
         filename: "Collector-{{ item.name }}"
         state: present
         mode: '0644'
-        update_cache: no
+        update_cache: yes
       loop: "{{ repos }}"
       loop_control:
         label: "{{ item.name }}"

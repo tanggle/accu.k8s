@@ -28,7 +28,7 @@ defaults
     timeout http-keep-alive 10s
     timeout check           10s
 
-{% if accu_load_balancer_stats %}
+{% if accu_load_balancer_stats | bool %}
 frontend stats
     bind *:{{ accu_load_balancer_stats_port }}
     stats enable

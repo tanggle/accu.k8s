@@ -47,13 +47,11 @@
 - name: AccuInsight+ Kubernetes | CNI | Create manifests for Calico
   become: yes 
   template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ accu_manifests_location }}/{{ component }}/{{ item.file }}"
+    src: calico.yaml.j2
+    dest: "{{ accu_manifests_location }}/{{ component }}/calico.yaml"
     owner: root
     group: root
     mode: '0644'
-  loop:
-    - { file: calico.yaml }
 
 
 - name: AccuInsight+ Kubernetes | CNI | Initialize Calico

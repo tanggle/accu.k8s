@@ -34,7 +34,7 @@
 
 - name: AccuInsight+ Kubernetes | Set taint for ceph nodes
   when:
-    - accu_rook_ceph_node_taint
+    - accu_rook_ceph_node_taint | bool
   become: yes
   shell: |
       kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule --overwrite
@@ -44,7 +44,7 @@
 
 - name: AccuInsight+ Kubernetes | Set taint for accelerator nodes
   when:
-    - accu_accelerator_node_taint
+    - accu_accelerator_node_taint | bool
   become: yes
   shell: |
       kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule --overwrite

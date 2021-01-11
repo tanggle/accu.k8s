@@ -4,7 +4,7 @@
 
 - name: AccuInsight+ Package Repository | Configure Repository for Server
   when:
-    - accu_package_repository_enabled or accu_offline_enabled
+    - accu_package_repository_enabled | bool or accu_offline_enabled | bool
     - inventory_hostname in groups['accu-pkg-server']
   become: yes
   block:
@@ -38,14 +38,6 @@
       args:
         executable: /bin/bash
         warn: no
-
-
-#    - name: AccuInsight+ Package Repository | Install web-frontend (Apache)
-#      apt:
-#        deb: "{{ item }}"
-#        state: present
-#        allow_unauthenticated: yes
-#      loop: "{{ accu.apache.pkgs }}"
 
 
     - name: AccuInsight+ Package Repository | Configure web-frontend (path)
@@ -107,6 +99,7 @@
         executable: /bin/bash
 
 
+    # TODO: synchronize should be replaced with scp command for air-gapped environment.
     - name: AccuInsight+ Package Repository | Synchronize GPG KEY to other repositories
       when:
         - groups['accu-pkg-server'] | length > 1
@@ -174,7 +167,7 @@
 
 - name: AccuInsight+ Package Repository | Configure Repository for Client
   when:
-    - accu_package_repository_enabled or accu_offline_enabled
+    - accu_package_repository_enabled | bool or accu_offline_enabled | bool
   become: yes
   block:
 
@@ -195,13 +188,14 @@
         label: "{{ item.name }}"
 
 
+    # NOTE: 'update_cache' must be 'no' at this point.
     - name: AccuInsight+ Package Repository | Enable AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }} (Repository URL)
       apt_repository:
         repo: "{{ item.url }}"
         filename: "{{ item.name }}"
         state: present
         mode: '0644'
-        update_cache: yes
+        update_cache: no
       loop: "{{ accu.repo }}"
       loop_control:
         label: "{{ item.name }}"
@@ -220,5 +214,9 @@
           Package: *
           Pin: release o=AccuInsight
           Pin-Priority: 1001
+
+
+    - name: AccuInsight+ Package Repository | Update AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }} (Repository Cache)
+      command: "apt update"
 
 

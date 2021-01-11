@@ -32,7 +32,7 @@
 
 - name: AccuInsight+ Storage Ceph | Override taint for ceph nodes
   when:
-    - accu_rook_ceph_node_taint
+    - accu_rook_ceph_node_taint | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
@@ -43,7 +43,7 @@
 
 - name: AccuInsight+ Storage Ceph | Add Chart Repository 'rook-release'
   when:
-    - not accu_offline_enabled
+    - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   helm_repository:
@@ -128,7 +128,7 @@
 
 - name: AccuInsight+ Storage Ceph | Create manifest for Ceph Dashboard (password)
   when:
-    - accu_ceph_monitor_dashboard_enabled
+    - accu_ceph_monitor_dashboard_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   template:
@@ -141,7 +141,7 @@
 
 - name: AccuInsight+ Storage Ceph | Apply manifests for Ceph Dashboard (password)
   when:
-    - accu_ceph_monitor_dashboard_enabled
+    - accu_ceph_monitor_dashboard_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
@@ -211,7 +211,7 @@
 ################################################################################
 - name: AccuInsight+ Storage Ceph | Deploy Ceph Toolbox
   when:
-    - accu_ceph_filesystem_storage_enabled or accu_ceph_object_storage_enabled
+    - accu_ceph_filesystem_storage_enabled | bool or accu_ceph_object_storage_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   block:
@@ -253,7 +253,7 @@
 ################################################################################
 - name: AccuInsight+ Storage Ceph | Configure Ceph Dashboard Ingress
   when:
-    - accu_ceph_filesystem_storage_enabled or accu_ceph_object_storage_enabled
+    - accu_ceph_filesystem_storage_enabled | bool or accu_ceph_object_storage_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   block:
@@ -361,7 +361,7 @@
 ################################################################################
 - name: AccuInsight+ Storage Ceph | Deploy Ceph Block Storage
   when:
-    - accu_ceph_block_storage_enabled
+    - accu_ceph_block_storage_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   block:
@@ -402,7 +402,7 @@
 ################################################################################
 - name: AccuInsight+ Storage Ceph | Deploy Ceph Filesystem Storage
   when:
-    - accu_ceph_filesystem_storage_enabled
+    - accu_ceph_filesystem_storage_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   block:
@@ -447,7 +447,7 @@
 
 - name: AccuInsight+ Storage Ceph | Mount Ceph Filesystem on Masters
   when:
-    - accu_ceph_filesystem_storage_enabled
+    - accu_ceph_filesystem_storage_enabled | bool
     - accu_ceph_filesystem_mount_on_masters
     - inventory_hostname in groups['kube-master']
   become: yes
@@ -509,7 +509,7 @@
 ################################################################################
 - name: AccuInsight+ Storage Ceph | Deploy Ceph Object Storage
   when:
-    - accu_ceph_object_storage_enabled
+    - accu_ceph_object_storage_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   block:
@@ -579,7 +579,7 @@
 ################################################################################
 - name: AccuInsight+ Storage Ceph | Deploy Ceph NFS Ganesha
   when:
-    - accu_ceph_filesystem_storage_enabled and accu_ceph_ganesha_enabled
+    - accu_ceph_filesystem_storage_enabled | bool and accu_ceph_ganesha_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   block:

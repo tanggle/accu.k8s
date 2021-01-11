@@ -3,8 +3,8 @@
 # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
 - name: AccuInsight+ Kubernetes | Add Package Repository 'Kubernetes'
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   yum_repository:
     description: Official Kubernetes
@@ -20,8 +20,8 @@
 
 - name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for Kubernetes repository
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version | int == 8
   become: yes 
@@ -43,10 +43,7 @@
       - 'kubectl-{{ kube_version }}'
       - 'cri-tools'
     state: present
-#    allow_downgrade: yes
     disable_excludes: AccuInsight-Kubernetes
-    update_cache: yes
   notify:
     - Kubelet | Restart
-
 

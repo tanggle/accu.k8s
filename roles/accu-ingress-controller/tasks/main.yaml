@@ -38,7 +38,7 @@
 
 - name: AccuInsight+ Ingress Controller | Add Chart Repository 'ingress-nginx'
   when:
-    - not accu_offline_enabled
+    - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes 
   helm_repository:
@@ -93,6 +93,8 @@
       - '--set controller.metrics.enabled=true'
       - '--set controller.replicaCount={{ accu_ingress_controller_replicas }}'
       - '--set controller.minAvailable=1'
+      # NOTE: defatul ingress-nginx deployment pulls images with digest, it doesn't work with preloaded image in offline mode.
+      - '--set controller.image.digest=""'
       - '--set defaultBackend.enabled={{ accu_ingress_backend_enabled }}'
       - '--set defaultBackend.name=default-backend'
       - '--set defaultBackend.replicaCount={{ accu_ingress_backend_replicas }}'

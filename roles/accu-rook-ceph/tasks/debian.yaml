@@ -4,8 +4,8 @@
 #       https://docs.ceph.com/en/latest/install/get-packages/#add-keys
 - name: AccuInsight+ Storage Ceph | Add Package Repository 'Ceph' (Repository KEY)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_key:
     url: https://download.ceph.com/keys/release.asc
@@ -15,8 +15,8 @@
 # DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages
 - name: AccuInsight+ Storage Ceph | Add Package Repository 'Ceph' (Repository URL)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_repository:
     repo: "deb https://download.ceph.com/debian-{{ accu_ceph_image_version }}/ {{ ansible_distribution_release }} main"
@@ -28,8 +28,8 @@
 
 - name: AccuInsight+ Storage Ceph | Set Package Repository 'Ceph' (Repository Preferences)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-Ceph
@@ -51,8 +51,6 @@
       - 'ceph-common'
       - 'lvm2'
     state: present
-    force: yes
-    update_cache: yes
 
 
 # DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages

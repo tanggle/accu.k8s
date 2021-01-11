@@ -9,21 +9,21 @@
     - { role: bootstrap }
 
 
-# TODO: This should be the first play.
 # AccuInsight+ OS Package Repository
 - import_playbook: plays/accu-package-repository.yaml
-  when: accu_offline_enabled or accu_package_repository_enabled
+  when: accu_offline_enabled | bool or accu_package_repository_enabled | bool
 
 
 # AccuInsight+ NFS server
 - import_playbook: plays/accu-nfs-server.yaml
-  when: accu_nfs_server_enabled
+  when: accu_nfs_server_enabled | bool
 
 
-- name: AccuInsight+ Kubernetes (kube-cluster)
+# AccuInsight+ K8S Cluster
+- name: AccuInsight+ Kubernetes
   hosts: kube-cluster
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  gather_facts: false
+  gather_facts: true
   roles:
     - { role: kubernetes/k8s/cluster }
     - { role: kubernetes/cri }
@@ -31,96 +31,91 @@
 
 # AccuInsight+ Load Balancer
 - import_playbook: plays/accu-load-balancer.yaml
-  when: accu_load_balancer_enabled
+  when: accu_load_balancer_enabled | bool
 
 
-- name: AccuInsight+ Kubernetes (kube-master)
-  hosts: kube-master
+# AccuInsight+ K8S Master
+- name: AccuInsight+ Kubernetes
+  hosts: kube-cluster
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  gather_facts: false
+  gather_facts: true
   roles:
     - { role: kubernetes/k8s/master }
-    - { role: kubernetes/cni/calico }
+    - { role: kubernetes/cni }
 
 
-- name: AccuInsight+ Kubernetes (kube-worker)
-  hosts: kube-worker
+# AccuInsight+ K8S Worker
+- name: AccuInsight+ Kubernetes
+  hosts: kube-cluster
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  gather_facts: false
+  gather_facts: true
   roles:
     - { role: kubernetes/k8s/worker }
-    
-
-- name: AccuInsight+ Kubernetes (Labeling and Tainting)
-  hosts: kube-master
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  gather_facts: false
-  roles:
     - { role: kubernetes/set }
 
 
 # AccuInsight+ K8S Tools
 - import_playbook: plays/accu-tools.yaml
-  when: accu_tools_enabled
+  when: accu_tools_enabled | bool
 
 
 # AccuInsight+ Helm
 - import_playbook: plays/accu-helm.yaml
-  when: accu_helm_enabled
+  when: accu_helm_enabled | bool
 
 
 - import_playbook: plays/accu-helm-operator.yaml
-  when: accu_helm_operator_enabled
+  when: accu_helm_operator_enabled | bool
 
 
 # AccuInsight+ Ingress Controller
 - import_playbook: plays/accu-ingress-controller.yaml
-  when: accu_ingress_controller_enabled
+  when: accu_ingress_controller_enabled | bool
 
 
 # AccuInsight+ Rook Ceph
 - import_playbook: plays/accu-rook-ceph.yaml
-  when: accu_rook_ceph_enabled
+  when: accu_rook_ceph_enabled | bool
 
 
 # AccuInsight+ NFS provisioner
 - import_playbook: plays/accu-nfs-provisioner.yaml
-  when: accu_nfs_provisioner_enabled
+  when: accu_nfs_provisioner_enabled | bool
 
 
 # AccuInsight+ Harbor
 - import_playbook: plays/accu-harbor.yaml
-  when: accu_harbor_enabled
+  when: accu_harbor_enabled | bool
 
 
 # AccuInsight+ Docker Registry
 - import_playbook: plays/accu-registry.yaml
-  when: accu_registry_enabled
+  when: accu_registry_enabled | bool
 
 
 # AccuInsight+ Chartmuseum
 - import_playbook: plays/accu-chartmuseum.yaml
-  when: accu_chartmuseum_enabled
+  when: accu_chartmuseum_enabled | bool
 
 
 # AccuInsight+ Metrics Server
 - import_playbook: plays/accu-metrics-server.yaml
-  when: accu_metrics_server_enabled
+  when: accu_metrics_server_enabled | bool
 
 
 # AccuInsight+ Prometheus
 - import_playbook: plays/accu-monitoring.yaml
-  when: accu_monitoring_enabled
+  when: accu_monitoring_enabled | bool
 
 
 # AccuInsight+ EFK
 #- import_playbook: plays/accu-logging.yaml
-#  when: accu_logging_enabled
+#  when: accu_logging_enabled | bool
 
 
 # AccuInsight+ GPU accelerator
 - import_playbook: plays/accu-accelerator.yaml
-  when: accu_accelerator_enabled
+  when: accu_accelerator_enabled | bool
 
 # AccuInsight+ Service Prepare
 #- import_playbook: plays/accu-service.yaml
@@ -128,6 +123,6 @@
 
 # AccuInsight+ Applicaiton
 #- import_playbook: plays/accu-app-install.yaml
-#  when: accu_app_install_enabled
+#  when: accu_app_install_enabled | bool
 
 

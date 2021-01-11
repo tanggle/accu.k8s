@@ -15,8 +15,8 @@
 # https://docs.docker.com/engine/install/centos/
 - name: AccuInsight+ Kubernetes | Add Package Repository 'Containerd'
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   yum_repository:
     description: Official Containerd
@@ -31,8 +31,8 @@
 
 - name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for Docker repository
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version | int == 8
   become: yes 
@@ -43,13 +43,13 @@
     option: module_hotfixes
     value: "True"
 
+
 # Containerd package has a dependency with container-selinux package provided by CentOS Extras Repository.
 # but the package does not exist on RHEL 7 Repository. CentOS Extras Repository is required if target OS is RHEL 7.
-
 - name: AccuInsight+ Kubernetes | Check if CentOS Extras repository is required
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 7
   become: yes
@@ -60,8 +60,8 @@
 
 - name: AccuInsight+ Kubernetes | Add Package Repository 'CentOS Extras'
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 7
     - repo_status.results | length == 0
@@ -75,6 +75,7 @@
     enabled: yes
     gpgcheck: yes
 
+
 # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
 - name: AccuInsight+ Kubernetes | Install Containerd
   become: yes
@@ -85,9 +86,8 @@
       - 'device-mapper-persistent-data'
       - 'lvm2'
     state: present
-#    allow_downgrade: yes
     disable_excludes: AccuInsight-Containerd
-    update_cache: yes
+
 
 - name: AccuInsight+ Kubernetes | Enable Containerd CRI Plugin
   lineinfile:
@@ -98,5 +98,4 @@
   notify:
     - CRI | Containerd | Restart
     - CRI | Containerd | Wait for Ready
-
 

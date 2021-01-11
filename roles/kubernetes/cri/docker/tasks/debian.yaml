@@ -16,8 +16,8 @@
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # https://docs.docker.com/engine/install/ubuntu/
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
@@ -28,8 +28,8 @@
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # https://docs.docker.com/engine/install/ubuntu/
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes
   apt_repository:
     repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
@@ -41,8 +41,8 @@
 
 - name: AccuInsight+ Kubernetes | Set Package Repository 'Docker' (Repository Preferences)
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-Docker
@@ -64,11 +64,7 @@
     name:
       - 'docker-ce'
       - 'docker-ce-cli'
-#     - 'docker-ce={{ docker_pkg_version }}'
-#     - 'docker-ce-cli={{ docker_pkg_version }}'
     state: present
-    force: yes
-    update_cache: yes
   notify:
     - CRI | Docker | Restart
     - CRI | Docker | Wait for Ready

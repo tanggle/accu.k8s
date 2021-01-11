@@ -57,6 +57,8 @@ pkgs:
           {#% endif                       %#}
         ]
   reqs:
+    # for ansible
+    - 'rsync'
     # for kubernetes
     - 'skopeo'
     # for accu-accelerator (kernel)

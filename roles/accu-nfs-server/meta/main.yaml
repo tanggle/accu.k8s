@@ -3,5 +3,4 @@
 dependencies:
 
   - { role: accu-common/default, component: accu-nfs-server }
-  - { role: accu-common/offline, when: accu_offline_enabled }
 

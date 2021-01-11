@@ -1,24 +1,37 @@
 ---
 
+- name: AccuInsight+ Collector | Prepare Ansible
+  become: yes 
+  file:
+    path: /root/.ansible/tmp
+    mode: '0700'
+    state: directory
+
+
 - include_tasks: packages-redhat.yaml
   when:
-    - accu_collector_gathering_packages
+    - accu_collector_gathering_packages | bool
     - ansible_os_family == 'RedHat'
+
 
 - include_tasks: packages-debian.yaml
   when:
-    - accu_collector_gathering_packages
+    - accu_collector_gathering_packages | bool
     - ansible_os_family == 'Debian'
 
+
 - include_tasks: charts.yaml
-  when: accu_collector_gathering_charts
+  when: accu_collector_gathering_charts | bool
+
 
 - include_tasks: files.yaml
-  when: accu_collector_gathering_files
+  when: accu_collector_gathering_files | bool
+
 
 - include_tasks: images.yaml
-  when: accu_collector_gathering_images
+  when: accu_collector_gathering_images | bool
+
 
 - include_tasks: clean.yaml
-  when: accu_collector_cleanup
+  when: accu_collector_cleanup | bool
 

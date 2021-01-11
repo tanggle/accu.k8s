@@ -15,8 +15,8 @@
 
 - name: AccuInsight+ GPU Accelerator | Add Package Repository 'NVIDIA'
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
   become: yes 
   shell: |
       # for more details, refer to https://nvidia.github.io/nvidia-docker/
@@ -34,8 +34,8 @@
 
 - name: AccuInsight+ GPU Accelerator | Set module_hotfixes to 'True' for NVIDIA repository
   when:
-    - not accu_offline_enabled
-    - not accu_package_repository_enabled
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version | int == 8
   become: yes 
@@ -60,8 +60,6 @@
       # Use nvidia-container-runtime instead of nvidia-docker2.
       # nvidia-docker2 makes hard to handle docker daemon.json in ansible level.
       # https://github.com/nvidia/nvidia-container-runtime#installation
-#     - 'nvidia-docker2'
-#     - 'nvidia-container-runtime-3.3.0'
       - 'nvidia-container-runtime'
       - 'kernel-devel'
 #      - 'kernel-devel-{{ ansible_kernel }}'

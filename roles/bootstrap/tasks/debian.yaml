@@ -1,11 +1,19 @@
 ---
 
 - name: AccuInsight+ OS Default Settings | Update OS to the latest version
-  when: os_update
+  when: os_update | bool
   become: yes
   apt:
     name: "*"
     state: latest
   notify: OS | Reboot
+
+
+#- name: AccuInsight+ OS Default Settings | Install Requirements
+#  become: yes 
+#  apt:
+#    name:
+#      - 'lvm2'
+#    state: present
 
 

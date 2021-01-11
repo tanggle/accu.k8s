@@ -36,7 +36,6 @@
       apt:
         name: podman-rootless
         state: latest
-        update_cache: yes
 
 
     - name: AccuInsight+ Collector | Collect Images

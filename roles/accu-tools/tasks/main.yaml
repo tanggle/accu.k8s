@@ -6,7 +6,6 @@
   yum:
     name: bash-completion
     state: present
-    update_cache: yes
 
 
 - name: AccuInsight+ K8S Tools | Copy kubectx & kubens binaries

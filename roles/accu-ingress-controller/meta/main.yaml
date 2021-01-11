@@ -3,5 +3,5 @@
 dependencies:
 
   - { role: accu-common/default, component: accu-ingress-controller }
-  - { role: accu-common/offline, when: accu_offline_enabled }
+  - { role: accu-common/offline, when: accu_offline_enabled | bool }
 
