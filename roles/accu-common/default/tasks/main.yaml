@@ -16,8 +16,3 @@
         - "vars/common.yaml"
   loop: "{{ query('first_found', params, errors='ignore') }}"
 
-
-- name: Print component from default
-  debug:
-    msg: "{{ component }} ****************************************************************************************"
-

@@ -261,7 +261,7 @@
     executable: /bin/bash
 
 
-## Normally, synchronize module uses 'ansible_host' address defined in inventory file as a destination.
+## Normally, synchronize module with 'delegate_to' uses 'ansible_host' address defined in inventory file as a destination.
 ## This can be a problem if 'ansible_host' address is unreachable from each node.
 #- name: AccuInsight+ OS Default Settings | Install OpenSSL CA CRT to System Trust Store
 #  become: yes

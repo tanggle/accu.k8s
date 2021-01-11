@@ -13,7 +13,7 @@
     - '{{ accu_monitoring_grafana_fqdn }}'
 
 
-- name: AccuInsight+ Storage Ceph | Add Chart Repository 'prometheus-community'
+- name: AccuInsight+ Monitoring | Add Chart Repository 'prometheus-community'
   when:
     - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -25,7 +25,7 @@
   no_log: true
 
 
-- name: AccuInsight+ Storage Ceph | Set chart location
+- name: AccuInsight+ Monitoring | Set chart location
   when:
     - inventory_hostname in groups['kube-master']
   set_fact:
@@ -67,7 +67,7 @@
       - '--set prometheus.ingress.enabled=true'
       - '--set prometheus.ingress.hosts[0]={{ accu_monitoring_prometheus_fqdn }}'
       - '--set grafana.adminPassword={{ accu_monitoring_grafana_pass }}'
-      - '--set grafana.plugins[0]=grafana-piechart-panel'
+      # - '--set grafana.plugins[0]=grafana-piechart-panel'
       - '--set grafana.persistence.enabled=true'
       - '--set grafana.persistence.size={{ accu_monitoring_grafana_storage_size }}'
       - '--set grafana.persistence.storageClassName={{ accu_monitoring_grafana_storage_class }}'
