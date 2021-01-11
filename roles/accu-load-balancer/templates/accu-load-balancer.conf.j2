@@ -61,7 +61,7 @@ backend k8s-apiserver
 #    option ssl-hello-chk
 #---------------------------------------------------------------------
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:6443 check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:6443 check
 {% endfor %}
 
 frontend k8s-ingress-http
@@ -75,7 +75,7 @@ backend k8s-ingress-http
     mode tcp 
     option tcp-check
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ accu_ingress_controller_nodeport_insecure }} check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:{{ accu_ingress_controller_nodeport_insecure }} check
 {% endfor %}
 
 frontend k8s-ingress-https
@@ -89,7 +89,7 @@ backend k8s-ingress-https
     mode tcp
     option tcp-check
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ accu_ingress_controller_nodeport_secure }} check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:{{ accu_ingress_controller_nodeport_secure }} check
 {% endfor %}
 
 frontend pipeline
@@ -103,7 +103,7 @@ backend pipeline
     mode    tcp
     option  tcp-check
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32431 check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:32431 check
 {% endfor %}
 
 frontend dhp
@@ -117,7 +117,7 @@ backend dhp
     mode    tcp
     option  tcp-check
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32321 check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:32321 check
 {% endfor %}
 
 frontend modeler
@@ -131,7 +131,7 @@ backend modeler
     mode    tcp
     option  tcp-check
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32721 check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:32721 check
 {% endfor %}
 
 frontend sso
@@ -145,5 +145,5 @@ backend sso
     mode    tcp
     option  tcp-check
 {% for host in groups['kube-master'] %}
-    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:32000 check
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:32000 check
 {% endfor %}

@@ -74,6 +74,8 @@
   loop:
     - { mode: '0644', file: 'accu-vip-manager.conf' }
     - { mode: '0755', file: 'check-k8s-apiserver.sh' }
+  loop_control:
+    label: "{{ item.mode }}, {{ item.file }}"
 
 
 - name: AccuInsight+ Load Balancer | Create manifests for VIP Manager (keepalived)

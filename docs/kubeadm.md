@@ -253,7 +253,7 @@ accu_helm_max_history: 10
 # AccuInsight+ Load Balancer
 accu_load_balancer_enabled: true
 accu_load_balancer_fqdn: "k8s.accuinsight.io"
-accu_load_balancer_addr: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }}"
+accu_load_balancer_addr: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }}"
 # Currently this is IP address of internal load balancer but should be devided for internal and external
 
 # AccuInsight+ Metrics Server

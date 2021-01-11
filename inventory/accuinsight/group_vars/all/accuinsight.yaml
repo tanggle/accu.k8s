@@ -115,7 +115,7 @@ accu_load_balancer_stats_user: admin
 accu_load_balancer_stats_pass: admin
 accu_load_balancer_vip: 1.1.1.1
 accu_load_balancer_fqdn: k8s.accuinsight.io
-accu_load_balancer_addr: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }}"
+accu_load_balancer_addr: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }}"
 accu_load_balancer_config_location: "/etc/accuinsight"
 # NOTE: see roles/accu-load-balancer/vars/*.yaml for more details about 'accu_load_balancer_nic'
 #       Not, default NIC is detected automatically. this parameter is deprecated

@@ -8,7 +8,7 @@
     dest: /etc/hosts
     insertafter: EOF
     state: present
-    line: "{{ hostvars[groups['accu-nfs-server'][0]]['ansible_default_ipv4']['address'] }} {{ groups['accu-nfs-server'][0] }}"
+    line: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }} {{ groups['accu-nfs-server'][0] }}"
 
 
 - import_tasks: redhat.yaml

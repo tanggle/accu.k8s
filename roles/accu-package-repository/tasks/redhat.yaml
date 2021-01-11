@@ -56,6 +56,10 @@
         - Package Repository | Restart
 
 
+    - name: AccuInsight+ Package Repository | Flush Handlers to restart web-frontend
+      meta: flush_handlers
+
+
     - name: AccuInsight+ Package Repository | Install metadata tool (createrepo)
       shell: |
         # Change directory

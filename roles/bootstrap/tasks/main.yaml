@@ -40,10 +40,9 @@
 
 - name: AccuInsight+ OS Default Settings | Add hostnames to /etc/hosts
   become: yes
-# DELETE LATER  when: hostvars[item]['ansible_default_ipv4']['address'] is defined
   lineinfile:
     path: /etc/hosts
-    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ item }}"
+    line: "{{ hostvars[item]['private_ip'] }} {{ item }}"
     state: present
     owner: root
     group: root
@@ -109,6 +108,8 @@
   loop:
     - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
     - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+  loop_control:
+    label: "{{ item.value }}, {{ item.key }}"
 
 
 #- name: AccuInsight+ OS Default Settings | Check OpenSSL CA Status
@@ -247,6 +248,18 @@
     executable: /bin/bash
 
 
+# Seems to be some privilege escalation timing issues in ansible.
+# Before pulling certificates in next task, change permission of certificates to 644.
+- name: AccuInsight+ OS Default Settings | Change permission of OpenSSL Certificates
+  when: inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    chmod 644 {{ accu_certificates_location }}/*
+  args:
+    executable: /bin/bash
+    warn: no
+
+
 # For safety, copy certificates to each master
 - name: AccuInsight+ OS Default Settings | Copy OpenSSL Certificates to masters
   when:
@@ -255,7 +268,7 @@
   become: yes
   shell: |
     scp -r -o StrictHostKeyChecking=no \
-        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['ansible_default_ipv4']['address'] }}:{{ accu_certificates_location }}/* \
+        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/* \
         {{ accu_certificates_location }}
   args:
     executable: /bin/bash
@@ -277,7 +290,7 @@
   become: yes
   shell: |
     scp -o StrictHostKeyChecking=no \
-        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['ansible_default_ipv4']['address'] }}:{{ accu_certificates_location }}/ca.crt \
+        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/ca.crt \
         {{ accu.trust_ca_store }}/accuinsight.crt
   args:
     executable: /bin/bash

@@ -4,30 +4,3 @@
   debug:
     msg: "{{ inventory_hostname }}"
 
-
-- name: Set chart location
-  set_fact:
-    chartname: >-
-      {% if accu_offline_enabled | bool                                                            %}
-      {{ accu_offline_target }}/charts/{{ component }}/chartmuseum-{{ accu_chartmuseum_version }}.tgz
-      {% else                                                                                      %}
-      stable/chartmuseum
-      {% endif                                                                                     %}
-
-
-- name: Print chart location
-  debug:
-    msg: "{{ chartname }}"
-
-
-- name: Print private_ip
-  debug:
-    msg: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
-#    msg: "{{ hostvars[item]['private_ip'] }}"
-  loop: "{{ groups['all'] }}"
-  delegate_to: "{{ groups['kube-master'][0] }}"
-  run_once: true
-
-- name: Print ansible_user
-  debug:
-    msg: "{{ groups['kube-master'][1-2] }}"

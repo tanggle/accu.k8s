@@ -14,7 +14,7 @@
     dest: /etc/hosts
     insertafter: EOF 
     state: present
-    line: "{{ hostvars[groups['accu-alb-server'][0]]['ansible_default_ipv4']['address'] }} {{ item }}"
+    line: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }} {{ item }}"
   loop:
     - '{{ accu_rook_ceph_admin_fqdn }}'
     - '{{ accu_ceph_object_storage_fqdn }}'

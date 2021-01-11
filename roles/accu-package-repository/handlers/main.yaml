@@ -1,10 +1,9 @@
 ---
 
 - name: Package Repository | Restart
-  become: yes 
+  become: yes
   systemd:
     name: "{{ accu.apache.name }}"
-    enabled: yes 
+    enabled: yes
     state: restarted
-
 
