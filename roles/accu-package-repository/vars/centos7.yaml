@@ -22,8 +22,16 @@ accu:
       - 'createrepo_c-libs-*'
 
   repo:
-    - name: AccuInsight
-      file: AccuInsight
-      desc: AccuInsight+ Repository - {{ ansible_distribution }} {{ ansible_distribution_version }}
-      base: "{% for host in groups['accu-pkg-server'] %}http://{{ hostvars[host]['private_ip'] }}:{{ accu_package_repository_port }}/accuinsight {% endfor %}"
+    online: # Repositories to disable in air-gapped environment.
+      - repo: CentOS-Base
+        section: base
+      - repo: CentOS-Base
+        section: update
+      - repo: CentOS-Base
+        section: extras
+    offline: # Repositories to enable in air-gapped environment.
+      - name: AccuInsight
+        file: AccuInsight
+        desc: AccuInsight+ Repository - {{ ansible_distribution }} {{ ansible_distribution_version }}
+        base: "{% for host in groups['accu-pkg-server'] %}http://{{ hostvars[host]['private_ip'] }}:{{ accu_package_repository_port }}/accuinsight {% endfor %}"
 

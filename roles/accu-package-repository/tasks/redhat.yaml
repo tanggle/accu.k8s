@@ -92,7 +92,20 @@
         warn: no
 
 
-    - name: AccuInsight+ Package Repository | Enable AccuInsight+ repository for {{ accu.os.distro }} {{ accu.os.version }}
+    - name: AccuInsight+ Package Repository | Disable Online Repositories for {{ accu.os.distro }} {{ accu.os.version }}
+      ini_file:
+        path: "/etc/yum.repos.d/{{ item.repo }}.repo"
+        section: "{{ item.section }}"
+        option: enabled
+        value: "0"
+        no_extra_spaces: yes
+      loop: "{{ accu.repo.online }}"
+      loop_control:
+        label: "{{ item.repo }}, {{ item.section }}"
+   
+
+
+    - name: AccuInsight+ Package Repository | Enable AccuInsight+ Repositories for {{ accu.os.distro }} {{ accu.os.version }}
       yum_repository:
         name: "{{ item.name }}"
         description: "{{ item.desc }}"
@@ -100,7 +113,7 @@
         baseurl: "{{ item.base }}"
         gpgcheck: no
         enabled: yes
-      loop: "{{ accu.repo }}"
+      loop: "{{ accu.repo.offline }}"
       loop_control:
         label: "{{ item.desc }}, {{ item.base }}"
 
@@ -114,9 +127,10 @@
         section: "{{ item.name }}"
         option: module_hotfixes
         value: "True"
-      loop: "{{ accu.repo }}"
+      loop: "{{ accu.repo.offline }}"
       loop_control:
         label: "{{ item.desc }}"
+
 
     #- name: AccuInsight+ Package Repository | Enable fastestmirror plugin
     #  become: yes

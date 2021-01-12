@@ -46,15 +46,15 @@ pkgs:
   core: >
         [
           "kubeadm kubelet kubectl",
-          {#% if kube_cri == 'containerd' %#}
+          {#% if kube_cri == 'containerd'   %#}
           "containerd.io",
-          {#% endif                       %#}
-          {#% if kube_cri == 'cri-o'      %#}
+          {#% endif                         %#}
+          {#% if kube_cri == 'cri-o'        %#}
           "cri-o cri-o-runc podman-rootless",
-          {#% endif                       %#}
-          {#% if kube_cri == 'docker'     %#}
+          {#% endif                         %#}
+          {#% if kube_cri == 'docker'       %#}
           "docker-ce docker-ce-cli",
-          {#% endif                       %#}
+          {#% endif                         %#}
         ]
   reqs:
     # for ansible

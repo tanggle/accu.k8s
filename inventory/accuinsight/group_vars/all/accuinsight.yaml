@@ -67,9 +67,9 @@ accu_service_target: /accuinsight/service
 # AccuInsight+ Collector
 accu_collector_target: /accuinsight/collector
 accu_collector_gathering_packages: true
-accu_collector_gathering_charts: true
-accu_collector_gathering_files: true
-accu_collector_gathering_images: true
+accu_collector_gathering_charts: false
+accu_collector_gathering_files: false
+accu_collector_gathering_images: false
 accu_collector_cleanup: true
 
 # AccuInsight+ Menifess Location
