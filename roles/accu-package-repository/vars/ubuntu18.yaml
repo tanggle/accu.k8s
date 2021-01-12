@@ -17,7 +17,6 @@ accu:
       - 'libaprutil1_*'
       - 'libaprutil1-dbd-sqlite3_*'
       - 'libaprutil1-ldap_*'
-      - 'libjansson4_*'
       - 'liblua5.2-0_*'
       - 'ssl-cert_*'
 
