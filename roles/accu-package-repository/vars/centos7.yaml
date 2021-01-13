@@ -26,7 +26,7 @@ accu:
       - repo: CentOS-Base
         section: base
       - repo: CentOS-Base
-        section: update
+        section: updates
       - repo: CentOS-Base
         section: extras
     offline: # Repositories to enable in air-gapped environment.
