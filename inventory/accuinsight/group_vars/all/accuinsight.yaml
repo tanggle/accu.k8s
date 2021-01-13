@@ -68,7 +68,7 @@ accu_service_target: /accuinsight/service
 accu_collector_target: /accuinsight/collector
 accu_collector_gathering_packages: true
 accu_collector_gathering_charts: false
-accu_collector_gathering_files: false
+accu_collector_gathering_files: true
 accu_collector_gathering_images: false
 accu_collector_cleanup: true
 
@@ -90,6 +90,10 @@ accu_package_repository_port: 1234
 
 # AccuInsight+ K8S Tools
 accu_tools_enabled: true
+accu_tools_powerline_version: 1.20.0
+accu_tools_kubectx_version: 0.9.1
+accu_tools_kubens_version: 0.9.1
+accu_tools_k9scli_version: 0.24.2
 
 # AccuInsight+ Helm
 accu_helm_enabled: true

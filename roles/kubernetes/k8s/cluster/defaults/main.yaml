@@ -1,5 +1,11 @@
 ---
 
+ext_lb_fqdn: "{{ accu_load_balancer_fqdn }}"
+ext_lb_addr: "{{ accu_load_balancer_addr }}"
+ext_lb_port: 8443
+
+kube_proxy_mode: iptables
+
 default_cri_socket:
   containerd: /run/containerd/containerd.sock
   cri-o     : /var/run/crio/crio.sock

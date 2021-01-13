@@ -1,91 +1,87 @@
 ---
 
-- name: AccuInsight+ K8S Tools | Install bash-completion package
-  when: ansible_os_family == 'RedHat'
-  become: yes
-  yum:
-    name: bash-completion
-    state: present
+- name: AccuInsight+ GPU Accelerator | Configure Accelerator Nodes
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  block:
+
+    - name: AccuInsight+ K8S Tools | Install bash-completion package
+      when: ansible_os_family == 'RedHat'
+      yum:
+        name: bash-completion
+        state: present
 
 
-- name: AccuInsight+ K8S Tools | Copy kubectx & kubens binaries
-  become: yes
-  copy:
-    src: "{{ item }}"
-    dest: "/usr/local/bin/{{ item }}"
-    mode: '0755'
-    owner: root
-    group: root
-    force: no
-  loop:
-    - kubectx
-    - kubens
+    - name: AccuInsight+ Helm | Copy kubectx & kubens binaries
+      unarchive:
+        src: "{{ accu_offline_target }}/{{ component }}/files/{{ item }}"
+        dest: /usr/local/bin
+        remote_src: yes 
+        exclude:
+          - 'LICENSE'
+      loop:
+        - 'kubectx_v{{ accu_tools_kubectx_version }}_linux_x86_64.tar.gz'
+        - 'kubens_v{{ accu_tools_kubens_version }}_linux_x86_64.tar.gz'
 
 
-- name: AccuInsight+ K8S Tools | Copy kubectx & kubens completions
-  become: yes
-  copy:
-    src: "{{ item }}.bash"
-    dest: "/etc/bash_completion.d/{{ item }}"
-    mode: '0644'
-    owner: root
-    group: root
-    force: no
-  loop:
-    - kubectx
-    - kubens
+    - name: AccuInsight+ K8S Tools | Copy kubectx & kubens completions
+      copy:
+        src: "{{ item }}.bash"
+        dest: "/etc/bash_completion.d/{{ item }}"
+        mode: '0644'
+        owner: root
+        group: root
+      loop:
+        - kubectx
+        - kubens
 
 
-- name: AccuInsight+ K8S Tools | Rename K8S context to 'AccuInsight+'
-  become: yes
-  shell: |
-      if [ $(/usr/local/bin/kubectx | grep -w AccuInsight+) ]
-      then
-          echo "Already Exists"
-      else
-          /usr/local/bin/kubectx AccuInsight+=.
-      fi 
-  args:
-    executable: /bin/bash
+    - name: AccuInsight+ K8S Tools | Rename K8S context to 'AccuInsight+'
+      shell: |
+          if [ $(/usr/local/bin/kubectx | grep -w AccuInsight+) ]
+          then
+              echo "Already Exists"
+          else
+              /usr/local/bin/kubectx AccuInsight+=.
+          fi 
+      args:
+        executable: /bin/bash
 
 
-- name: AccuInsight+ K8S Tools | Copy powerline-go binary
-  become: yes
-  copy:
-    src: powerline-go
-    dest: /usr/local/bin/powerline-go
-    mode: '0755'
-    owner: root
-    group: root
-    force: no
+    - name: AccuInsight+ K8S Tools | Copy powerline-go binary
+      copy:
+        src: "{{ accu_offline_target }}/{{ component }}/files/powerline-go-linux-amd64"
+        dest: /usr/local/bin/powerline-go
+        remote_src: yes
+        mode: '0755'
+        owner: root
+        group: root
 
 
-- name: AccuInsight+ K8S Tools | Copy powerline-go configuration
-  become: yes
-  copy:
-    src: powerline-go.bash
-    dest: /root/.powerline-go
-    mode: '0644'
-    owner: root
-    group: root
+    - name: AccuInsight+ K8S Tools | Copy powerline-go configuration
+      copy:
+        src: powerline-go.bash
+        dest: /root/.powerline-go
+        mode: '0644'
+        owner: root
+        group: root
 
 
-- name: AccuInsight+ K8S Tools | Load powerline-go configuration
-  become: yes
-  lineinfile:
-    dest: /root/.bashrc
-    state: present
-    line: "source .powerline-go"
+    - name: AccuInsight+ K8S Tools | Load powerline-go configuration
+      lineinfile:
+        dest: /root/.bashrc
+        state: present
+        line: "source .powerline-go"
 
 
-- name: AccuInsight+ K8S Tools | Copy k9s binary
-  become: yes
-  copy:
-    src: k9s
-    dest: /usr/local/bin/k9s
-    mode: '0755'
-    owner: root
-    group: root
-    force: no
+    - name: AccuInsight+ Helm | Copy k9scli binary
+      unarchive:
+        src: "{{ accu_offline_target }}/{{ component }}/files/k9s_Linux_x86_64.tar.gz"
+        dest: /usr/local/bin
+        remote_src: yes 
+        exclude:
+          - 'LICENSE'
+          - 'README.md'
 
 
