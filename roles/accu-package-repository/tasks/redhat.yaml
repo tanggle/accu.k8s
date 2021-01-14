@@ -92,18 +92,29 @@
         warn: no
 
 
-    - name: AccuInsight+ Package Repository | Disable Online Repositories for {{ accu.os.distro }} {{ accu.os.version }}
-      ini_file:
-        path: "/etc/yum.repos.d/{{ item.repo }}.repo"
-        section: "{{ item.section }}"
-        option: enabled
-        value: "0"
-        no_extra_spaces: yes
+    # READ: https://access.redhat.com/solutions/265523
+    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories
+      shell: |
+        yum-config-manager --setopt={{ item.section }}.skip_if_unavailable=1 --setopt={{ item.section }}.timeout=5 --save
+      args:
+        executable: /bin/bash
+        warn: no
       loop: "{{ accu.repo.online }}"
       loop_control:
-        label: "{{ item.repo }}, {{ item.section }}"
-   
+        label: "{{ item.section }}"
 
+
+#    - name: AccuInsight+ Package Repository | Disable Online Repositories for {{ accu.os.distro }} {{ accu.os.version }}
+#      ini_file:
+#        path: "/etc/yum.repos.d/{{ item.repo }}.repo"
+#        section: "{{ item.section }}"
+#        option: enabled
+#        value: "0"
+#        no_extra_spaces: yes
+#      loop: "{{ accu.repo.online }}"
+#      loop_control:
+#        label: "{{ item.repo }}, {{ item.section }}"
+   
 
     - name: AccuInsight+ Package Repository | Enable AccuInsight+ Repositories for {{ accu.os.distro }} {{ accu.os.version }}
       yum_repository:
