@@ -87,6 +87,9 @@ accu_system_namespace: accu-system
 accu_package_repository_enabled: true
 accu_package_repository_path: /repo
 accu_package_repository_port: 1234
+# How to handle online repository on redhat family.
+# all_disable / all_skip / selective_disable / selective_skip
+accu_package_repository_online_handling: all_disable
 
 # AccuInsight+ K8S Tools
 accu_tools_enabled: true

@@ -79,7 +79,6 @@
         cmd: "createrepo_c {{ accu_package_repository_path }}/accuinsight"
 
 
-
 - name: AccuInsight+ Package Repository | Configure Repository for Client
   when:
     - accu_package_repository_enabled | bool or accu_offline_enabled | bool
@@ -93,9 +92,11 @@
 
 
     # READ: https://access.redhat.com/solutions/265523
-    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories
+    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories (Selective Skip)
+      when:
+        - accu_package_repository_online_handling == 'selective_skip'
       shell: |
-        yum-config-manager --setopt={{ item.section }}.skip_if_unavailable=1 --setopt={{ item.section }}.timeout=5 --save
+        yum-config-manager --setopt={{ item.section }}.skip_if_unavailable=true --setopt={{ item.section }}.timeout=3 --setopt={{ item.section }}.retries=1 --save
       args:
         executable: /bin/bash
         warn: no
@@ -104,17 +105,54 @@
         label: "{{ item.section }}"
 
 
-#    - name: AccuInsight+ Package Repository | Disable Online Repositories for {{ accu.os.distro }} {{ accu.os.version }}
-#      ini_file:
-#        path: "/etc/yum.repos.d/{{ item.repo }}.repo"
-#        section: "{{ item.section }}"
-#        option: enabled
-#        value: "0"
-#        no_extra_spaces: yes
-#      loop: "{{ accu.repo.online }}"
-#      loop_control:
-#        label: "{{ item.repo }}, {{ item.section }}"
-   
+    # READ: https://access.redhat.com/solutions/265523
+    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories (All Skip)
+      when:
+        - accu_package_repository_online_handling == 'all_skip'
+      shell: |
+        shopt -s nullglob
+
+        for REPO in $(sed -nr 's/^\[(.*)\]/\1/p' /etc/yum.repos.d/*.repo | grep -v AccuInsight)
+        do
+          yum-config-manager --setopt=${REPO}.skip_if_unavailable=true --setopt=${REPO}.timeout=3 --setopt=${REPO}.retries=1 --save
+        done
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    # READ: https://access.redhat.com/solutions/265523
+    # NOTE: this method doesn't work on RHEL family, use other methods (selective_skip / all_skip / all_skip).
+    #       subscription manager reverts back it automatically.
+    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories (Selective Disable)
+      when:
+        - accu_package_repository_online_handling == 'selective_disable'
+      ini_file:
+        path: "/etc/yum.repos.d/{{ item.repo }}.repo"
+        section: "{{ item.section }}"
+        option: enabled
+        value: "0"
+        no_extra_spaces: yes
+      loop: "{{ accu.repo.online }}"
+      loop_control:
+        label: "{{ item.repo }}, {{ item.section }}"
+
+
+    # READ: https://access.redhat.com/solutions/265523
+    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories (All Disable)
+      when:
+        - accu_package_repository_online_handling == 'all_disable'
+      shell: |
+        shopt -s nullglob
+
+        for REPO in $(find /etc/yum.repos.d -name "*.repo" | grep -v AccuInsight)
+        do
+          mv -f ${REPO} ${REPO}.DISABLED-BY-ACCUINSIGHT
+        done
+      args:
+        executable: /bin/bash
+        warn: no
+
 
     - name: AccuInsight+ Package Repository | Enable AccuInsight+ Repositories for {{ accu.os.distro }} {{ accu.os.version }}
       yum_repository:
