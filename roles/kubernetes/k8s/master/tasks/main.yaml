@@ -6,6 +6,7 @@
   become: yes
   block:
 
+    # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
     # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/kubelet-integration/
     - name: AccuInsight+ Kubernetes | Check masters' initialization status
       stat:

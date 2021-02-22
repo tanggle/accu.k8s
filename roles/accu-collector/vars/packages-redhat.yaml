@@ -65,8 +65,8 @@ pkgs:
     - 'gcc'
     - 'make'
     # for accu-accelerator (nvidia)
+    - 'nvidia-container-runtime-3.4.2'
     - 'nvidia-container-toolkit'
-    - 'nvidia-container-runtime'
     # for accu-nfs-server and accu-nfs-provisioner
     - 'nfs-utils'
     # for accu-repository-server

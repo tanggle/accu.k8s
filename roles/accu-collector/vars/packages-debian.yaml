@@ -65,8 +65,8 @@ pkgs:
     - 'linux-image-{{ kernel_version }} linux-headers-{{ kernel_version }}'
     - 'build-essential'
     # for accu-accelerator (nvidia)
-    - 'nvidia-container-toolkit'
     - 'nvidia-container-runtime'
+    - 'nvidia-container-toolkit'
     # for accu-nfs-server
     - 'nfs-kernel-server'
     # for accu-nfs-provisioner

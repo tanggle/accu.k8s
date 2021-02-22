@@ -14,6 +14,6 @@ cni_calico_mtu: 0
 cni_calico_iptablesbackend: Auto
 
 # Deploy calicoctl using Kubernetes API datastore.
-cni_calico_calicoctl: true
+#cni_calico_calicoctl: true
 
 

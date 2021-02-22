@@ -70,7 +70,7 @@ accu_collector_gathering_packages: true
 accu_collector_gathering_charts: false
 accu_collector_gathering_files: true
 accu_collector_gathering_images: false
-accu_collector_cleanup: true
+accu_collector_cleanup: false
 
 # AccuInsight+ Menifess Location
 accu_manifests_location: /etc/kubernetes/accuinsight

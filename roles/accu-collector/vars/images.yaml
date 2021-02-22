@@ -8,6 +8,8 @@ images:
         dest: accu-nvidia
       - tags: nvidia/dcgm-exporter:{{ accu_accelerator_device_metric_version }}
         dest: accu-nvidia
+#      - tags: k8s.gcr.io/cuda-vector-add:v0.1
+#        dest: accu-nvidia
 
   - component: accu-load-balancer
     list:

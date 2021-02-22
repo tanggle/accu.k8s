@@ -4,19 +4,3 @@
   debug:
     msg: "{{ inventory_hostname }}"
 
-
-- name: AccuInsight+ Package Repository | Change Settings for Online Repositories
-  shell: |
-      shopt -s nullglob
-      for REPO in $(sed -nr 's/^\[(.*)\]/\1/p' /etc/yum.repos.d/*.repo | grep -v AccuInsight)
-      do  
-          echo "ECHO $REPO"
-      done
-  args:
-    executable: /bin/bash
-    warn: no
-
-#- name: Print repositories
-#  debug:
-#    msg: "{{ repositories.stdout_lines }}"
-

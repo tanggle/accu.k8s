@@ -29,34 +29,23 @@
 
 
 - name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
-  when:
-    - kube_cri == 'docker'
   become: yes
   apt:
     name:
+      # for Docker
       # Use nvidia-container-runtime instead of nvidia-docker2.
       # nvidia-docker2 makes hard to handle docker daemon.json in ansible level.
       # https://github.com/nvidia/nvidia-container-runtime#installation
-#     - nvidia-docker2
-      - 'nvidia-container-runtime'
-      - 'linux-headers-aws' # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-headers-generic, linux-headers-virtual or linux-headers-aws)
-#     - 'linux-headers-{{ ansible_kernel }}' # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-headers-generic, linux-headers-virtual or linux-headers-aws)
-      - 'build-essential'
-    state: present
-
-
-- name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
-  when:
-    - kube_cri == 'cri-o'
-  become: yes
-  apt:
-    name:
+      #
+      # for CRI-O
       # cri-o uses standard oci hook for device access.
       # use nvidia-container-toolkit instead of nvidia-container-runtime.
       # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
-      - 'nvidia-container-toolkit'
-      - 'linux-headers-aws' # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-headers-generic, linux-headers-virtual or linux-headers-aws)
-#     - 'linux-headers-{{ ansible_kernel }}' # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-headers-generic, linux-headers-virtual or linux-headers-aws)
+      #
+      # 'nvidia_runtime_package' is defined in 'defaults/main.yaml'.
+      #
+      - '{{ nvidia_runtime_package[kube_cri] }}'
+      - 'linux-headers-aws' # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-headers-generic or linux-headers-virtual)
       - 'build-essential'
     state: present
 

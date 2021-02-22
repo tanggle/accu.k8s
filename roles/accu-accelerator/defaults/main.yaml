@@ -1,0 +1,7 @@
+---
+
+nvidia_runtime_package:
+  containerd: nvidia-container-runtime
+  cri-o     : nvidia-container-toolkit
+  docker    : nvidia-container-runtime
+

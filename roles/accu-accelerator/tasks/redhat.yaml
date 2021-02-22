@@ -8,7 +8,6 @@
   notify:
     - OS | Reboot
 
-
 - name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
   meta: flush_handlers
 
@@ -51,39 +50,45 @@
     - libnvidia-container
 
 
-- name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
-  when:
-    - kube_cri == 'docker'
-  become: yes
-  yum:
-    name:
-      # Use nvidia-container-runtime instead of nvidia-docker2.
-      # nvidia-docker2 makes hard to handle docker daemon.json in ansible level.
-      # https://github.com/nvidia/nvidia-container-runtime#installation
-      - 'nvidia-container-runtime'
-      - 'kernel-devel'
-#      - 'kernel-devel-{{ ansible_kernel }}'
-      - 'elfutils-libelf-devel'
-      - 'gcc'
-      - 'make'
-#     - '@Development tools'
-    state: latest
+#- name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
+#  become: yes
+#  yum:
+#    name:
+#      # for Docker
+#      # Use nvidia-container-runtime instead of nvidia-docker2.
+#      # nvidia-docker2 makes hard to handle docker daemon.json in ansible level.
+#      # https://github.com/nvidia/nvidia-container-runtime#installation
+#      #
+#      # for CRI-O
+#      # cri-o uses standard oci hook for device access.
+#      # use nvidia-container-toolkit instead of nvidia-container-runtime.
+#      # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
+#      #
+#      # 'nvidia_runtime_package' is defined in 'defaults/main.yaml'.
+#      #
+#      - '{{ nvidia_runtime_package[kube_cri] }}'
+#      - 'kernel-devel'
+#      - 'elfutils-libelf-devel'
+#      - 'gcc'
+#      - 'make'
+#    state: latest
 
 
+# NOTE: Recently on RedHat 8 family, glibc packages were updated from glibc-2.28-101 to glibc-2.28-127.
+#       There are some problems to resolve package dependancies. with 2.28-101, need glibc-langpack-en or other locale.
+#       but with 2.28-127, all language packages (such as glibc-langpack-XX) are combined to a single package called
+#       glibc-all-langpacks.
+#
+#       To upgrade from 2.28-101 to 2.28-127, glibc-langpack-en should be removed and glibc-all-langpacks should be
+#       installed. to do so, --allowerasing option should be passed to yum. but ansible yum module doesn't support it. 
+#
+#       To resolve this issue, lines above from 53 to 74 were replaced as below.
+#
 - name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
-  when:
-    - kube_cri == 'cri-o'
   become: yes
-  yum:
-    name:
-      # cri-o uses standard oci hook for device access.
-      # use nvidia-container-toolkit instead of nvidia-container-runtime.
-      # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/arch-overview.html
-      - 'nvidia-container-toolkit'
-      - 'kernel-devel'
-      - 'elfutils-libelf-devel'
-      - 'gcc'
-      - 'make'
-    state: latest
+  shell: |
+      yum install -y --allowerasing {{ nvidia_runtime_package[kube_cri] }} kernel-devel elfutils-libelf-devel gcc make
+  args:
+    executable: /bin/bash
 
 

@@ -14,6 +14,7 @@
   failed_when: false
 
 
+# TODO: Need to check if delegate_to is required.
 # READ: https://docs.projectcalico.org/maintenance/troubleshoot/troubleshooting#configure-networkmanager
 - name: AccuInsight+ Kubernetes | CNI | Prevent NetworkManager from controlling Calico interfaces
   when: nm_status.rc == 0
