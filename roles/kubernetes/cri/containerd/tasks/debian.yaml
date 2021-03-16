@@ -11,7 +11,7 @@
     - "containerd.io"
 
 
-- name: AccuInsight+ Kubernetes | Add Package Repository 'Docker' (1/2)
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Containerd' (Repository KEY)
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   when:
     - not accu_offline_enabled | bool
@@ -22,7 +22,7 @@
     state: present
 
 
-- name: AccuInsight+ Kubernetes | Add Package Repository 'Docker' (2/2)
+- name: AccuInsight+ Kubernetes | Add Package Repository 'Containerd' (Repository URL)
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   when:
     - not accu_offline_enabled | bool
@@ -36,17 +36,31 @@
     update_cache: yes
 
 
+- name: AccuInsight+ Kubernetes | Set Package Repository 'Containerd' (Repository Preferences)
+  when:
+    - not accu_offline_enabled | bool
+    - not accu_package_repository_enabled | bool
+  become: yes 
+  copy:
+    dest: /etc/apt/preferences.d/AccuInsight-Containerd
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Set package candiate version to 'docker_version' defined in vars/ubuntu.yaml
+      Package: containerd.io
+      Pin: version {{ containerd_version }}* 
+      Pin-Priority: 1001
+
+
 - name: AccuInsight+ Kubernetes | Install Containerd '{{ containerd_version }}'
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # https://docs.docker.com/engine/install/ubuntu/
   become: yes
   apt:
     name:
-      - 'containerd.io={{ containerd_pkg_version }}'
+      - 'containerd.io'
     state: present
-  notify:
-    - CRI | Containerd | Restart
-    - CRI | Containerd | Wait for Ready
 
 
 - name: AccuInsight+ Kubernetes | Mark packages as held back for Containerd

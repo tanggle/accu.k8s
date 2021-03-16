@@ -60,6 +60,11 @@
           Pin: version 5:{{ docker_version }}*
           Pin-Priority: 1001
 
+          # for containerd
+          Package: containerd.io
+          Pin: version {{ containerd_version }}*
+          Pin-Priority: 1001
+
           # for ceph-common
           Package: *
           Pin: release o=ceph.com

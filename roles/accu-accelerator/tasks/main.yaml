@@ -116,6 +116,22 @@
         - CRI | Wait for Ready
 
 
+#    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd)
+#      when:
+#        - kube_cri == 'containerd'
+#      copy:
+#        dest: "/etc/systemd/system/docker.service.d/accu-accelerator-nvidia.conf"
+#        owner: root
+#        group: root
+#        mode: '0644'
+#        content: |
+#          [Service]
+#          Environment="ACCU_ACCELERATOR=--add-runtime=nvidia=/usr/bin/nvidia-container-runtime --default-runtime=nvidia"
+#      notify:
+#        - CRI | Restart
+#        - CRI | Wait for Ready
+
+
 
 - name: AccuInsight+ GPU Accelerator | Configure Kubernetes for Accelerator
   when:

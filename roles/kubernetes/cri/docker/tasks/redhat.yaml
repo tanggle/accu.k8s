@@ -38,7 +38,7 @@
     - ansible_distribution_major_version | int == 8
   become: yes 
   ini_file:
-    path: /etc/yum.repos.d/Docker.repo
+    path: /etc/yum.repos.d/AccuInsight-Docker.repo
     state: present
     section: AccuInsight-Docker
     option: module_hotfixes

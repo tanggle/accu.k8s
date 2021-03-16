@@ -109,26 +109,26 @@
     - inventory_hostname in groups[item.1]
   become: yes
   shell: |
-    if [ "{{ kube_cri }}" == "docker" ]
-    then
-        LOAD="docker load -i"
-    fi
-
-    if [ "{{ kube_cri }}" == "cri-o" ]
-    then
-        LOAD="podman load -i"
-    fi
-
-    if [ "{{ kube_cri }}" == "containerd" ]
-    then
-        LOAD="ctr image import"
-    fi
-
     shopt -s nullglob
 
     for IMAGE in {{ accu_offline_target }}/{{ component }}/{{ item.0.type }}/*.tar.gz
     do
-        ${LOAD} ${IMAGE}
+
+      if [ "{{ kube_cri }}" == "cri-o" ]
+      then
+          podman load -i ${IMAGE}
+      fi 
+
+      if [ "{{ kube_cri }}" == "docker" ]
+      then
+          docker load -i ${IMAGE}
+      fi
+
+      if [ "{{ kube_cri }}" == "containerd" ]
+      then
+          ctr -n k8s.io image import <(gzip -d -c ${IMAGE})
+      fi
+
     done
   args:
     executable: /bin/bash

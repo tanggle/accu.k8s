@@ -29,7 +29,7 @@
     exclude: containerd.io
 
 
-- name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for Docker repository
+- name: AccuInsight+ Kubernetes | Set module_hotfixes to 'True' for Containerd repository
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
@@ -77,7 +77,7 @@
 
 
 # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-- name: AccuInsight+ Kubernetes | Install Containerd
+- name: AccuInsight+ Kubernetes | Install Containerd '{{ containerd_version }}'
   become: yes
   yum:
     name:
@@ -88,14 +88,4 @@
     state: present
     disable_excludes: AccuInsight-Containerd
 
-
-- name: AccuInsight+ Kubernetes | Enable Containerd CRI Plugin
-  lineinfile:
-    path: /etc/containerd/config.toml
-    regexp: '^disabled_plugins'
-    line: disabled_plugins = []
-  become: yes
-  notify:
-    - CRI | Containerd | Restart
-    - CRI | Containerd | Wait for Ready
 

@@ -5,22 +5,20 @@
 
 # The recommended containerd version will be selected automatically if 'kube_cri_version' is not defined.
 containerd_matrix: # containerd_matrix['kube_version']
-  # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#
+  # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # The Kubernetes release notes list which versions of containerd are compatible with that version of Kubernetes.
   "1.20": 1.4.3
   # https://v1-19.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # The Kubernetes release notes list which versions of containerd are compatible with that version of Kubernetes.
   "1.19": 1.4.3
   # https://v1-18.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-
-  "1.18": 1.3.7
+  "1.18": 1.4.3
   # https://v1-17.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-
-  "1.17": 1.3.7
+  "1.17": 1.3.9
 
 
 containerd_version: "{{ lookup('vars', 'kube_cri_version') | default(containerd_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
 
-containerd_pkg_version: "5:{{ containerd_version }}~3-0~{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}"
+containerd_pkg_version: "{{ containerd_version }}"
 
 

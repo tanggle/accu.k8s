@@ -1,7 +1,7 @@
 ---
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-- name: AccuInsight+ Kubernetes | Set Kernel modules for containerd (1/2)
+- name: AccuInsight+ Kubernetes | Set Kernel modules for Containerd (1/2)
   become: yes 
   modprobe:
     name: "{{ item }}"
@@ -12,7 +12,7 @@
 
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-- name: AccuInsight+ Kubernetes | Set Kernel modules for containerd (2/2)
+- name: AccuInsight+ Kubernetes | Set Kernel modules for Containerd (2/2)
   become: yes 
   lineinfile:
     path: /etc/modules-load.d/containerd.conf
@@ -28,7 +28,7 @@
 
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-- name: AccuInsight+ Kubernetes | Set Kernel parameters for containerd
+- name: AccuInsight+ Kubernetes | Set Kernel parameters for Containerd
   become: yes 
   sysctl:
     name: "{{ item.key }}"
@@ -40,6 +40,8 @@
     - { key: 'net.ipv4.ip_forward', value: '1' }
     - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
     - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+  loop_control:
+    label: "{{ item.value }}, {{ item.key }}"
 
 
 - import_tasks: redhat.yaml
@@ -49,13 +51,15 @@
 - import_tasks: debian.yaml
   when: ansible_os_family == 'Debian'
 
-- name: AccuInsight+ Kubernetes | Create crictl configuration for containerd
-  become: yes
-  template:
-    src: crictl.yaml.j2
-    dest: /etc/crictl.yaml
-    owner: root
-    group: root
-    mode: '0644'
+
+- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd
+  become: yes 
+  shell: |
+      containerd config default > /etc/containerd/config.toml
+  args:
+    executable: /bin/bash
+  notify:
+    - CRI | Containerd | Restart
+    - CRI | Containerd | Wait for Ready
 
 
