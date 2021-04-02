@@ -116,20 +116,41 @@
         - CRI | Wait for Ready
 
 
-#    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd)
-#      when:
-#        - kube_cri == 'containerd'
-#      copy:
-#        dest: "/etc/systemd/system/docker.service.d/accu-accelerator-nvidia.conf"
-#        owner: root
-#        group: root
-#        mode: '0644'
-#        content: |
-#          [Service]
-#          Environment="ACCU_ACCELERATOR=--add-runtime=nvidia=/usr/bin/nvidia-container-runtime --default-runtime=nvidia"
-#      notify:
-#        - CRI | Restart
-#        - CRI | Wait for Ready
+    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd) (1/3)
+      when:
+        - kube_cri == 'containerd'
+      file:
+        path: "{{ accu_manifests_location}}/{{ component }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        recurse: true
+
+
+    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd) (2/3)
+      when:
+        - kube_cri == 'containerd'
+      template:
+        src: "containerd-config-{{ containerd_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2') }}.x.patch"
+        dest: "{{ accu_manifests_location }}/{{ component }}/containerd-config.patch"
+        owner: root
+        group: root
+        mode: '0644'
+
+
+    - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd) (3/3)
+      shell: |
+          patch -t -N /etc/containerd/config.toml {{ accu_manifests_location }}/{{ component }}/containerd-config.patch || true
+      args:
+        executable: /bin/bash
+      notify:
+        - CRI | Restart
+        - CRI | Wait for Ready
+
+
+    - name: AccuInsight+ GPU Accelerator | Flush Handlers before deploying device plugin
+      meta: flush_handlers
 
 
 

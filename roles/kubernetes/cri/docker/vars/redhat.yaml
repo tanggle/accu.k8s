@@ -1,26 +1,4 @@
 ---
-# Docker compatiblity matrix for Kubernetes
-# Refer to the links for the recommended version of docker.
-
-
-# The recommended docker version will be selected automatically if 'kube_cri_version' is not defined.
-docker_matrix: # docker_matrix['kube_version']
-  # https://v1-17.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
-  # On each of your machines, install Docker. Version 19.03.4 is recommended, but 1.13.1, 17.03, 17.06, 17.09, 18.06 and 18.09 are known to work as well.
-  "1.17": 19.03.4
-  # https://v1-18.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
-  # On each of your machines, install Docker. Version 19.03.11 is recommended, but 1.13.1, 17.03, 17.06, 17.09, 18.06 and 18.09 are known to work as well.
-  "1.18": 19.03.11
-  # https://v1-19.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
-  # The Kubernetes release notes list which versions of Docker are compatible with that version of Kubernetes.
-  "1.19": 19.03.14
-  # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
-  # The Kubernetes release notes list which versions of Docker are compatible with that version of Kubernetes.
-  "1.20": 19.03.14
-
-
-docker_version: "{{ lookup('vars', 'kube_cri_version') | default(docker_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
-
 
 # Use 'yum search docker-ce docker-ce-cli --showduplicates' command for checking available packages in docker repository.
 docker_pkg_version: "{{ docker_version }}"

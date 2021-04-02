@@ -6,8 +6,8 @@
   become: yes 
   block:
 
-    - name: AccuInsight+ Collector | Load List of Files
-      include_vars: files.yaml
+#    - name: AccuInsight+ Collector | Load List of Files
+#      include_vars: files.yaml
 
 
     - name: AccuInsight+ Collector | Prepare Files (directory)

@@ -1,10 +1,15 @@
----
-
+#
+# This example is for Kubernetes running an ngnix-ingress
+# and an ACME (e.g. Let's Encrypt) certificate service
+#
+# The nginx-ingress annotations support the dashboard
+# running using HTTPS with a self-signed certificate
+#
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: ceph-adm-ingress
-  namespace: rook-ceph
+  namespace: rook-ceph # namespace:cluster
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
@@ -16,4 +21,3 @@ spec:
         backend:
           serviceName: rook-ceph-mgr-dashboard
           servicePort: http-dashboard
-

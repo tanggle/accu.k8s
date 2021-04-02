@@ -6,8 +6,8 @@
   become: yes 
   block:
 
-    - name: AccuInsight+ Collector | Load List of Charts
-      include_vars: charts.yaml
+#    - name: AccuInsight+ Collector | Load List of Charts
+#      include_vars: charts.yaml
 
 
     - name: AccuInsight+ Collector | Prepare Helm

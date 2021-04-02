@@ -73,7 +73,7 @@
       - '--set persistence.persistentVolumeClaim.trivy.storageClass={{ accu_harbor_trivy_storage_class }}'
       - '--set persistence.persistentVolumeClaim.trivy.size={{ accu_harbor_trivy_storage_size }}'
       - '--set persistence.imageChartStorage.type=filesystem'
-      - '--set externalURL=https://{{ accu_harbor_fqdn_core }}'
+      - '--set externalURL=http://{{ accu_harbor_fqdn_core }}'
       - '--set harborAdminPassword={{ accu_harbor_pass }}'
       - '--set secretkey=secure-key'
       - '--set chartmuseum.enabled=true'

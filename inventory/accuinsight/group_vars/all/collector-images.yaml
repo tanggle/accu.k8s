@@ -1,0 +1,153 @@
+---
+
+images:
+
+  - component: accu-accelerator
+    list:
+      - tags: nvidia/k8s-device-plugin:{{ accu_accelerator_device_plugin_version }}
+        dest: accu-nvidia
+      - tags: nvidia/dcgm-exporter:{{ accu_accelerator_device_metric_version }}
+        dest: accu-nvidia
+#      - tags: k8s.gcr.io/cuda-vector-add:v0.1
+#        dest: accu-nvidia
+
+  - component: accu-load-balancer
+    list:
+      - tags: osixia/keepalived:{{ accu_vip_manager_version }}
+        dest: kube-master
+      - tags: haproxy:{{ accu_load_balancer_version }}
+        dest: kube-master
+
+  - component: accu-chartmuseum
+    list:
+      - tags: chartmuseum/chartmuseum:v0.12.0
+        dest: kube-worker
+
+  - component: accu-harbor
+    list:
+      - tags: goharbor/chartmuseum-photon:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/harbor-core:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/harbor-db:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/harbor-jobservice:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/harbor-portal:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/harbor-registryctl:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/notary-server-photon:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/notary-signer-photon:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/redis-photon:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/registry-photon:v2.2.0
+        dest: kube-worker
+      - tags: goharbor/trivy-adapter-photon:v2.2.0
+        dest: kube-worker
+
+  - component: accu-helm-operator
+    list:
+      - tags: fluxcd/helm-operator:1.2.0
+        dest: kube-worker
+
+  - component: accu-ingress-controller
+    list:
+      - tags: k8s.gcr.io/ingress-nginx/controller:v0.44.0
+        dest: kube-worker
+      - tags: k8s.gcr.io/defaultbackend-amd64:1.5
+        dest: kube-worker
+      - tags: jettech/kube-webhook-certgen:v1.5.1
+        dest: kube-worker
+
+  - component: accu-metrics-server
+    list:
+      - tags: k8s.gcr.io/metrics-server-amd64:v0.3.6
+        dest: kube-worker
+
+  - component: accu-monitoring
+    list:
+      # Prometheus Operator
+      - tags: quay.io/prometheus-operator/prometheus-operator:v0.46.0
+        dest: kube-worker
+      - tags: jettech/kube-webhook-certgen:v1.5.0
+        dest: kube-worker
+      # Prometheus and Alertmanager
+      - tags: quay.io/prometheus/prometheus:v2.24.0
+        dest: kube-worker
+      - tags: quay.io/prometheus/alertmanager:v0.21.0
+        dest: kube-worker
+      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.46.0
+        dest: kube-worker
+      # Prometheus Node Exporter
+      - tags: quay.io/prometheus/node-exporter:v1.1.2
+        dest: kube-cluster
+      # Kube State Metrics
+      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v1.9.8
+        dest: kube-worker
+      # Grafana
+      - tags: grafana/grafana:7.4.5
+        dest: kube-worker
+      - tags: quay.io/kiwigrid/k8s-sidecar:1.10.7
+        dest: kube-worker
+
+  - component: accu-nfs-provisioner
+    list:
+      - tags: quay.io/external_storage/nfs-client-provisioner:v3.1.0-k8s1.11
+        dest: kube-worker
+
+  - component: accu-registry
+    list:
+      - tags: registry:2.7.1
+        dest: kube-worker
+
+  - component: accu-rook-ceph
+    list:
+      - tags: rook/ceph:v{{ accu_rook_ceph_version }}
+        dest: accu-ceph
+      - tags: ceph/ceph:v{{ accu_ceph_image_version }}
+        dest: accu-ceph
+      - tags: quay.io/cephcsi/cephcsi:v3.2.0
+        dest: accu-ceph
+      - tags: k8s.gcr.io/sig-storage/csi-attacher:v3.0.0
+        dest: accu-ceph
+      - tags: k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.0
+        dest: accu-ceph
+      - tags: k8s.gcr.io/sig-storage/csi-resizer:v1.0.0
+        dest: accu-ceph
+      - tags: k8s.gcr.io/sig-storage/csi-provisioner:v2.0.0
+        dest: accu-ceph
+      - tags: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1
+        dest: accu-ceph
+
+  - component: calico
+    list:
+      - tags: docker.io/calico/cni:v{{ cni_calico_version }}
+        dest: kube-cluster
+      - tags: docker.io/calico/kube-controllers:v{{ cni_calico_version }}
+        dest: kube-cluster
+      - tags: docker.io/calico/node:v{{ cni_calico_version }}
+        dest: kube-cluster
+      - tags: docker.io/calico/pod2daemon-flexvol:v{{ cni_calico_version }}
+        dest: kube-cluster
+
+  - component: kubernetes
+    list:
+      - tags: k8s.gcr.io/kube-proxy:v{{ kube_version }}
+        dest: kube-cluster
+      - tags: k8s.gcr.io/kube-apiserver:v{{ kube_version }}
+        dest: kube-master
+      - tags: k8s.gcr.io/kube-controller-manager:v{{ kube_version }}
+        dest: kube-master
+      - tags: k8s.gcr.io/kube-scheduler:v{{ kube_version }}
+        dest: kube-master
+      - tags: k8s.gcr.io/etcd:{{ supported_etcd }}
+        dest: kube-master
+      - tags: k8s.gcr.io/coredns:{{ supported_coredns }}
+        dest: kube-cluster
+      - tags: k8s.gcr.io/pause:{{ supported_pause }}
+        dest: kube-cluster
+
+

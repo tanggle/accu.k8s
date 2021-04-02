@@ -6,8 +6,8 @@
   become: yes 
   block:
 
-    - name: AccuInsight+ Collector | Load List of Images
-      include_vars: images.yaml
+#    - name: AccuInsight+ Collector | Load List of Images
+#      include_vars: images.yaml
 
 
     - name: AccuInsight+ Collector | Install Container Management Tool (podman)

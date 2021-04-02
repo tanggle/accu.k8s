@@ -19,7 +19,7 @@ spec:
     # v13 is mimic, v14 is nautilus, and v15 is octopus.
     # RECOMMENDATION: In production, use a specific version tag instead of the general v14 flag, which pulls the latest release and could result in different
     # versions running within the cluster. See tags available at https://hub.docker.com/r/ceph/ceph/tags/.
-    # If you want to be more precise, you can always use a timestamp tag such ceph/ceph:v15.2.8-20201217
+    # If you want to be more precise, you can always use a timestamp tag such ceph/ceph:v15.2.9-20201217
     # This tag might not contain a new Ceph version, just security fixes from the underlying operating system, which will reduce vulnerabilities
     image: ceph/ceph:v{{ accu_ceph_image_version }}
     # Whether to allow unsupported versions of Ceph. Currently `nautilus` and `octopus` are supported.
@@ -37,6 +37,12 @@ spec:
   skipUpgradeChecks: false
   # Whether or not continue if PGs are not clean during an upgrade
   continueUpgradeAfterChecksEvenIfNotHealthy: false
+  # WaitTimeoutForHealthyOSDInMinutes defines the time (in minutes) the operator would wait before an OSD can be stopped for upgrade or restart.
+  # If the timeout exceeds and OSD is not ok to stop, then the operator would skip upgrade for the current OSD and proceed with the next one
+  # if `continueUpgradeAfterChecksEvenIfNotHealthy` is `false`. If `continueUpgradeAfterChecksEvenIfNotHealthy` is `true`, then opertor would
+  # continue with the upgrade of an OSD even if its not ok to stop after the timeout. This timeout won't be applied if `skipUpgradeChecks` is `true`.
+  # The default wait timeout is 10 minutes.
+  waitTimeoutForHealthyOSDInMinutes: 10
   mon:
     # Set the number of mons to be started. Must be an odd number, and is generally recommended to be 3.
     count: {{ accu_ceph_mon_count }}

@@ -4,3 +4,8 @@
   debug:
     msg: "{{ inventory_hostname }}"
 
+- name: AccuInsight+ Collector | Collect Images
+  debug:
+    msg: "{{ containerd_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2') }}"
+
+
