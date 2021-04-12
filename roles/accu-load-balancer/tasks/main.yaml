@@ -3,90 +3,87 @@
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
 # https://github.com/kubernetes/kubeadm/blob/master/docs/ha-considerations.md#options-for-software-load-balancing
 
-- name: AccuInsight+ Load Balancer | Create directories for {{ component }}
+
+- name: AccuInsight+ GPU Accelerator | Configure Load Balancer Nodes
   when:
     - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  file:
-    path: "{{ accu_load_balancer_config_location }}"
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-    recurse: yes
+  become: yes 
+  block:
+
+    - name: AccuInsight+ Load Balancer | Create directories for {{ component }}
+      file:
+        path: "{{ accu_load_balancer_config_location }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        recurse: yes
+
+    - name: AccuInsight+ Load Balancer | Create configuration for Load Balancer (haproxy)
+      when:
+        - accu_load_balancer_enabled | bool or accu_vip_manager_enabled | bool
+      template:
+        src: accu-load-balancer.conf.j2
+        dest: "{{ accu_load_balancer_config_location }}/accu-load-balancer.conf"
+        owner: root
+        group: root
+        mode: '0644'
 
 
-- name: AccuInsight+ Load Balancer | Create configuration for Load Balancer (haproxy)
-  when:
-    - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  template:
-    src: accu-load-balancer.conf.j2
-    dest: "{{ accu_load_balancer_config_location }}/accu-load-balancer.conf"
-    owner: root
-    group: root
-    mode: '0644'
+    - name: AccuInsight+ Load Balancer | Create manifests for Load Balancer (haproxy)
+      when:
+        - accu_load_balancer_enabled | bool or accu_vip_manager_enabled | bool
+      template:
+        src: accu-load-balancer.yaml.j2
+        dest: /etc/kubernetes/manifests/accu-load-balancer.yaml
+        owner: root
+        group: root
+        mode: '0644'
 
 
-- name: AccuInsight+ Load Balancer | Create manifests for Load Balancer (haproxy)
-  when:
-    - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  template:
-    src: accu-load-balancer.yaml.j2
-    dest: /etc/kubernetes/manifests/accu-load-balancer.yaml
-    owner: root
-    group: root
-    mode: '0644'
+    # NOTE: 'private_ip' is referenced from inventory file.
+    - name: AccuInsight+ Load Balancer | Get default NIC for VIP Manager
+      when:
+        - accu_vip_manager_enabled | bool
+      shell:
+        ip -o address show | grep {{ private_ip }} | awk '{print $2}'
+      args:
+        executable: /bin/bash
+      register: default_nic
 
 
-# NOTE: 'private_ip' is referenced from inventory file.
-- name: AccuInsight+ Load Balancer | Get default NIC for VIP Manager
-  when:
-    - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  shell:
-    ip -o address show | grep {{ private_ip }} | awk '{print $2}'
-  args:
-    executable: /bin/bash
-  register: default_nic
-
-
-# NOTE: 'accu_vip_manager_nic' is referenced by accu_vip_manager.conf.j2 templcate.
-- name: AccuInsight+ Load Balancer | Set default NIC for VIP Manager
-  when:
-    - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  set_fact:
-    accu_vip_manager_nic: "{{ default_nic.stdout }}"
+    # NOTE: 'accu_vip_manager_nic' is referenced by accu_vip_manager.conf.j2 templcate.
+    - name: AccuInsight+ Load Balancer | Set default NIC for VIP Manager
+      when:
+        - accu_vip_manager_enabled | bool
+      set_fact:
+        accu_vip_manager_nic: "{{ default_nic.stdout }}"
 
   
-- name: AccuInsight+ Load Balancer | Create configuration for VIP Manager (keepalived)
-  when:
-    - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ accu_load_balancer_config_location }}/{{ item.file }}"
-    owner: root
-    group: root
-    mode: '{{ item.mode }}'
-  loop:
-    - { mode: '0644', file: 'accu-vip-manager.conf' }
-    - { mode: '0755', file: 'check-k8s-apiserver.sh' }
-  loop_control:
-    label: "{{ item.mode }}, {{ item.file }}"
+    - name: AccuInsight+ Load Balancer | Create configuration for VIP Manager (keepalived)
+      when:
+        - accu_vip_manager_enabled | bool
+      template:
+        src: "{{ item.file }}.j2"
+        dest: "{{ accu_load_balancer_config_location }}/{{ item.file }}"
+        owner: root
+        group: root
+        mode: '{{ item.mode }}'
+      loop:
+        - { mode: '0644', file: 'accu-vip-manager.conf' }
+        - { mode: '0755', file: 'check-k8s-apiserver.sh' }
+      loop_control:
+        label: "{{ item.mode }}, {{ item.file }}"
 
 
-- name: AccuInsight+ Load Balancer | Create manifests for VIP Manager (keepalived)
-  when:
-    - inventory_hostname in groups['accu-alb-server']
-  become: yes
-  template:
-    src: accu-vip-manager.yaml.j2
-    dest: /etc/kubernetes/manifests/accu-vip-manager.yaml
-    owner: root
-    group: root
-    mode: '0644'
+    - name: AccuInsight+ Load Balancer | Create manifests for VIP Manager (keepalived)
+      when:
+        - accu_vip_manager_enabled | bool
+      template:
+        src: accu-vip-manager.yaml.j2
+        dest: /etc/kubernetes/manifests/accu-vip-manager.yaml
+        owner: root
+        group: root
+        mode: '0644'
 
 

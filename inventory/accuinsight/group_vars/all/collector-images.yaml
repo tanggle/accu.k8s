@@ -25,27 +25,27 @@ images:
 
   - component: accu-harbor
     list:
-      - tags: goharbor/chartmuseum-photon:v2.2.0
+      - tags: goharbor/chartmuseum-photon:v2.2.1
         dest: kube-worker
-      - tags: goharbor/harbor-core:v2.2.0
+      - tags: goharbor/harbor-core:v2.2.1
         dest: kube-worker
-      - tags: goharbor/harbor-db:v2.2.0
+      - tags: goharbor/harbor-db:v2.2.1
         dest: kube-worker
-      - tags: goharbor/harbor-jobservice:v2.2.0
+      - tags: goharbor/harbor-jobservice:v2.2.1
         dest: kube-worker
-      - tags: goharbor/harbor-portal:v2.2.0
+      - tags: goharbor/harbor-portal:v2.2.1
         dest: kube-worker
-      - tags: goharbor/harbor-registryctl:v2.2.0
+      - tags: goharbor/harbor-registryctl:v2.2.1
         dest: kube-worker
-      - tags: goharbor/notary-server-photon:v2.2.0
+      - tags: goharbor/notary-server-photon:v2.2.1
         dest: kube-worker
-      - tags: goharbor/notary-signer-photon:v2.2.0
+      - tags: goharbor/notary-signer-photon:v2.2.1
         dest: kube-worker
-      - tags: goharbor/redis-photon:v2.2.0
+      - tags: goharbor/redis-photon:v2.2.1
         dest: kube-worker
-      - tags: goharbor/registry-photon:v2.2.0
+      - tags: goharbor/registry-photon:v2.2.1
         dest: kube-worker
-      - tags: goharbor/trivy-adapter-photon:v2.2.0
+      - tags: goharbor/trivy-adapter-photon:v2.2.1
         dest: kube-worker
 
   - component: accu-helm-operator
@@ -55,11 +55,11 @@ images:
 
   - component: accu-ingress-controller
     list:
-      - tags: k8s.gcr.io/ingress-nginx/controller:v0.44.0
+      - tags: k8s.gcr.io/ingress-nginx/controller:v0.45.0
         dest: kube-worker
       - tags: k8s.gcr.io/defaultbackend-amd64:1.5
         dest: kube-worker
-      - tags: jettech/kube-webhook-certgen:v1.5.1
+      - tags: docker.io/jettech/kube-webhook-certgen:v1.5.1
         dest: kube-worker
 
   - component: accu-metrics-server
@@ -88,7 +88,11 @@ images:
       - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v1.9.8
         dest: kube-worker
       # Grafana
-      - tags: grafana/grafana:7.4.5
+      - tags: grafana/grafana:7.5.3
+        dest: kube-worker
+      - tags: curlimages/curl:7.73.0
+        dest: kube-worker
+      - tags: busybox:1.31.1
         dest: kube-worker
       - tags: quay.io/kiwigrid/k8s-sidecar:1.10.7
         dest: kube-worker
@@ -110,17 +114,17 @@ images:
       - tags: ceph/ceph:v{{ accu_ceph_image_version }}
         dest: accu-ceph
       - tags: quay.io/cephcsi/cephcsi:v3.2.0
-        dest: accu-ceph
+        dest: kube-worker
       - tags: k8s.gcr.io/sig-storage/csi-attacher:v3.0.0
-        dest: accu-ceph
+        dest: kube-worker
       - tags: k8s.gcr.io/sig-storage/csi-snapshotter:v3.0.0
-        dest: accu-ceph
+        dest: kube-worker
       - tags: k8s.gcr.io/sig-storage/csi-resizer:v1.0.0
-        dest: accu-ceph
+        dest: kube-worker
       - tags: k8s.gcr.io/sig-storage/csi-provisioner:v2.0.0
-        dest: accu-ceph
+        dest: kube-worker
       - tags: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1
-        dest: accu-ceph
+        dest: kube-worker
 
   - component: calico
     list:

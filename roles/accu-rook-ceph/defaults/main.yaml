@@ -13,8 +13,8 @@ accu_ceph_storage_device_name: xvdd
 accu_ceph_k8s_manifest_temp_dir: /root/rook-ceph-manifest
 accu_ceph_filesystem_pool_name: accufs
 accu_ceph_object_storage_fqdn: s3.accuinsight.io
-accu_ceph_rgw_instances: 3
-accu_ceph_ganesha_instances: 1
+accu_ceph_object_storage_instances: 3
+accu_ceph_ganesha_instances: 3
 accu_ceph_block_pool_name: accu-pool
 accu_ceph_block_storage_class_name: accu-ceph-block
 accu_ceph_filesystem_storage_class_name: accu-ceph-cephfs

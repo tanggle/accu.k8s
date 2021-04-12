@@ -9,10 +9,10 @@ metadata:
   namespace: rook-ceph
 spec:
   # The failure domain will spread the replicas of the data across different failure zones
-  failureDomain: host
+  failureDomain: {{ accu_ceph_block_storage_failuredomain }}
   # For a pool based on raw copies, specify the number of copies. A size of 1 indicates no redundancy.
   replicated:
-    size: 3
+    size: {{ accu_ceph_block_pool_replication_size }}
     # Disallow setting pool with replica 1, this could lead to data loss without recovery.
     # Make sure you're *ABSOLUTELY CERTAIN* that is what you want
     requireSafeReplicaSize: true
@@ -47,7 +47,7 @@ spec:
   # The failure domain will spread the replicas of the data across different failure zones
   # Make sure you have enough nodes and OSDs running bluestore to support the replica size or erasure code chunks.
   # For the below settings, you need at least 3 OSDs on different nodes (because the `failureDomain` is `host` by default).
-  failureDomain: host
+  failureDomain: {{ accu_ceph_block_storage_failuredomain }}
   erasureCoded:
     dataChunks: 2
     codingChunks: 1

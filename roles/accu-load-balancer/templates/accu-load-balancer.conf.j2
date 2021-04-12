@@ -92,6 +92,23 @@ backend k8s-ingress-https
     server {{ host }} {{ hostvars[host]['private_ip'] }}:{{ accu_ingress_controller_nodeport_secure }} check
 {% endfor %}
 
+# NOTE: This is not required in case of RHEL
+#{% if accu_package_repository_enabled | bool %}
+#frontend package-repository
+#    bind *:{{ accu_package_repository_port }}
+#    mode tcp
+#    option tcplog
+#    default_backend package-repository
+
+#backend package-repository
+#    balance roundrobin
+#    mode tcp
+#    option tcp-check
+#{% for host in groups['accu-pkg-server'] %}
+#    server {{ host }} {{ hostvars[host]['private_ip'] }}:{{ accu_package_repository_port }} check
+#{% endfor %}
+#{% endif %}
+
 frontend pipeline
     bind *:4201
     mode tcp

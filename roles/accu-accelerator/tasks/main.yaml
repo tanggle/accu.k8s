@@ -140,6 +140,8 @@
 
 
     - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd) (3/3)
+      when:
+        - kube_cri == 'containerd'
       shell: |
           patch -t -N /etc/containerd/config.toml {{ accu_manifests_location }}/{{ component }}/containerd-config.patch || true
       args:

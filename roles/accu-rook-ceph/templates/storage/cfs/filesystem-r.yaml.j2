@@ -11,7 +11,7 @@ spec:
   # The metadata pool spec. Must use replication.
   metadataPool:
     replicated:
-      size: 3
+      size: {{ accu_ceph_filesystem_pool_replication_size }}
       requireSafeReplicaSize: true
     parameters:
       # Inline compression mode for the data pool
@@ -22,9 +22,9 @@ spec:
       #target_size_ratio: ".5"
   # The list of data pool specs. Can use replication or erasure coding.
   dataPools:
-    - failureDomain: host
+    - failureDomain: {{ accu_ceph_filesystem_storage_failuredomain }}
       replicated:
-        size: 3
+        size: {{ accu_ceph_filesystem_pool_replication_size }}
         # Disallow setting pool with replica 1, this could lead to data loss without recovery.
         # Make sure you're *ABSOLUTELY CERTAIN* that is what you want
         requireSafeReplicaSize: true

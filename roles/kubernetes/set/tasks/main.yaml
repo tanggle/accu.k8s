@@ -32,6 +32,15 @@
   loop: "{{ groups['accu-nvidia'] }}"
 
 
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#control-plane-node-isolation
+- name: AccuInsight+ Kubernetes | Set taint for worker nodes
+  become: yes
+  shell: |
+      kubectl taint node {{ item }} node-role.kubernetes.io/master- || /bin/true
+  run_once: true
+  loop: "{{ groups['kube-worker'] }}"
+
+
 - name: AccuInsight+ Kubernetes | Set taint for ceph nodes
   when:
     - accu_rook_ceph_node_taint | bool

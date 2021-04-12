@@ -90,5 +90,6 @@
       yum install -y --allowerasing {{ nvidia_runtime_package[kube_cri] }} kernel-devel elfutils-libelf-devel gcc make
   args:
     executable: /bin/bash
+    warn: no
 
 

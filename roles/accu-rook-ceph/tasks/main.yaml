@@ -201,7 +201,7 @@
     executable: /bin/bash
   run_once: true
   register: ceph_osd
-  until: ceph_osd.stdout.count("Running") >= 3
+  until: ceph_osd.stdout.count("Running") >= accu_ceph_storage_devices | length
   retries: 10
   delay: 60
 
@@ -540,7 +540,7 @@
         executable: /bin/bash
       run_once: true
       register: ceph_rgw
-      until: ceph_rgw.stdout.count("Running") > 0
+      until: ceph_rgw.stdout.count("Running") >= accu_ceph_object_storage_instances 
       retries: 10
       delay: 30
 
@@ -626,7 +626,7 @@
         executable: /bin/bash
       run_once: true
       register: ceph_nfs
-      until: ceph_nfs.stdout.count("Running") >= 1
+      until: ceph_nfs.stdout.count("Running") >= accu_ceph_ganesha_instances
       retries: 10
       delay: 10
 
@@ -667,9 +667,6 @@
         label: "{{ item.pseudo }}"
 
 
-#                  "daemons": [
-#                      "{{ accu_ceph_ganesha_pool_name }}.a"
-#                  ],
     - name: AccuInsight+ Storage Ceph | Configure Ceph NFS Ganesha Export
       uri:
         url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/nfs-ganesha/export"

@@ -23,17 +23,17 @@
 
 # NOTE: Create resource but replace it if already exists.
 #      'kubectl create <resource> <name> --dry-run -o yaml | kubectl apply -f -'
-- name: AccuInsight+ Ingress Controller | Create ConfigMap for {{ accu_ingress_controller_release }}
-  when: inventory_hostname in groups['kube-master']
-  become: yes
-  shell: |
-    kubectl -n {{ accu_ingress_controller_namespace }} create configmap {{ accu_ingress_controller_release }}-tcp-service \
-            --dry-run -o yaml | kubectl apply -f -
-    kubectl -n {{ accu_ingress_controller_namespace }} create configmap {{ accu_ingress_controller_release }}-udp-service \
-            --dry-run -o yaml | kubectl apply -f -
-  args:
-    executable: /bin/bash
-  run_once: true
+#- name: AccuInsight+ Ingress Controller | Create ConfigMap for {{ accu_ingress_controller_release }}
+#  when: inventory_hostname in groups['kube-master']
+#  become: yes
+#  shell: |
+#    kubectl -n {{ accu_ingress_controller_namespace }} create configmap {{ accu_ingress_controller_release }}-tcp-service \
+#            --dry-run -o yaml | kubectl apply -f -
+#    kubectl -n {{ accu_ingress_controller_namespace }} create configmap {{ accu_ingress_controller_release }}-udp-service \
+#            --dry-run -o yaml | kubectl apply -f -
+#  args:
+#    executable: /bin/bash
+#  run_once: true
 
 
 - name: AccuInsight+ Ingress Controller | Add Chart Repository 'ingress-nginx'
@@ -102,8 +102,8 @@
       - '--set controller.service.type=NodePort'
       - '--set controller.service.nodePorts.http={{ accu_ingress_controller_nodeport_insecure }}'
       - '--set controller.service.nodePorts.https={{ accu_ingress_controller_nodeport_secure }}'
-      - '--set controller.extraArgs.tcp-services-configmap={{ accu_ingress_controller_namespace }}/{{ accu_ingress_controller_release }}-tcp-services'
-      - '--set controller.extraArgs.udp-services-configmap={{ accu_ingress_controller_namespace }}/{{ accu_ingress_controller_release }}-udp-services'
+#      - '--set controller.extraArgs.tcp-services-configmap={{ accu_ingress_controller_namespace }}/{{ accu_ingress_controller_release }}-tcp-services'
+#      - '--set controller.extraArgs.udp-services-configmap={{ accu_ingress_controller_namespace }}/{{ accu_ingress_controller_release }}-udp-services'
       - '--set controller.extraArgs.default-ssl-certificate={{ accu_ingress_controller_namespace }}/{{ accu_ingress_controller_tlssecret }}'
       # Disable HSTS by default
       - '--set-string controller.config.hsts=true'
