@@ -201,12 +201,13 @@ accu_ceph_storage_devices:
   - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: ssd }
   - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: ssd }
 # for NH ENV TEST
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdf, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdg, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdh, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][1] }}", device: xvdf, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][1] }}", device: xvdg, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][1] }}", device: xvdh, class: ssd }
+#  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: ssd }
+#  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme2n1, class: ssd }
+#  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme3n1, class: ssd }
+#  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: ssd }
+#  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme2n1, class: ssd }
+#  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme3n1, class: ssd }
+# for TEST
 #  - { host: k8s-tanggle-redhat-w01, device: nvme1n1, class: ssd }
 #  - { host: k8s-tanggle-redhat-w01, device: nvme2n1, class: hdd }
 #  - { host: k8s-tanggle-redhat-w02, device: nvme1n1, class: ssd }
@@ -216,7 +217,7 @@ accu_ceph_storage_devices:
 
 # AccuInsight+ Ceph Block Storage (rbd)
 accu_ceph_block_storage_enabled: true
-accu_ceph_block_storage_failuredomain: osd # host / osd
+accu_ceph_block_storage_failuredomain: host # host / osd
 accu_ceph_block_pool_name: accu-block
 accu_ceph_block_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
 accu_ceph_block_pool_replication_size: 3
@@ -226,7 +227,7 @@ accu_ceph_block_stroage_class_fstype: ext4
 
 # AccuInsight+ Ceph Filesystem Storage (cephfs)
 accu_ceph_filesystem_storage_enabled: true
-accu_ceph_filesystem_storage_failuredomain: osd # host / osd
+accu_ceph_filesystem_storage_failuredomain: host # host / osd
 accu_ceph_filesystem_pool_name: accu-cephfs
 accu_ceph_filesystem_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
 accu_ceph_filesystem_pool_replication_size: 3
@@ -236,8 +237,8 @@ accu_ceph_filesystem_mount_on_masters: true
 
 # AccuInsight+ Ceph Object Storage (s3)
 accu_ceph_object_storage_enabled: true
-accu_ceph_object_storage_failuredomain: osd # host / osd
-accu_ceph_object_storage_instances: 3
+accu_ceph_object_storage_failuredomain: host # host / osd
+accu_ceph_object_storage_instances: 2
 accu_ceph_object_storage_fqdn: s3.accuinsight.io
 accu_ceph_object_storage_port: 8080
 accu_ceph_object_pool_name: accu-object
@@ -247,7 +248,7 @@ accu_ceph_object_pool_replication_size: 3
 
 # AccuInsight+ Ceph NFS Ganesha
 accu_ceph_ganesha_enabled: true
-accu_ceph_ganesha_instances: 3
+accu_ceph_ganesha_instances: 2
 accu_ceph_ganesha_pool_name: accu-ganesha
 accu_ceph_ganesha_pool_namespace: conf-ganesha
 accu_ceph_ganesha_export_path: ganesha
@@ -330,7 +331,7 @@ accu_monitoring_grafana_storage_size: 1Gi
 # AccuInsight+ GPU Accelerator
 accu_accelerator_enabled: true
 accu_accelerator_namespace: "{{ accu_system_namespace }}"
-accu_accelerator_node_taint: true
+accu_accelerator_node_taint: false
 #accu_accelerator_node_taint_key: "accuinsight.io/accelerator"
 accu_accelerator_nvidia_type: tesla # tesla or gtx
 accu_accelerator_driver_version: 418.126.02

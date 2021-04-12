@@ -155,6 +155,8 @@
       meta: flush_handlers
 
 
+# NOTE: Before go ahead, MUST be checked where kube-apiserver is healthy
+
 
 - name: AccuInsight+ GPU Accelerator | Configure Kubernetes for Accelerator
   when:
