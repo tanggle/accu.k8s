@@ -19,7 +19,7 @@
     - not accu_package_repository_enabled | bool
   become: yes
   apt_repository:
-    repo: "deb https://download.ceph.com/debian-{{ accu_ceph_image_version }}/ {{ ansible_distribution_release }} main"
+    repo: "deb https://download.ceph.com/debian-{{ accu_rook_ceph_image_version }}/ {{ ansible_distribution_release }} main"
     filename: AccuInsight-Ceph
     state: present
     mode: '0644'
@@ -44,7 +44,7 @@
 
 
 # DOCS: https://docs.ceph.com/en/latest/install/get-packages/#debian-packages
-- name: AccuInsight+ Storage Ceph | Install Ceph common utilities for '{{ accu_ceph_image_version }}'
+- name: AccuInsight+ Storage Ceph | Install Ceph common utilities for '{{ accu_rook_ceph_image_version }}'
   become: yes
   apt:
     name:

@@ -1,18 +1,19 @@
 ################################################################################
 # Object Storage Pool for 'Replication'                                        #
+# https://rook.io/docs/rook/v1.5/ceph-object-store-crd.html                    #
 ################################################################################
 
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: {{ accu_ceph_object_pool_name }}
+  name: {{ accu_rook_ceph_object_pool_name }}
   namespace: rook-ceph
 spec:
   # The pool spec used to create the metadata pools. Must use replication.
   metadataPool:
-    failureDomain: {{ accu_ceph_object_storage_failuredomain }}
+    failureDomain: {{ accu_rook_ceph_object_storage_failuredomain }}
     replicated:
-      size: {{ accu_ceph_object_pool_replication_size }}
+      size: {{ accu_rook_ceph_object_pool_replication_size }}
       # Disallow setting pool with replica 1, this could lead to data loss without recovery.
       # Make sure you're *ABSOLUTELY CERTAIN* that is what you want
       requireSafeReplicaSize: true
@@ -25,9 +26,9 @@ spec:
       #target_size_ratio: ".5"
   # The pool spec used to create the data pool. Can use replication or erasure coding.
   dataPool:
-    failureDomain: {{ accu_ceph_object_storage_failuredomain }}
+    failureDomain: {{ accu_rook_ceph_object_storage_failuredomain }}
     replicated:
-      size: {{ accu_ceph_object_pool_replication_size }}
+      size: {{ accu_rook_ceph_object_pool_replication_size }}
       # Disallow setting pool with replica 1, this could lead to data loss without recovery.
       # Make sure you're *ABSOLUTELY CERTAIN* that is what you want
       requireSafeReplicaSize: true
@@ -47,11 +48,11 @@ spec:
     # A reference to the secret in the rook namespace where the ssl certificate is stored
     sslCertificateRef:
     # The port that RGW pods will listen on (http)
-    port: {{ accu_ceph_object_storage_port }}
+    port: {{ accu_rook_ceph_object_storage_port }}
     # The port that RGW pods will listen on (https). An ssl certificate is required.
     # securePort: 443
     # The number of pods in the rgw deployment
-    instances: {{ accu_ceph_object_storage_instances }}
+    instances: {{ accu_rook_ceph_object_storage_instances }}
     # The affinity rules to apply to the rgw deployment or daemonset.
     placement:
       nodeAffinity:

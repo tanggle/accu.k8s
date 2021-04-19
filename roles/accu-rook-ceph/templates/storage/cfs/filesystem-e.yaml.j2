@@ -1,17 +1,19 @@
 ################################################################################
 # Filesystem Storage Pool for 'Erasure Coding'                                 #
+# https://rook.io/docs/rook/v1.5/ceph-filesystem-crd.html                      #
 ################################################################################
 
 apiVersion: ceph.rook.io/v1
 kind: CephFilesystem
 metadata:
-  name: {{ accu_ceph_filesystem_pool_name  }}
+  name: {{ accu_rook_ceph_filesystem_pool_name  }}
   namespace: rook-ceph
 spec:
   # The metadata pool spec. Must use replication.
   metadataPool:
+    failureDomain: {{ accu_rook_ceph_filesystem_storage_failuredomain }}
     replicated:
-      size: {{ accu_ceph_filesystem_pool_replication_size }}
+      size: {{ accu_rook_ceph_filesystem_pool_replication_size }}
       requireSafeReplicaSize: true
     parameters:
       # Inline compression mode for the data pool
@@ -22,7 +24,7 @@ spec:
       #target_size_ratio: ".5"
   # The list of data pool specs. Can use replication or erasure coding.
   dataPools:
-    - failureDomain: {{ accu_ceph_filesystem_storage_failuredomain }}
+    - failureDomain: {{ accu_rook_ceph_filesystem_storage_failuredomain }}
       # You need at least three `bluestore` OSDs on different nodes for this config to work
       erasureCoded:
         dataChunks: 2
@@ -61,6 +63,7 @@ spec:
         effect: NoSchedule
 {% endif %}
     #  podAffinity:
+{% if groups['accu-ceph'] | length >= 2 %}
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
@@ -84,6 +87,7 @@ spec:
                 # Use <topologyKey: failure-domain.beta.kubernetes.io/zone> in k8s cluster if your cluster is v1.16 or lower
                 # Use <topologyKey: topology.kubernetes.io/zone>  in k8s cluster is v1.17 or upper
             topologyKey: topology.kubernetes.io/zone
+{% endif %}
     # A key/value list of annotations
     annotations:
     #  key: value

@@ -27,7 +27,7 @@
     description: Official Ceph
     name: AccuInsight-Ceph
     state: present
-    baseurl: "https://download.ceph.com/rpm-{{ accu_ceph_image_version }}/el{{ ansible_distribution_major_version }}/$basearch"
+    baseurl: "https://download.ceph.com/rpm-{{ accu_rook_ceph_image_version }}/el{{ ansible_distribution_major_version }}/$basearch"
     gpgkey: https://download.ceph.com/keys/release.asc
     enabled: yes
     gpgcheck: yes
@@ -35,7 +35,7 @@
     exclude: ceph-common
 
 
-- name: AccuInsight+ Storage Ceph | Install Ceph common utilities for '{{ accu_ceph_image_version }}'
+- name: AccuInsight+ Storage Ceph | Install Ceph common utilities for '{{ accu_rook_ceph_image_version }}'
   become: yes
   yum:
     name:

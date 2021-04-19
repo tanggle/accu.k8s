@@ -1,18 +1,19 @@
 ################################################################################
 # Block Storage Pool for 'Replication'                                         #
+# https://rook.io/docs/rook/v1.5/ceph-pool-crd.html                            #
 ################################################################################
 
 apiVersion: ceph.rook.io/v1
 kind: CephBlockPool
 metadata:
-  name: "{{ accu_ceph_block_pool_name }}.data"
+  name: "{{ accu_rook_ceph_block_pool_name }}.data"
   namespace: rook-ceph # namespace:cluster
 spec:
   # The failure domain will spread the replicas of the data across different failure zones
-  failureDomain: {{ accu_ceph_block_storage_failuredomain }}
+  failureDomain: {{ accu_rook_ceph_block_storage_failuredomain }}
   # For a pool based on raw copies, specify the number of copies. A size of 1 indicates no redundancy.
   replicated:
-    size: {{ accu_ceph_block_pool_replication_size }}
+    size: {{ accu_rook_ceph_block_pool_replication_size }}
     # Disallow setting pool with replica 1, this could lead to data loss without recovery.
     # Make sure you're *ABSOLUTELY CERTAIN* that is what you want
     requireSafeReplicaSize: true

@@ -4,77 +4,8 @@
   debug:
     msg: "{{ component }}"
 
-################################################################################
-# Get JWT Token for Ceph API access                                ### BEGIN ###
-################################################################################
-- name: AccuInsight+ Storage Ceph | Get JWT Token for Ceph API access
-  uri:
-    url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/auth"
-    validate_certs: no
-    method: POST
-    body: '{"username": "admin", "password": "{{ accu_rook_ceph_admin_pass }}"}'
-    status_code: 201 
-    body_format: json
-    headers:
-      accept: "application/vnd.ceph.api.v1.0+json"
-      Content-Type: "application/json"
-  register: auth
-  run_once: true
-  until: auth.status == 201 
-  retries: 10
-  delay: 10
 
-################################################################################
-# Set device class for OSDs                                        ### BEGIN ###
-################################################################################
-- name: AccuInsight+ Storage Ceph | Set device class for OSDs
-  become: yes
-  block:
-
-    - name: AccuInsight+ Storage Ceph | Get OSDs information
-      uri:
-        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/osd"
-        validate_certs: no
-        method: GET 
-        status_code: 200 
-        headers:
-          Authorization: "Bearer {{ auth.json.token }}"
-          Content-Type: "application/json"
-      register: osds
-      run_once: true
-
-    - name: AccuInsight+ Storage Ceph | Get device information for each OSD 
-      uri:
-        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/osd/{{ item.osd }}/devices"
-        validate_certs: no
-        method: GET 
-        status_code: 200 
-        headers:
-          Authorization: "Bearer {{ auth.json.token }}"
-          Content-Type: "application/json"
-      register: devices
-      run_once: true
-      loop: "{{ osds.json }}"
-      loop_control:
-        label: "{{ item.osd }}"
-
-
-    - name: AccuInsight+ Storage Ceph | Set device class for each OSD 
-      debug:
-        msg: "{{ item[1].device }}"
-#      uri:
-#        url: "http://{{ accu_rook_ceph_admin_fqdn }}/api/osd/{{ item[0].json.0.daemons.0 | regex_replace('osd.')}}"
-#        validate_certs: no
-#        method: PUT 
-#        body_format: json
-#        body: '{"device_class": "{{ item[1].class }}"}'
-#        status_code: 200 
-#        headers:
-#          Authorization: "Bearer {{ auth.json.token }}"
-#          Content-Type: "application/json"
-      run_once: true
-      loop: "{{ devices.results | product(accu_ceph_storage_devices) | list }}"
-#      loop_control:
-#        label: "{{ item[1] }}"
-#      when: item[0].json.0.location.0.host == item[1].host and item[0].json.0.location.0.dev == item[1].device
+- name: Print inventory hostname
+  debug:
+    msg: "{{ ansible_kernel }}"
 

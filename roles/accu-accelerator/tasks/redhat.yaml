@@ -1,15 +1,15 @@
 ---
 
-- name: AccuInsight+ GPU Accelerator | Upgrade Kernel to the latest version
-  become: yes
-  yum:
-    name: kernel
-    state: latest
-  notify:
-    - OS | Reboot
+#- name: AccuInsight+ GPU Accelerator | Upgrade Kernel to the latest version
+#  become: yes
+#  yum:
+#    name: kernel
+#    state: latest
+#  notify:
+#    - OS | Reboot
 
-- name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
-  meta: flush_handlers
+#- name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
+#  meta: flush_handlers
 
 
 - name: AccuInsight+ GPU Accelerator | Add Package Repository 'NVIDIA'

@@ -7,7 +7,7 @@ provisioner: rook-ceph.ceph.rook.io/bucket
 # when its OBC is deleted.
 reclaimPolicy: Delete
 parameters:
-  objectStoreName: {{ accu_ceph_object_pool_name }}
+  objectStoreName: {{ accu_rook_ceph_object_pool_name }}
   objectStoreNamespace: rook-ceph
   region: us-east-1
   # To accommodate brownfield cases reference the existing bucket name here instead

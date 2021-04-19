@@ -5,7 +5,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-   name: {{ accu_ceph_block_storage_class_name }}
+   name: {{ accu_rook_ceph_block_storage_class_name }}
 # Change "rook-ceph" provisioner prefix to match the operator namespace if needed
 provisioner: rook-ceph.rbd.csi.ceph.com  # driver:namespace:operator
 parameters:
@@ -18,8 +18,8 @@ parameters:
     # You need to specify the replicated pool here in the `pool` parameter, it is
     # used for the metadata of the images.
     # The erasure coded pool must be set as the `dataPool` parameter below.
-    dataPool: "{{ accu_ceph_block_pool_name }}.data"
-    pool: "{{ accu_ceph_block_pool_name }}.meta"
+    dataPool: "{{ accu_rook_ceph_block_pool_name }}.data"
+    pool: "{{ accu_rook_ceph_block_pool_name }}.meta"
 
     # (optional) mapOptions is a comma-separated list of map options.
     # For krbd options refer
@@ -51,7 +51,7 @@ parameters:
     csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph # namespace:cluster
     # Specify the filesystem type of the volume. If not specified, csi-provisioner
     # will set default as `ext4`.
-    csi.storage.k8s.io/fstype: {{ accu_ceph_block_stroage_class_fstype }}
+    csi.storage.k8s.io/fstype: {{ accu_rook_ceph_block_stroage_class_fstype }}
 # uncomment the following to use rbd-nbd as mounter on supported nodes
 # **IMPORTANT**: If you are using rbd-nbd as the mounter, during upgrade you will be hit a ceph-csi
 # issue that causes the mount to be disconnected. You will need to follow special upgrade steps

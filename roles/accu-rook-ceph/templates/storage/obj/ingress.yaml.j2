@@ -10,10 +10,10 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   rules:
-  - host: {{ accu_ceph_object_storage_fqdn  }}
+  - host: {{ accu_rook_ceph_object_storage_fqdn  }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: "rook-ceph-rgw-{{ accu_ceph_object_pool_name }}"
-          servicePort: {{ accu_ceph_object_storage_port }}
+          serviceName: "rook-ceph-rgw-{{ accu_rook_ceph_object_pool_name }}"
+          servicePort: {{ accu_rook_ceph_object_storage_port }}

@@ -21,7 +21,7 @@ spec:
     # versions running within the cluster. See tags available at https://hub.docker.com/r/ceph/ceph/tags/.
     # If you want to be more precise, you can always use a timestamp tag such ceph/ceph:v15.2.9-20201217
     # This tag might not contain a new Ceph version, just security fixes from the underlying operating system, which will reduce vulnerabilities
-    image: ceph/ceph:v{{ accu_ceph_image_version }}
+    image: ceph/ceph:v{{ accu_rook_ceph_image_version }}
     # Whether to allow unsupported versions of Ceph. Currently `nautilus` and `octopus` are supported.
     # Future versions such as `pacific` would require this to be set to `true`.
     # Do not set to true in production.
@@ -29,7 +29,7 @@ spec:
   # The path on the host where configuration files will be persisted. Must be specified.
   # Important: if you reinstall the cluster, make sure you delete this directory from each host or else the mons will fail to start on the new cluster.
   # In Minikube, the '/data' directory is configured to persist across reboots. Use "/data/rook" in Minikube environment.
-  dataDirHostPath: {{ accu_ceph_data_dir_hostpath }}
+  dataDirHostPath: {{ accu_rook_ceph_data_dir_hostpath }}
   # Whether or not upgrade should continue even if a check fails
   # This means Ceph's status could be degraded and we don't recommend upgrading but you might decide otherwise
   # Use at your OWN risk
@@ -45,10 +45,14 @@ spec:
   waitTimeoutForHealthyOSDInMinutes: 10
   mon:
     # Set the number of mons to be started. Must be an odd number, and is generally recommended to be 3.
-    count: {{ accu_ceph_mon_count }}
+{% if groups['accu-ceph'] | length >= 3 and accu_rook_ceph_monitor_count >= 3 %}
+    count: {{ accu_rook_ceph_monitor_count }}
+{% else %}
+    count: 1
+{% endif %}
     # The mons should be on unique nodes. For production, at least 3 nodes are recommended for this reason.
     # Mons should only be allowed on the same node for test environments where data loss is acceptable.
-    allowMultiplePerNode: true
+    allowMultiplePerNode: false
   mgr:
     modules:
     # Several modules should not need to be included in this list. The "dashboard" and "monitoring" modules
@@ -57,7 +61,7 @@ spec:
       enabled: true
   # enable the ceph dashboard for viewing cluster status
   dashboard:
-    enabled: {{ accu_ceph_monitor_dashboard_enabled }}
+    enabled: {{ accu_rook_ceph_monitor_dashboard_enabled }}
     # serve the dashboard under a subpath (useful when you are accessing the dashboard via a reverse proxy)
     # urlPrefix: /ceph-dashboard
     # serve the dashboard at the given port.
@@ -210,7 +214,7 @@ spec:
 {% for node in groups['accu-ceph'] %}
     - name: {{ node }}
       devices: # specific devices to use for storage can be specified for each node
-{% for device in accu_ceph_storage_devices -%}
+{% for device in accu_rook_ceph_storage_devices -%}
 {% if device['host'] == node %}
       - name: {{ device['device'] }}
 {% endif %}

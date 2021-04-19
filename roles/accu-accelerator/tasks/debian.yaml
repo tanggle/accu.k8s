@@ -1,16 +1,16 @@
 ---
 
-- name: AccuInsight+ GPU Accelerator | Upgrade Kernel to the latest version
-  become: yes 
-  apt:
-    name: linux-aws # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-generic, linux-virtual or linux-aws)
-    state: latest
-  notify:
-    - OS | Reboot
+#- name: AccuInsight+ GPU Accelerator | Upgrade Kernel to the latest version
+#  become: yes 
+#  apt:
+#    name: linux-aws # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-generic, linux-virtual or linux-aws)
+#    state: latest
+#  notify:
+#    - OS | Reboot
 
 
-- name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
-  meta: flush_handlers
+#- name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
+#  meta: flush_handlers
 
 
 - name: AccuInsight+ GPU Accelerator | Add Package Repository 'NVIDIA'

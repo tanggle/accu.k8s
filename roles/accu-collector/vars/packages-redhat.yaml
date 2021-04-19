@@ -1,7 +1,5 @@
 ---
 
-kernel_version: "{{ ansible_kernel }}" # NOTE: Replace this with customer's kernel version (uname -a)
-
 repos:
   - name: Kubernetes
     url: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
@@ -16,7 +14,7 @@ repos:
     url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/CentOS_{{ ansible_distribution_major_version }}/"
     key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/CentOS_{{ ansible_distribution_major_version }}/repodata/repomd.xml.key"
   - name: Ceph
-    url: "https://download.ceph.com/rpm-{{ accu_ceph_image_version }}/el{{ ansible_distribution_major_version }}/$basearch"
+    url: "https://download.ceph.com/rpm-{{ accu_rook_ceph_image_version }}/el{{ ansible_distribution_major_version }}/$basearch"
     key: https://download.ceph.com/keys/release.asc
 
 pkgs:
@@ -39,7 +37,11 @@ pkgs:
     # for kubernetes
     - 'skopeo'
     # for accu-accelerator (kernel)
-    - 'kernel kernel-devel kernel-tools kernel-tools-libs kernel-headers'
+    - 'kernel-{{ accu_accelerator_kernel_version }}'
+    - 'kernel-devel-{{ accu_accelerator_kernel_version }}'
+    - 'kernel-tools-{{ accu_accelerator_kernel_version }}'
+    - 'kernel-tools-libs-{{ accu_accelerator_kernel_version }}'
+    - 'kernel-headers-{{ accu_accelerator_kernel_version }}'
     - 'elfutils-libelf-devel'
     - 'gcc'
     - 'make'

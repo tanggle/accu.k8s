@@ -39,8 +39,28 @@
       delay: 60
       notify:
         - Kubelet | Restart
-    
-    
+
+
+    # NOTE: This task prepares tokens and certs if they are expired.
+    - name: AccuInsight+ Kubernetes | Prepare tokens and certs for node joining
+      when:
+        - inventory_hostname == groups['kube-master'][0]
+        - init_status.stat.exists
+      shell: |
+        # Generate bootstrap token for joining nodes (master and worker) if not exists (expired)
+        if [[ -z $(kubeadm token list | grep accuxx.0123456789abcdef) ]]
+        then
+          kubeadm init phase bootstrap-token --config {{ accu_manifests_location }}/{{ component }}/init-master-config.yaml
+        fi
+        # Upload certs for joining additional masters if not exists (expired)
+        if [[ -z $(kubectl -n kube-system get secrets | grep kubeadm-certs) ]]
+        then
+          kubeadm init phase upload-certs --upload-certs --config {{ accu_manifests_location }}/{{ component }}/init-master-config.yaml
+        fi
+      args:
+        executable: /bin/bash
+
+
     - name: AccuInsight+ Kubernetes | Initialize other master
       when:
         - inventory_hostname != groups['kube-master'][0]

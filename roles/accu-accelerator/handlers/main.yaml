@@ -1,21 +1,35 @@
 ---
 
 - name: CRI | Restart
-  become: yes 
+  become: yes
   systemd:
     name: "{{ kube_cri }}"
     state: restarted
-    enabled: yes 
-    daemon_reload: yes 
+    enabled: yes
+    daemon_reload: yes
 
 
 - name: CRI | Wait for Ready
-  become: yes 
+  become: yes
   command: crictl images
   register: result
   until: result is succeeded
   retries: 10
   delay: 5
+
+
+# NOTE: Wait while all K8S apiserver is healty.
+#       This requires when nodes are member of both kube-master group and accu-nvidia group.
+- name: K8S | Wait for APIServer
+  become: yes
+  command: kubectl get nodes
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['kube-master'] }}"
+  run_once: yes
+  register: result
+  until: result is succeeded
+  retries: 60
+  delay: 10
 
 
 - name: OS | Reboot
