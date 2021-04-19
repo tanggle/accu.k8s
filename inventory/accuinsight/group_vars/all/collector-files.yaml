@@ -33,4 +33,7 @@ files:
         dest: kube-master
       - url: "https://github.com/justjanne/powerline-go/releases/download/v{{ accu_tools_powerline_version }}/powerline-go-linux-amd64"
         dest: kube-master
+      - url: "https://github.com/kastenhq/kubestr/releases/download/v{{ accu_tools_kubestr_version }}/kubestr-v{{ accu_tools_kubestr_version }}-linux-amd64.tar.gz"
+        dest: kube-master
+
 

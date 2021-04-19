@@ -13,10 +13,12 @@
         state: present
 
 
-    - name: AccuInsight+ Helm | Copy kubectx & kubens binaries
+    - name: AccuInsight+ K8S Tools | Copy kubectx & kubens binaries
       unarchive:
         src: "{{ accu_offline_target }}/{{ component }}/files/{{ item }}"
         dest: /usr/local/bin
+        owner: root
+        group: root
         remote_src: yes 
         exclude:
           - 'LICENSE'
@@ -75,10 +77,24 @@
         line: "source .powerline-go"
 
 
-    - name: AccuInsight+ Helm | Copy k9scli binary
+    - name: AccuInsight+ K8S Tools | Copy k9scli binary
       unarchive:
         src: "{{ accu_offline_target }}/{{ component }}/files/k9s_Linux_x86_64.tar.gz"
         dest: /usr/local/bin
+        owner: root
+        group: root
+        remote_src: yes 
+        exclude:
+          - 'LICENSE'
+          - 'README.md'
+
+
+    - name: AccuInsight+ K8S Tools | Copy kubestr binary
+      unarchive:
+        src: "{{ accu_offline_target }}/{{ component }}/files/kubestr-v{{ accu_tools_kubestr_version }}-linux-amd64.tar.gz"
+        dest: /usr/local/bin
+        owner: root
+        group: root
         remote_src: yes 
         exclude:
           - 'LICENSE'

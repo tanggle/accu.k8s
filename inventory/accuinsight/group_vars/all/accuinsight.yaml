@@ -121,10 +121,11 @@ accu_package_repository_online_handling: all_disable
 
 # AccuInsight+ K8S Tools
 accu_tools_enabled: true
-accu_tools_powerline_version: 1.21.0
-accu_tools_kubectx_version: 0.9.3
-accu_tools_kubens_version: 0.9.3
-accu_tools_k9scli_version: 0.24.7
+accu_tools_powerline_version: 1.21.0 # https://github.com/justjanne/powerline-go
+accu_tools_kubectx_version: 0.9.3    # https://github.com/ahmetb/kubectx
+accu_tools_kubens_version: 0.9.3     # https://github.com/ahmetb/kubectx
+accu_tools_k9scli_version: 0.24.7    # https://k9scli.io/
+accu_tools_kubestr_version: 0.4.16   # https://kubestr.io/
 
 # AccuInsight+ Helm
 accu_helm_enabled: true
