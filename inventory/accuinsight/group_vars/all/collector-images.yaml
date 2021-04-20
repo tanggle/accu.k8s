@@ -111,7 +111,7 @@ images:
     list:
       - tags: rook/ceph:v{{ accu_rook_ceph_version }}
         dest: accu-ceph
-      - tags: ceph/ceph:v{{ accu_ceph_image_version }}
+      - tags: ceph/ceph:v{{ accu_rook_ceph_image_version }}
         dest: accu-ceph
       - tags: quay.io/cephcsi/cephcsi:v3.2.0
         dest: kube-worker

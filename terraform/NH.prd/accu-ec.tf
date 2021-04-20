@@ -356,19 +356,19 @@ resource "aws_instance" "k8s-multi" {
   ebs_block_device {
     delete_on_termination = true
     device_name           = "/dev/sdf"
-    volume_size           = 300
+    volume_size           = 100
   }
 
   ebs_block_device {
     delete_on_termination = true
     device_name           = "/dev/sdg"
-    volume_size           = 300
+    volume_size           = 200
   }
 
   ebs_block_device {
     delete_on_termination = true
     device_name           = "/dev/sdh"
-    volume_size           = 300
+    volume_size           = 400
   }
 
   ebs_block_device {

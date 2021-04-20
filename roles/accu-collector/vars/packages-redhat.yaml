@@ -21,21 +21,21 @@ pkgs:
   core: >
         [
           "kubeadm-{{ kube_version }} kubelet-{{ kube_version }} kubectl-{{ kube_version }}",
-          {#% if kube_cri == 'containerd' %#}
+          {% if kube_cri == 'containerd' %}
           "containerd.io-{{ containerd_version }}",
-          {#% endif                       %#}
-          {#% if kube_cri == 'cri-o'      %#}
+          {% endif                       %}
+          {% if kube_cri == 'cri-o'      %}
           "cri-o podman",
-          {#% endif                       %#}
-          {#% if kube_cri == 'docker'     %#}
+          {% endif                       %}
+          {% if kube_cri == 'docker'     %}
           "docker-ce-{{ docker_version }} docker-ce-cli-{{ docker_version }}",
-          {#% endif                       %#}
+          {% endif                       %}
         ]
   reqs:
     # for ansible
     - 'rsync'
     # for kubernetes
-    - 'skopeo'
+    #- 'skopeo'
     # for accu-accelerator (kernel)
     - 'kernel-{{ accu_accelerator_kernel_version }}'
     - 'kernel-devel-{{ accu_accelerator_kernel_version }}'

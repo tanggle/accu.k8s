@@ -14,7 +14,12 @@
       when:
         - ansible_os_family == 'RedHat'
       yum:
-        name: podman
+# NOTE: At this time (2021.04.20), there are some package dependency problem with containers-common.
+#       the latest podman requires containers-common-4:1-15 which has a dependency (container-selinux >= 2:2.160.0-1)
+#       but RedHat changed package naming convention from 2:2.160.0-x to 2.160.0-x (without Epoch).
+#       Currently, we use a previous version of podman-2.2.1 instead of 3.0.x and have to wait for RedHat to solve this issue.
+#        name: podman
+        name: podman-2.2.1
         state: latest
         update_cache: yes
 
