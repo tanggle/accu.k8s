@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0" 
+  name: accu-registry-mirror-d
+  namespace: accu-system
+spec:
+  rules:
+  - host: registry-1.docker.io
+    http:
+      paths:
+      - backend:
+          serviceName: accu-registry
+          servicePort: 5000
+        path: /
+        pathType: ImplementationSpecific

@@ -1,0 +1,11 @@
+---
+# Playbook for AccuInsight+ Registry Mirror
+
+- name: AccuInsight+ Registry Mirror
+  hosts: kube-cluster
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: true
+  roles:
+    - { role: accu-common/mirror }
+
+

@@ -1,0 +1,67 @@
+---
+
+debian:
+
+  repos:
+    - name: Kubernetes
+      url: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      key: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    - name: Docker
+      url: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+      key: https://download.docker.com/linux/ubuntu/gpg
+    - name: OCI
+      url: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+      key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+    - name: "CRI-O-{{ crio_version }}"
+      url: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/ /"
+      key: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+    - name: Ceph
+      url: "deb https://download.ceph.com/debian-{{ accu_rook_ceph_image_version }}/ {{ ansible_distribution_release }} main"
+      key: https://download.ceph.com/keys/release.asc
+  
+  
+  pkgs:
+    core: >
+          [
+            "kubeadm kubelet kubectl",
+            {% if kube_cri == 'containerd'   %}
+            "containerd.io",
+            {% endif                         %}
+            {% if kube_cri == 'cri-o'        %}
+            "cri-o cri-o-runc podman-rootless",
+            {% endif                         %}
+            {% if kube_cri == 'docker'       %}
+            "docker-ce docker-ce-cli",
+            {% endif                         %}
+          ]
+    reqs:
+      # for ansible
+      - 'rsync'
+      # for kubernetes
+      - 'skopeo'
+      # for accu-accelerator (multiple versions of kernel)
+      - '{% for kv in accu_accelerator_kernel_version %} linux-image-{{ kv }} linux-headers-{{ kv }} {% endfor %}'
+      - 'build-essential'
+      # for accu-accelerator (nvidia)
+      - 'patch'
+      - 'nvidia-docker2'
+      - 'nvidia-container-runtime'
+      - 'nvidia-container-toolkit'
+      # for accu-nfs-server
+      - 'nfs-kernel-server'
+      # for accu-nfs-provisioner
+      - 'nfs-common'
+      # for accu-repository-server
+      - 'apache2'
+      - 'gpg'
+      # for accu-rook-ceph
+      - 'ceph-common'
+      - 'lvm2'
+      - 'gdisk'
+      # for debugging utilities
+      - 'net-tools'
+      - 'bind9-dnsutils'
+      - 'lsof'
+      - 'pciutils'
+      - 'lshw'
+  

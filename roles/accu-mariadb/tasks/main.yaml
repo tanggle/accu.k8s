@@ -1,0 +1,68 @@
+---
+
+#- name: AccuInsight+ MariaDB | Add FQDN to /etc/hosts file
+#  become: yes
+#  lineinfile:
+#    dest: /etc/hosts
+#    insertafter: EOF
+#    state: present
+#    line: "{{ accu_load_balancer_addr }} {{ accu_mariadb_fqdn }}"
+
+
+- name: AccuInsight+ MariaDB | Add Chart Repository 'bitnami'
+  when:
+    - not accu_offline_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes 
+  helm_repository:
+    name: bitnami
+    url: https://charts.bitnami.com/bitnami
+    state: present
+  no_log: true
+
+
+- name: AccuInsight+ MariaDB | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                    %}
+      {{ accu_offline_target }}/{{ component }}/charts/mariadb-{{ accu_mariadb_version }}.tgz
+      {% else                                                                              %}
+      bitnami/mariadb
+      {% endif                                                                             %}
+  run_once: yes
+
+
+- name: AccuInsight+ MariaDB | Deploy {{ accu_mariadb_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_mariadb_release }}"
+    version: "{{ accu_mariadb_version }}"
+    namespace: "{{ accu_mariadb_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '--set fullnameOverride={{ accu_mariadb_release }}'
+      - '--set db.user={{ accu_mariadb_default_user_name }}'
+      - '--set db.password={{ accu_mariadb_default_user_pass }}'
+      - '--set db.name={{ accu_mariadb_default_user_database }}'
+      - '--set rootUser.password={{ accu_mariadb_admin_pass }}'
+      - '--set replication.enabled={{ accu_mariadb_slave_enabled }}'
+      - '--set replication.password={{ accu_mariadb_admin_pass }}'
+      - '--set master.persistence.enabled=true'
+      - '--set master.persistence.size={{ accu_mariadb_storage_size }}'
+      - '--set master.persistence.storageClass={{ accu_mariadb_storage_class }}'
+      - '--set slave.replicas={{ accu_mariadb_slave_replicas }}'
+      - '--set slave.persistence.enabled=true'
+      - '--set slave.persistence.size={{ accu_mariadb_storage_size }}'
+      - '--set slave.persistence.storageClass={{ accu_mariadb_storage_class }}'
+      - '--set metrics.enabled={{ accu_mariadb_metrics_enabled }}'
+  run_once: yes
+
+

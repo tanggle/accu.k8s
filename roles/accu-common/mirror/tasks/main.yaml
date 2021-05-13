@@ -1,0 +1,95 @@
+---
+
+- name: AccuInsight+ Registry Mirror | Push Offline Images Mirroring
+  when:
+    - accu_offline_enabled | bool
+    - accu_offline_image_mirror | bool
+    - accu_registry_enabled | bool
+  become: yes 
+  block:
+
+    - name: AccuInsight+ Registry Mirror | Add FQDN for Mirrors to /etc/hosts file
+      lineinfile:
+        dest: /etc/hosts
+        insertafter: EOF 
+        state: present
+        line: "{{ accu_load_balancer_addr }} {{ item }}"
+      loop:
+        - 'registry-1.docker.io'
+        - 'k8s.gcr.io'
+        - 'quay.io'
+
+
+    - name: AccuInsight+ Registry Mirror | Create menifests directory for component
+      when:
+        - inventory_hostname in groups['kube-master']
+      file:
+        path: "{{ accu_manifests_location}}/{{ component }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        recurse: true
+
+
+    - name: AccuInsight+ Registry Mirror | Create manifests for Registry Mirrors
+      when:
+        - inventory_hostname in groups['kube-master']
+      template:
+        src: "{{ item }}.j2"
+        dest: "{{ accu_manifests_location }}/{{ component }}/{{ item }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - 'accu-registry-mirror-d.yaml'
+        - 'accu-registry-mirror-g.yaml'
+        - 'accu-registry-mirror-q.yaml'
+    
+    
+    - name: AccuInsight+ Registry Mirror | Apply manifests for Registry Mirrors
+      when:
+        - inventory_hostname in groups['kube-master']
+      shell: |
+          kubectl apply -f {{ accu_manifests_location}}/{{ component }}/{{ item }}
+      args:
+        executable: /bin/bash
+      run_once: true
+      loop:
+        - 'accu-registry-mirror-d.yaml'
+        - 'accu-registry-mirror-g.yaml'
+        - 'accu-registry-mirror-q.yaml'
+      
+
+    - name: AccuInsight+ Registry Mirror | Mirroring Images to '{{ accu_registry_fqdn }}'
+      when:
+        - inventory_hostname in groups[item][0]
+      shell: |
+        shopt -s nullglob
+
+        if [ "{{ kube_cri }}" == "docker" ]
+        then
+          for IMAGE in $(docker images | grep -v REPOSITORY | awk '{ print $1":"$2 }')
+          do
+              docker push $IMAGE
+          done
+        fi
+
+        if [ "{{ kube_cri }}" == "containerd" ]
+        then
+            echo "Not implemented yet !"
+        fi
+
+        if [ "{{ kube_cri }}" == "cri-o" ]
+        then
+            echo "Not implemented yet !"
+        fi
+      args:
+        executable: /bin/bash
+      loop:
+        - 'kube-master'
+        - 'kube-worker'
+        - 'accu-nvidia'
+        - 'accu-ceph'
+
+
