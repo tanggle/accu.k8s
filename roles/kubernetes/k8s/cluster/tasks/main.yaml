@@ -13,7 +13,7 @@
   lineinfile:
     dest: /etc/hosts
     state: present
-    line: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }} {{ accu_load_balancer_fqdn }}"
+    line: "{{ accu_load_balancer_addr }} {{ accu_load_balancer_fqdn }}"
 
 
 - name: AccuInsight+ Kubernetes | Set default configuration for Kubernetes (crictl)

@@ -6,8 +6,8 @@
   become: yes
   block:
 
-    - name: AccuInsight+ Collector | Load List of OS Packages
-      include_vars: packages-redhat.yaml
+#    - name: AccuInsight+ Collector | Load List of OS Packages
+#      include_vars: packages-redhat.yaml
 
 
     - name: AccuInsight+ Collector | Add Package Repositories
@@ -19,7 +19,7 @@
         gpgkey: "{{ item.key }}"
         enabled: yes 
         gpgcheck: yes 
-      loop: "{{ repos }}"
+      loop: "{{ redhat.repos }}"
       loop_control:
         label: "{{ item.name }}"
 
@@ -33,7 +33,7 @@
         section: "Collector-{{ item.name }}"
         option: module_hotfixes
         value: "True"
-      loop: "{{ repos }}"
+      loop: "{{ redhat.repos }}"
       loop_control:
         label: "{{ item.name }}"
 
@@ -94,7 +94,7 @@
 
     - name: AccuInsight+ Collector | Set facts for Packages and Locations
       set_fact:
-        packages: "{{ (pkgs.core + pkgs.reqs) | join(' ') }}"
+        packages: "{{ (redhat.pkgs.core + redhat.pkgs.reqs) | join(' ') }}"
         down_location: "{{ accu_collector_target }}/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}/accuinsight"
         pull_location: "{{ accu_offline_source }}/accu-package-repository/files/accu-pkg-server/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}"
 
@@ -107,8 +107,15 @@
         # Create download directory.
         mkdir -p {{ down_location }}
 
-        # Dwonload packages defined in 'accu.pkgs' and all of their dependancies recursively even if they were already installed.
-        yum install -y --releasever={{ releasever }} --installroot=/tmp/xxx --downloadonly --downloaddir={{ down_location }} {{ packages }}
+        # Download kernels defined in 'accu_accelerator_kernel_version'.
+        # NOTE: To download multiple versions of kernel, '--setopt=protected_multilib=false' parameter is required and should be collected one by one.
+        {% for kv in accu_accelerator_kernel_version %}
+        yum install -y --setopt=protected_multilib=false --releasever={{ releasever }} --installroot=/tmp/xxx --downloadonly --downloaddir={{ down_location }} \
+            kernel-{{ kv }} kernel-devel-{{ kv }} kernel-tools-{{ kv }} kernel-tools-libs-{{ kv }} kernel-headers-{{ kv }}
+        {% endfor %}
+
+        # Dwonload packages defined in 'redhat.pkgs' and all of their dependancies recursively even if they were already installed.
+        yum install -y --setopt=protected_multilib=false --releasever={{ releasever }} --installroot=/tmp/xxx --downloadonly --downloaddir={{ down_location }} {{ packages }}
       args:
         executable: /bin/bash
         warn: no

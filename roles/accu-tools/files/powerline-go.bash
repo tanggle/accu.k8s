@@ -7,7 +7,7 @@ function UPDATE_PROMPT() {
     # kube, load, newline, nix-shell, node, perlbrew, perms, plenv, root, shell-var, shenv,     #
     # ssh, svn, termtitle, terraform-workspace, time, user, venv, vgo                           #
     #############################################################################################
-    PS1=$(powerline-go -mode flat -error $? -modules user,host,kube,cwd,perms,git,jobs,exit,root)
+    PS1=$(powerline-go -mode flat -error $? -modules venv,user,host,kube,cwd,perms,git,jobs,exit,root)
 }
 
 if [ "$TERM" != "linux" ] && [ $(which powerline-go) ]; then

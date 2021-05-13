@@ -1,10 +1,10 @@
 ### PLEASE CHANGE THIS TO YOUR IDENTICAL STRING ###
-aws_cluster_name = "tanggle-nh-prd-scenario"
+aws_cluster_name = "tanggle-nh-prd"
 ###################################################
 
 # Official RHEL Version
 # 7.8 or 8.2
-aws_redhat_version = "8.2"
+aws_redhat_version = "7.6"
 
 # LB Host
 aws_kube_lb_type = "t3.micro"
@@ -29,7 +29,7 @@ aws_kube_worker_num  = 0
 # Kubernetes Multipurpose (HAPROXY, NFS, GPU)
 #aws_kube_multi_type = "g3.8xlarge"
 aws_kube_multi_type = "g3s.xlarge"
-aws_kube_multi_num  = 4
+aws_kube_multi_num  = 2
 
 default_tags = {
   #  Env = "devtest"

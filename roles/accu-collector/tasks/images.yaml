@@ -10,7 +10,7 @@
 #      include_vars: images.yaml
 
 
-    - name: AccuInsight+ Collector | Install Container Management Tool (podman)
+    - name: AccuInsight+ Collector | Install Container Management Tool
       when:
         - ansible_os_family == 'RedHat'
       yum:
@@ -18,29 +18,33 @@
 #       the latest podman requires containers-common-4:1-15 which has a dependency (container-selinux >= 2:2.160.0-1)
 #       but RedHat changed package naming convention from 2:2.160.0-x to 2.160.0-x (without Epoch).
 #       Currently, we use a previous version of podman-2.2.1 instead of 3.0.x and have to wait for RedHat to solve this issue.
-#        name: podman
-        name: podman-2.2.1
+#
+#       Now (2021.04.26), replaced podman with docker as a container management tool to resolve bad package naming conventions with RedHat family.
+        name:
+          - docker-ce 
+          - pigz
         state: latest
         update_cache: yes
+      notify:
+        - Container Management Tool | Restart
+        - Container Management Tool | Wait for Ready
 
 
-    - name: AccuInsight+ Collector | Configure OCI Containers Storage Setting
-      when:
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int == 7
-      shell: |
-        sed -i -e 's/,metacopy=on//g' /etc/containers/storage.conf
-      args:
-        executable: /bin/bash
-        warn: no
-
-
-    - name: AccuInsight+ Collector | Install Container Management Tool (podman)
+    - name: AccuInsight+ Collector | Install Container Management Tool
       when:
         - ansible_os_family == 'Debian'
       apt:
-        name: podman-rootless
+        name:
+          - docker-ce
+          - pigz
         state: latest
+      notify:
+        - Container Management Tool | Restart
+        - Container Management Tool | Wait for Ready
+
+
+    - name: AccuInsight+ GPU Accelerator | Flush Handlers for Container Management Tool
+      meta: flush_handlers
 
 
     - name: AccuInsight+ Collector | Collect Images
@@ -55,18 +59,19 @@
         mkdir -p {{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.1.dest }}
 
         # Pull images
-        podman pull {{ item.1.tags }}
+        docker pull {{ item.1.tags }}
 
         # Save images (This step will be skipped if the saved images already exist.)
         FILE="{{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.1.dest }}/{{ item.1.tags | replace(    '/', '--') | replace(':', '--') }}.tar.gz"
 
+        # NOTE: Replaced gzip with pigz for better performance (multicore compress).
         if [ ! -f ${FILE} ];
         then
-          podman save {{ item.1.tags }} | gzip -9 > ${FILE}
+          docker save {{ item.1.tags }} | pigz -9 > ${FILE}
         fi
 
         # Delete images after saving.
-        podman rmi {{ item.1.tags }}
+        docker rmi {{ item.1.tags }}
 
         ## Update images information. this file is not used in any codes but just information.
         echo {{ item.1.tags }} >> {{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.0.component }}.lst

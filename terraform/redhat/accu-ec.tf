@@ -1,6 +1,3 @@
-terraform {
-  required_version = ">= 0.12.0"
-}
 
 provider "aws" {
   # profile = "default"
@@ -47,21 +44,17 @@ data "aws_ami" "redhat" {
 
 resource "aws_instance" "k8s-lb" {
   ami                         = data.aws_ami.redhat.id
-#  ami                         = "ami-0f8dedf5ec103d6a5"
   instance_type               = var.aws_kube_lb_type
   count                       = var.aws_kube_lb_num
   associate_public_ip_address = true
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    # "Name", "k8s-${var.aws_cluster_name}-lb0${count.index + 1}",
-    "Name", "k8s-${var.aws_cluster_name}-alb",
-    "Cluster", "${var.aws_cluster_name}",
-    "Role", "LB"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-alb"
+    Role = "LB"
+  }))
   volume_tags = {
-    # Name = "k8s-${var.aws_cluster_name}-lb0${count.index + 1}"
     Name = "k8s-${var.aws_cluster_name}-alb"
   }
 
@@ -98,18 +91,16 @@ resource "aws_instance" "k8s-lb" {
 
 resource "aws_instance" "k8s-nfs" {
   ami                         = data.aws_ami.redhat.id
-#  ami                         = "ami-0f8dedf5ec103d6a5"
   instance_type               = var.aws_kube_nfs_type
   count                       = var.aws_kube_nfs_num
   associate_public_ip_address = true
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-nfs",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "NFS"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-nfs"
+    Role = "NFS"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-nfs"
   }
@@ -154,18 +145,16 @@ resource "aws_instance" "k8s-nfs" {
 
 resource "aws_instance" "k8s-gpu" {
   ami                         = data.aws_ami.redhat.id
-#  ami                         = "ami-0f8dedf5ec103d6a5"
   instance_type               = var.aws_kube_gpu_type
   count                       = var.aws_kube_gpu_num
   associate_public_ip_address = true
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-g0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "GPU"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-g0${count.index + 1}"
+    Role = "GPU"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-g0${count.index + 1}"
   }
@@ -212,18 +201,16 @@ resource "aws_instance" "k8s-gpu" {
 #
 resource "aws_instance" "k8s-master" {
   ami                         = data.aws_ami.redhat.id
-#  ami                         = "ami-0f8dedf5ec103d6a5"
   instance_type               = var.aws_kube_master_type
   count                       = var.aws_kube_master_num
   associate_public_ip_address = true
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-m0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "MASTER"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-m0${count.index + 1}"
+    Role = "MASTER"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-m0${count.index + 1}"
   }
@@ -267,18 +254,16 @@ resource "aws_instance" "k8s-master" {
 
 resource "aws_instance" "k8s-worker" {
   ami                         = data.aws_ami.redhat.id
-#  ami                         = "ami-0f8dedf5ec103d6a5"
   instance_type               = var.aws_kube_worker_type
   count                       = var.aws_kube_worker_num
   associate_public_ip_address = true
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-w0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "WORKER,CEPH"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-w0${count.index + 1}"
+    Role = "WORKER,CEPH"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-w0${count.index + 1}"
   }
@@ -331,7 +316,6 @@ resource "aws_instance" "k8s-worker" {
 #
 resource "aws_instance" "k8s-multi" {
   ami                         = data.aws_ami.redhat.id
-#  ami                         = "ami-0f8dedf5ec103d6a5"
   instance_type               = var.aws_kube_multi_type
   count                       = var.aws_kube_multi_num
   associate_public_ip_address = true
@@ -339,18 +323,29 @@ resource "aws_instance" "k8s-multi" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 1), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-x0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "LB,NFS,GPU"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-x0${count.index + 1}"
+    Role = "LB,NFS,GPU"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-x0${count.index + 1}"
   }
 
   root_block_device {
     delete_on_termination = true
-    volume_size           = 400
+    volume_size           = 500
+  }
+
+  ebs_block_device {
+    delete_on_termination = true
+    device_name           = "/dev/sdf"
+    volume_size           = 500 
+  }
+
+  ebs_block_device {
+    delete_on_termination = true
+    device_name           = "/dev/sdg"
+    volume_size           = 500 
   }
 
   connection {

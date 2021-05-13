@@ -14,7 +14,7 @@
     dest: /etc/hosts
     insertafter: EOF 
     state: present
-    line: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }} {{ item }}"
+    line: "{{ accu_load_balancer_addr }} {{ item }}"
   loop:
     - '{{ accu_rook_ceph_admin_fqdn }}'
     - '{{ accu_rook_ceph_object_storage_fqdn }}'
@@ -202,7 +202,7 @@
   run_once: true
   register: ceph_osd
   until: ceph_osd.stdout.count("Running") >= accu_rook_ceph_storage_devices | length
-  retries: 10
+  retries: 50
   delay: 60
 
 
@@ -304,6 +304,10 @@
 ################################################################################
 # Set device class for OSDs                                        ### BEGIN ###
 ################################################################################
+# NOTE: OSDs will automatically set a device's class to either hdd, ssd, or nvme based on the hardware properties exposed by the Linux kernel.
+#       but it doesn't work in some infrastrue, so rook operator set it explicitly according to 'accu_rook_ceph_storage_devices' variable.
+#       See also 'roles/accu-rook-ceph/templates/cluster.yaml.j2'.
+#
 #- name: AccuInsight+ Storage Ceph | Set device class for OSDs
 #  become: yes
 #  block:
@@ -448,8 +452,6 @@
 - name: AccuInsight+ Storage Ceph | Mount Ceph Filesystem on Masters
   when:
     - accu_rook_ceph_filesystem_storage_enabled | bool
-    - accu_rook_ceph_filesystem_mount_on_masters
-    - inventory_hostname in groups['kube-master']
   become: yes
   block:
 
@@ -478,13 +480,26 @@
         mon_endpoints: "{{ mon_endpoints | join(',') }}"
       run_once: true
 
-    - name: AccuInsight+ Storage Ceph | Generate Ceph Admin Secret file to specific nodes
+    - name: AccuInsight+ Storage Ceph | Generate Ceph Admin Secret file to nodes (1/2)
+      when:
+        - inventory_hostname in groups['kube-master']
       shell:
-        kubectl -n {{ accu_rook_ceph_namespace }} get secrets rook-ceph-mon -o jsonpath='{.data.ceph-secret}' | base64 --decode > /etc/ceph/admin.secret
+        kubectl -n {{ accu_rook_ceph_namespace }} get secrets rook-ceph-mon -o jsonpath='{.data.ceph-secret}' | base64 --decode
+      args:
+        executable: /bin/bash
+      register: secret
+      run_once: true
+
+    - name: AccuInsight+ Storage Ceph | Generate Ceph Admin Secret file to nodes (2/2)
+      shell:
+        echo {{ secret.stdout }} > /etc/ceph/admin.secret
       args:
         executable: /bin/bash
 
     - name: AccuInsight+ Storage Ceph | Create mount directory for Ceph Filesystem
+      when:
+        - inventory_hostname in groups['kube-master']
+        - accu_rook_ceph_filesystem_mount_on_masters
       file:
         path: /cephfs
         state: directory
@@ -493,6 +508,9 @@
         mode: '0755'
       
     - name: AccuInsight+ Storage Ceph | Mount Ceph Filesystem on Masters
+      when:
+        - inventory_hostname in groups['kube-master']
+        - accu_rook_ceph_filesystem_mount_on_masters
       mount:
         path: /cephfs
         src: "{{ mon_endpoints }}:/"

@@ -15,6 +15,7 @@ spec:
     replicated:
       size: {{ accu_rook_ceph_filesystem_pool_replication_size }}
       requireSafeReplicaSize: true
+    deviceClass: {{ accu_rook_ceph_filesystem_pool_meta_deviceclass }}
     parameters:
       # Inline compression mode for the data pool
       # Further reference: https://docs.ceph.com/docs/nautilus/rados/configuration/bluestore-config-ref/#inline-compression
@@ -29,6 +30,7 @@ spec:
       erasureCoded:
         dataChunks: 2
         codingChunks: 1
+      deviceClass: {{ accu_rook_ceph_filesystem_pool_data_deviceclass }}
       parameters:
         # Inline compression mode for the data pool
         # Further reference: https://docs.ceph.com/docs/nautilus/rados/configuration/bluestore-config-ref/#inline-compression

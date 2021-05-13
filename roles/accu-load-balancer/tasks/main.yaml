@@ -6,7 +6,7 @@
 
 - name: AccuInsight+ GPU Accelerator | Configure Load Balancer Nodes
   when:
-    - inventory_hostname in groups['accu-alb-server']
+    - inventory_hostname in groups['kube-master']
   become: yes 
   block:
 

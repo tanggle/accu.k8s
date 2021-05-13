@@ -53,6 +53,15 @@ images:
       - tags: fluxcd/helm-operator:1.2.0
         dest: kube-worker
 
+  - component: accu-mariadb
+    list:
+      - tags: bitnami/mariadb:10.3.24-debian-10-r49
+        dest: kube-worker
+      - tags: bitnami/minideb:buster
+        dest: kube-worker
+      - tags: bitnami/mysqld-exporter:0.12.1-debian-10-r235
+        dest: kube-worker
+
   - component: accu-ingress-controller
     list:
       - tags: k8s.gcr.io/ingress-nginx/controller:v0.45.0

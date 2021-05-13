@@ -365,12 +365,6 @@ resource "aws_instance" "k8s-multi" {
     volume_size           = 300
   }
 
-  ebs_block_device {
-    delete_on_termination = true
-    device_name           = "/dev/sdh"
-    volume_size           = 300
-  }
-
   connection {
     type        = "ssh"
     user        = "ec2-user"

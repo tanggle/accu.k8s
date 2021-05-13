@@ -1,11 +1,12 @@
 # Kubernetes Security Groups
 
 resource "aws_security_group" "kubernetes" {
-  name = "k8s-${var.aws_cluster_name}-securitygroup"
+  name   = "k8s-${var.aws_cluster_name}-securitygroup"
+  vpc_id = module.vpc.vpc_id
 
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-securitygroup"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-securitygroup"
+  }))
 }
 
 # ALLOW ALL TRAFFICS BETWEEN EC2 INSTANCES IN DEFAULT VPC
@@ -14,7 +15,7 @@ resource "aws_security_group_rule" "allow-all-ingress" {
   from_port         = 0
   to_port           = 65535
   protocol          = "-1"
-  cidr_blocks       = ["172.31.0.0/16"]
+  cidr_blocks       = ["172.0.101.0/24", "172.0.102.0/24", "172.0.103.0/24"]
   security_group_id = aws_security_group.kubernetes.id
 }
 
@@ -23,7 +24,7 @@ resource "aws_security_group_rule" "allow-all-egress" {
   from_port         = 0
   to_port           = 65535
   protocol          = "-1"
-  cidr_blocks       = ["172.31.0.0/16", "0.0.0.0/0"]
+  cidr_blocks       = ["172.0.101.0/24", "172.0.102.0/24", "172.0.103.0/24", "0.0.0.0/0"]
   security_group_id = aws_security_group.kubernetes.id
 }
 

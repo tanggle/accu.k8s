@@ -1,4 +1,9 @@
 ---
+################################################################################
+#                                                                              #
+# AccuInsight+ Kubernetes Platform                                             #
+#                                                                              #
+################################################################################
 
 - name: AccuInsight+ OS Default Settings
   hosts: kube-cluster,accu-server
@@ -64,10 +69,6 @@
   when: accu_helm_enabled | bool
 
 
-- import_playbook: plays/accu-helm-operator.yaml
-  when: accu_helm_operator_enabled | bool
-
-
 # AccuInsight+ Ingress Controller
 - import_playbook: plays/accu-ingress-controller.yaml
   when: accu_ingress_controller_enabled | bool
@@ -108,21 +109,30 @@
   when: accu_monitoring_enabled | bool
 
 
-# AccuInsight+ EFK
-#- import_playbook: plays/accu-logging.yaml
-#  when: accu_logging_enabled | bool
-
-
 # AccuInsight+ GPU accelerator
 - import_playbook: plays/accu-accelerator.yaml
   when: accu_accelerator_enabled | bool
 
-# AccuInsight+ Service Prepare
-#- import_playbook: plays/accu-service.yaml
+
+# AccuInsight+ Registry Mirror
+#- import_playbook: plays/accu-registry-mirror.yaml
+#  when:
+#    - accu_offline_enabled | bool
+#    - accu_offline_image_mirror | bool
+#    - accu_registry_enabled | bool
 
 
-# AccuInsight+ Applicaiton
-#- import_playbook: plays/accu-app-install.yaml
-#  when: accu_app_install_enabled | bool
+################################################################################
+#                                                                              #
+# AccuInsight+ Solution Requirements                                           #
+#                                                                              #
+################################################################################
+
+- import_playbook: plays/accu-helm-operator.yaml
+  when: accu_helm_operator_enabled | bool
+
+
+- import_playbook: plays/accu-mariadb.yaml
+  when: accu_mariadb_enabled | bool
 
 

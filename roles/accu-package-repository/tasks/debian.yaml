@@ -160,6 +160,11 @@
 
         # Copy public key to repository
         cp -a accuinsight.pub.gpg {{ accu_package_repository_path }}/dists/ubuntu/accuinsight/accuinsight.pub.gpg
+
+        # If umask of 'root' has a strict value (for example, '0026' or '0027' other than default '0022'),
+        # repository meta information has to be accessible permission for web frontend.
+        find {{ accu_package_repository_path }} -type d -exec chmod 755 {} \;
+        find {{ accu_package_repository_path }} -type f -exec chmod 644 {} \;
       args:
         executable: /bin/bash
 

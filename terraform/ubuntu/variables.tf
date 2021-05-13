@@ -19,6 +19,10 @@ variable "aws_cluster_name" {
 #
 # Official Ubuntu Version
 #
+variable "aws_os" {
+  description = "OS"
+}
+
 variable "aws_ubuntu_version" {
   description = "Officail Ubuntu Version"
 }
@@ -78,14 +82,14 @@ variable "aws_kube_multi_num" {
 
 variable "default_tags" {
   description = "Default tags for all resources"
-  type        = map
+  type        = map(any)
 }
 
 variable "inventory_file" {
   description = "Where to store the generated inventory file"
 }
 
-variable private_key {
+variable "private_key" {
   description = "private_key"
 }
 

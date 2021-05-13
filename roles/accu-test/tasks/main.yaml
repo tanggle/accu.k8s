@@ -2,10 +2,13 @@
 
 - name: Print inventory hostname
   debug:
-    msg: "{{ component }}"
+    msg: "{{ inventory_hostname }}"
 
-
-- name: Print inventory hostname
+- name: Print kernel version
   debug:
     msg: "{{ ansible_kernel }}"
+
+- name: Print loadbalancer address
+  debug:
+    msg: "{{ ext_lb_addr }}"
 

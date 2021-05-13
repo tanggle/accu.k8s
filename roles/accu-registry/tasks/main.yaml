@@ -7,7 +7,7 @@
     dest: /etc/hosts
     insertafter: EOF
     state: present
-    line: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }} {{ item }}"
+    line: "{{ accu_load_balancer_addr }} {{ item }}"
   loop:
     - '{{ accu_registry_fqdn }}'
 

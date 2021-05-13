@@ -217,6 +217,8 @@ spec:
 {% for device in accu_rook_ceph_storage_devices -%}
 {% if device['host'] == node %}
       - name: {{ device['device'] }}
+        config:
+          deviceClass: {{ device['class'] }}
 {% endif %}
 {% endfor %}
       config:

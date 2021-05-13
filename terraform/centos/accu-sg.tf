@@ -3,9 +3,9 @@
 resource "aws_security_group" "kubernetes" {
   name = "k8s-${var.aws_cluster_name}-securitygroup"
 
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-securitygroup"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-securitygroup"
+  }))
 }
 
 # ALLOW ALL TRAFFICS BETWEEN EC2 INSTANCES IN DEFAULT VPC

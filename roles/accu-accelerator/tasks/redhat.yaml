@@ -87,7 +87,15 @@
 - name: AccuInsight+ GPU Accelerator | Install NVIDIA driver (Requirements)
   become: yes
   shell: |
-      yum install -y --allowerasing {{ nvidia_runtime_package[kube_cri] }} kernel-devel elfutils-libelf-devel gcc make
+      if [ "{{ ansible_distribution_major_version }}" == "8" ]
+      then
+          yum install -y --allowerasing {{ nvidia_runtime_package[kube_cri] }} kernel-headers-{{ ansible_kernel }} kernel-devel-{{ ansible_kernel }} elfutils-libelf-devel gcc make
+      fi
+
+      if [ "{{ ansible_distribution_major_version }}" == "7" ]
+      then
+          yum install -y {{ nvidia_runtime_package[kube_cri] }} kernel-headers-{{ ansible_kernel }} kernel-devel-{{ ansible_kernel }} elfutils-libelf-devel gcc make
+      fi
   args:
     executable: /bin/bash
     warn: no

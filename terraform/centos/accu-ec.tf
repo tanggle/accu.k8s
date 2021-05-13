@@ -1,6 +1,3 @@
-terraform {
-  required_version = ">= 0.12.0"
-}
 
 provider "aws" {
   # profile = "default"
@@ -54,14 +51,11 @@ resource "aws_instance" "k8s-lb" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    # "Name", "k8s-${var.aws_cluster_name}-lb0${count.index + 1}",
-    "Name", "k8s-${var.aws_cluster_name}-alb",
-    "Cluster", "${var.aws_cluster_name}",
-    "Role", "LB"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-alb"
+    Role = "LB"
+  }))
   volume_tags = {
-    # Name = "k8s-${var.aws_cluster_name}-lb0${count.index + 1}"
     Name = "k8s-${var.aws_cluster_name}-alb"
   }
 
@@ -104,11 +98,10 @@ resource "aws_instance" "k8s-nfs" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-nfs",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "NFS"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-nfs"
+    Role = "NFS"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-nfs"
   }
@@ -159,11 +152,10 @@ resource "aws_instance" "k8s-gpu" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-g0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "GPU"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-g0${count.index + 1}"
+    Role = "GPU"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-g0${count.index + 1}"
   }
@@ -216,11 +208,10 @@ resource "aws_instance" "k8s-master" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-m0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "MASTER"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-m0${count.index + 1}"
+    Role = "MASTER"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-m0${count.index + 1}"
   }
@@ -270,11 +261,10 @@ resource "aws_instance" "k8s-worker" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-w0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "WORKER,CEPH"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-w0${count.index + 1}",
+    Role = "WORKER,CEPH"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-w0${count.index + 1}"
   }
@@ -333,11 +323,10 @@ resource "aws_instance" "k8s-multi" {
   availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
   security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
   key_name                    = aws_key_pair.accuinsight.id
-  tags = merge(var.default_tags, map(
-    "Name", "k8s-${var.aws_cluster_name}-x0${count.index + 1}",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "member",
-    "Role", "LB,NFS,GPU"
-  ))
+  tags = merge(var.default_tags, tomap({
+    Name = "k8s-${var.aws_cluster_name}-x0${count.index + 1}"
+    Role = "LB,NFS,GPU"
+  }))
   volume_tags = {
     Name = "k8s-${var.aws_cluster_name}-x0${count.index + 1}"
   }

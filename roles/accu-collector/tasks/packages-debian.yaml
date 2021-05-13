@@ -6,15 +6,15 @@
   become: yes
   block:
 
-    - name: AccuInsight+ Collector | Load List of OS Packages
-      include_vars: packages-debian.yaml
+#    - name: AccuInsight+ Collector | Load List of OS Packages
+#      include_vars: packages-debian.yaml
 
 
     - name: AccuInsight+ Collector | Add Package Repository (Repository KEY)
       apt_key:
         url: "{{ item.key }}"
         state: present
-      loop: "{{ repos }}"
+      loop: "{{ debian.repos }}"
       loop_control:
         label: "{{ item.name }}"
 
@@ -26,7 +26,7 @@
         state: present
         mode: '0644'
         update_cache: yes
-      loop: "{{ repos }}"
+      loop: "{{ debian.repos }}"
       loop_control:
         label: "{{ item.name }}"
 
@@ -83,7 +83,7 @@
 
     - name: AccuInsight+ Collector | Set facts for Packages and Locations
       set_fact:
-        packages: "{{ (pkgs.core + pkgs.reqs) | join(' ') }}"
+        packages: "{{ (debian.pkgs.core + debian.pkgs.reqs) | join(' ') }}"
         down_location: "{{ accu_collector_target }}/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}/accuinsight"
         pull_location: "{{ accu_offline_source }}/accu-package-repository/files/accu-pkg-server/{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}"
 
@@ -96,7 +96,7 @@
         # Update repository metadata.
         apt update
 
-        # Download packages defined in 'accu.pkgs' and all of their dependancies recursively even if they were already installed.
+        # Download packages defined in 'debian.pkgs' and all of their dependancies recursively even if they were already installed.
         apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces {{ packages }} | grep "^\w" | sort -u | xargs apt download {{ packages }}
       args:
         executable: /bin/bash

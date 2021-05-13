@@ -4,6 +4,7 @@ aws_cluster_name = "tanggle-ubuntu"
 
 # Official Ubuntu Version
 # 18.04 or 20.04
+aws_os             = "ubuntu"
 aws_ubuntu_version = "20.04"
 
 # LB Host
@@ -24,11 +25,11 @@ aws_kube_master_num  = 3
 
 # Kubernetes Worker
 aws_kube_worker_type = "t3.large"
-aws_kube_worker_num  = 3
+aws_kube_worker_num  = 0
 
 # Kubernetes Multipurpose (HAPROXY, NFS, GPU)
 aws_kube_multi_type = "g3s.xlarge"
-aws_kube_multi_num  = 1
+aws_kube_multi_num  = 0
 
 default_tags = {
   #  Env = "devtest"

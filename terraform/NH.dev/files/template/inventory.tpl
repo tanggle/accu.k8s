@@ -18,12 +18,8 @@ ${list_multi}
 ${list_multi}
 
 [accu-server:children]
-accu-alb-server
 accu-pkg-server
 accu-nfs-server
-
-[accu-alb-server]
-${list_multi}
 
 [accu-pkg-server]
 ${list_multi}

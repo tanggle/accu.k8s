@@ -75,8 +75,16 @@
 
 
     - name: AccuInsight+ Package Repository | Generate createrepo metadata
-      command:
-        cmd: "createrepo_c {{ accu_package_repository_path }}/accuinsight"
+      shell: |
+        createrepo_c {{ accu_package_repository_path }}/accuinsight
+
+        # If umask of 'root' has a strict value (for example, '0026' or '0027' other than default '0022'),
+        # repository meta information has to be accessible permission for web frontend.
+        find {{ accu_package_repository_path }}/accuinsight -type d -exec chmod 755 {} \;
+        find {{ accu_package_repository_path }}/accuinsight -type f -exec chmod 644 {} \;
+      args:
+        executable: /bin/bash
+        warn: no
 
 
 - name: AccuInsight+ Package Repository | Configure Repository for Client

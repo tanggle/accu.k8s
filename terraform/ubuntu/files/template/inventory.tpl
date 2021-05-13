@@ -36,12 +36,8 @@ ${list_multi}
 %{ endif ~}
 
 [accu-server:children]
-accu-alb-server
 accu-pkg-server
 accu-nfs-server
-
-[accu-alb-server]
-${list_master}
 
 [accu-pkg-server]
 %{ if length(list_nfs) != 0 ~}
