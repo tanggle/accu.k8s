@@ -1,7 +1,7 @@
 ### 쿠버네티스 클러스터 요구사항
 
   - Ansible v2.9.6
-  - Terraform v0.12.29 (AWS 환경의 테스트에 필요)
+  - Terraform v0.15.3 (AWS 환경의 테스트에 필요)
 
 
 ### 쿠버네티스 클러스터 정보
@@ -22,7 +22,7 @@
 
   - cri-o
   - docker
-  - containerd (진행중)
+  - containerd
 
 
 * 지원 CSI (Kubernetes Container Storage Interface)
