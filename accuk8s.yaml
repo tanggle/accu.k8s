@@ -114,14 +114,6 @@
   when: accu_accelerator_enabled | bool
 
 
-# AccuInsight+ Registry Mirror
-#- import_playbook: plays/accu-registry-mirror.yaml
-#  when:
-#    - accu_offline_enabled | bool
-#    - accu_offline_image_mirror | bool
-#    - accu_registry_enabled | bool
-
-
 ################################################################################
 #                                                                              #
 # AccuInsight+ Solution Requirements                                           #
@@ -134,5 +126,18 @@
 
 - import_playbook: plays/accu-mariadb.yaml
   when: accu_mariadb_enabled | bool
+
+
+################################################################################
+#                                                                              #
+# AccuInsight+ Registry Mirroring                                              #
+#                                                                              #
+################################################################################
+
+- import_playbook: plays/accu-registry-mirror.yaml
+  when:
+    - accu_offline_enabled | bool
+    - accu_offline_image_mirror | bool
+    - accu_registry_enabled | bool
 
 

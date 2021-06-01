@@ -32,7 +32,7 @@ kube_internal_network_interface: bond3
 kube_external_network_interface: bond0
 
 # Master node accept normal workload if this value is false.
-kube_master_node_taint: false
+kube_master_node_taint: true
 
 ###############################
 # AccuInsight+ Kubernetes CNI #
@@ -94,9 +94,9 @@ accu_offline_target: /accuinsight/offline
 accu_offline_image_mirror: true
 
 # AccuInsight+ Systeme Materials
-accu_system_enabled: true
-accu_system_source: "{{ inventory_dir }}/../../data/system"
-accu_system_target: /accuinsight/system
+#accu_system_enabled: true
+#accu_system_source: "{{ inventory_dir }}/../../data/system"
+#accu_system_target: /accuinsight/system
 
 # AccuInsight+ Service Materials
 accu_service_source: "{{ inventory_dir }}/../../data/service"
@@ -105,9 +105,9 @@ accu_service_target: /accuinsight/service
 # AccuInsight+ Collector
 accu_collector_target: /accuinsight/collector
 accu_collector_gathering_packages: true
-accu_collector_gathering_charts: false
-accu_collector_gathering_files: false
-accu_collector_gathering_images: false
+accu_collector_gathering_charts: true
+accu_collector_gathering_files: true
+accu_collector_gathering_images: true
 accu_collector_cleanup: true
 
 # AccuInsight+ Menifess Location
@@ -137,7 +137,7 @@ accu_tools_enabled: true
 accu_tools_powerline_version: 1.21.0 # https://github.com/justjanne/powerline-go
 accu_tools_kubectx_version: 0.9.3    # https://github.com/ahmetb/kubectx
 accu_tools_kubens_version: 0.9.3     # https://github.com/ahmetb/kubectx
-accu_tools_k9scli_version: 0.24.7    # https://k9scli.io/
+accu_tools_k9scli_version: 0.24.10   # https://k9scli.io/
 accu_tools_kubestr_version: 0.4.16   # https://kubestr.io/
 
 
@@ -157,7 +157,7 @@ accu_load_balancer_namespace: "{{ accu_system_namespace }}"
 accu_load_balancer_stats: true
 accu_load_balancer_stats_port: 8888
 accu_load_balancer_stats_user: admin
-accu_load_balancer_stats_pass: AccuInsight+k8s@
+accu_load_balancer_stats_pass: AccuInsight+k8s
 accu_load_balancer_vip: xxx.xxx.xxx.xxx
 accu_load_balancer_fqdn: k8s.accuinsight.io
 accu_load_balancer_addr: "{% if accu_vip_manager_enabled | bool %}{{ accu_load_balancer_vip }}{% else %}{{ hostvars[groups['kube-master'][0]]['private_ip'] }}{% endif %}"
@@ -172,7 +172,7 @@ accu_metrics_server_enabled: true
 accu_metrics_server_release: accu-metrics-server
 accu_metrics_server_version: 2.11.4
 accu_metrics_server_namespace: "{{ accu_system_namespace }}"
-accu_metrics_server_replicas: 1
+accu_metrics_server_replicas: 2
 
 
 # AccuInsight+ Ingress Controller
@@ -202,7 +202,7 @@ accu_rook_ceph_namespace: rook-ceph
 accu_rook_ceph_hostnetwork: false
 accu_rook_ceph_node_taint: false
 accu_rook_ceph_admin_fqdn: ceph.accuinsight.io
-accu_rook_ceph_admin_pass: AccuInsight+k8s@
+accu_rook_ceph_admin_pass: AccuInsight+k8s
 #accu_rook_ceph_node_taint_key: "accuinsight.io/ceph"
 
 accu_rook_ceph_image_version: 15.2.9
@@ -213,20 +213,9 @@ accu_rook_ceph_monitor_count: 3 # Must be an odd number (1,3,5,...)
 accu_rook_ceph_storage_devices:
 
 # The following values work only with VMs created by terraform on AWS and 3 Ceph nodes.
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: ssd }
-#  - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: ssd }
-
-# for NH dev scenario
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdf, class: none }
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdg, class: none }
-#  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdh, class: none }
-
-# for NH prd scenario
-  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdf, class: hdd }
-  - { host: "{{ groups['accu-ceph'][0] }}", device: xvdg, class: hdd }
-  - { host: "{{ groups['accu-ceph'][1] }}", device: xvdf, class: hdd }
-  - { host: "{{ groups['accu-ceph'][1] }}", device: xvdg, class: hdd }
+  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: hdd }
+  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: hdd }
+  - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: hdd }
 
 # for example
 #  - { host: k8s-tanggle-redhat-w01, device: nvme1n1, class: ssd }
@@ -243,7 +232,7 @@ accu_rook_ceph_block_pool_name: accu-block
 accu_rook_ceph_block_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
 accu_rook_ceph_block_pool_meta_deviceclass: hdd
 accu_rook_ceph_block_pool_data_deviceclass: hdd
-accu_rook_ceph_block_pool_replication_size: 2
+accu_rook_ceph_block_pool_replication_size: 3
 accu_rook_ceph_block_storage_class_name: accu-ceph-block
 accu_rook_ceph_block_stroage_class_fstype: ext4
 
@@ -254,28 +243,28 @@ accu_rook_ceph_filesystem_pool_name: accu-cephfs
 accu_rook_ceph_filesystem_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
 accu_rook_ceph_filesystem_pool_meta_deviceclass: hdd
 accu_rook_ceph_filesystem_pool_data_deviceclass: hdd
-accu_rook_ceph_filesystem_pool_replication_size: 2
+accu_rook_ceph_filesystem_pool_replication_size: 3
 accu_rook_ceph_filesystem_storage_class_name: accu-ceph-cephfs
 accu_rook_ceph_filesystem_mount_on_masters: false
 
 # AccuInsight+ Ceph Object Storage (s3)
 accu_rook_ceph_object_storage_enabled: true
 accu_rook_ceph_object_storage_failuredomain: host # host / osd
-accu_rook_ceph_object_storage_instances: 2
+accu_rook_ceph_object_storage_instances: 3
 accu_rook_ceph_object_storage_fqdn: s3.accuinsight.io
 accu_rook_ceph_object_storage_port: 8080
 accu_rook_ceph_object_pool_name: accu-object
 accu_rook_ceph_object_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
 accu_rook_ceph_object_pool_meta_deviceclass: hdd
 accu_rook_ceph_object_pool_data_deviceclass: hdd
-accu_rook_ceph_object_pool_replication_size: 2
+accu_rook_ceph_object_pool_replication_size: 3
 
 # AccuInsight+ Ceph NFS Ganesha
 accu_rook_ceph_ganesha_enabled: false
 accu_rook_ceph_ganesha_failuredomain: host # host / osd
 accu_rook_ceph_ganesha_instances: 1
 accu_rook_ceph_ganesha_pool_name: accu-ganesha
-accu_rook_ceph_ganesha_pool_replication_size: 2
+accu_rook_ceph_ganesha_pool_replication_size: 3
 accu_rook_ceph_ganesha_pool_namespace: conf-ganesha
 accu_rook_ceph_ganesha_export_path: ganesha
 
@@ -299,7 +288,7 @@ accu_harbor_version: 1.6.1
 accu_harbor_namespace: accu-harbor
 accu_harbor_fqdn_core: harbor.accuinsight.io
 accu_harbor_fqdn_notary: notary.accuinsight.io
-accu_harbor_pass: AccuInsight+k8s@
+accu_harbor_pass: AccuInsight+k8s
 accu_harbor_registry_storage_class: accu-ceph-cephfs
 accu_harbor_registry_storage_size: 100Gi
 accu_harbor_registry_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
@@ -358,7 +347,7 @@ accu_monitoring_prometheus_fqdn: accupc.accuinsight.io
 accu_monitoring_prometheus_storage_class: accu-ceph-block
 accu_monitoring_prometheus_storage_size: 50Gi
 accu_monitoring_grafana_fqdn: accupm.accuinsight.io
-accu_monitoring_grafana_pass: AccuInsight+k8s@
+accu_monitoring_grafana_pass: AccuInsight+k8s
 accu_monitoring_grafana_storage_class: accu-ceph-block
 accu_monitoring_grafana_storage_size: 1Gi
 
@@ -378,7 +367,7 @@ accu_accelerator_kernel_version:
   # for AWS TEST
   - "{{ ansible_kernel }}"
   # for NH Bank
-  - "3.10.0-957.el7.x86_64"
+  - "3.10.0-1127.el7.x86_64"
 # NVIDIA K8S Device Plugin Version
 # refer to  https://github.com/NVIDIA/k8s-device-plugin/releases
 accu_accelerator_device_plugin_version: v0.9.0
@@ -406,9 +395,9 @@ accu_mariadb_enabled: true
 accu_mariadb_version: 7.10.4
 accu_mariadb_release: accu-mariadb
 accu_mariadb_namespace: "{{ accu_service_namespace }}"
-accu_mariadb_admin_pass: AccuInsight+k8s@
+accu_mariadb_admin_pass: AccuInsight+k8s
 accu_mariadb_default_user_name: accuinsight
-accu_mariadb_default_user_pass: AccuInsight+k8s@
+accu_mariadb_default_user_pass: AccuInsight+k8s
 accu_mariadb_default_user_database: accuinsight
 accu_mariadb_storage_class: accu-ceph-block
 accu_mariadb_storage_size: 50Gi
