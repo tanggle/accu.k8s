@@ -60,6 +60,7 @@ redhat:
       - 'createrepo_c'
       # for accu-rook-ceph
       - 'ceph-common'
+      - 'ceph-fuse'
       - 'lvm2'
       - 'gdisk'
       # for accu-tools

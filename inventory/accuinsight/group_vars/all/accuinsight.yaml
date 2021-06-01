@@ -28,6 +28,9 @@ kube_svc_cidr: 10.10.0.0/16
 # Currently. only support for iptables
 kube_proxy_mode: iptables
 
+kube_internal_network_interface: bond3
+kube_external_network_interface: bond0
+
 # Master node accept normal workload if this value is false.
 kube_master_node_taint: false
 
@@ -154,7 +157,7 @@ accu_load_balancer_namespace: "{{ accu_system_namespace }}"
 accu_load_balancer_stats: true
 accu_load_balancer_stats_port: 8888
 accu_load_balancer_stats_user: admin
-accu_load_balancer_stats_pass: admin
+accu_load_balancer_stats_pass: AccuInsight+k8s@
 accu_load_balancer_vip: xxx.xxx.xxx.xxx
 accu_load_balancer_fqdn: k8s.accuinsight.io
 accu_load_balancer_addr: "{% if accu_vip_manager_enabled | bool %}{{ accu_load_balancer_vip }}{% else %}{{ hostvars[groups['kube-master'][0]]['private_ip'] }}{% endif %}"
@@ -199,7 +202,7 @@ accu_rook_ceph_namespace: rook-ceph
 accu_rook_ceph_hostnetwork: false
 accu_rook_ceph_node_taint: false
 accu_rook_ceph_admin_fqdn: ceph.accuinsight.io
-accu_rook_ceph_admin_pass: admin
+accu_rook_ceph_admin_pass: AccuInsight+k8s@
 #accu_rook_ceph_node_taint_key: "accuinsight.io/ceph"
 
 accu_rook_ceph_image_version: 15.2.9
@@ -224,10 +227,6 @@ accu_rook_ceph_storage_devices:
   - { host: "{{ groups['accu-ceph'][0] }}", device: xvdg, class: hdd }
   - { host: "{{ groups['accu-ceph'][1] }}", device: xvdf, class: hdd }
   - { host: "{{ groups['accu-ceph'][1] }}", device: xvdg, class: hdd }
-#  - { host: "{{ groups['accu-ceph'][2] }}", device: xvdf, class: hdd }
-#  - { host: "{{ groups['accu-ceph'][2] }}", device: xvdg, class: hdd }
-#  - { host: "{{ groups['accu-ceph'][3] }}", device: xvdf, class: hdd }
-#  - { host: "{{ groups['accu-ceph'][3] }}", device: xvdg, class: hdd }
 
 # for example
 #  - { host: k8s-tanggle-redhat-w01, device: nvme1n1, class: ssd }
@@ -257,7 +256,7 @@ accu_rook_ceph_filesystem_pool_meta_deviceclass: hdd
 accu_rook_ceph_filesystem_pool_data_deviceclass: hdd
 accu_rook_ceph_filesystem_pool_replication_size: 2
 accu_rook_ceph_filesystem_storage_class_name: accu-ceph-cephfs
-accu_rook_ceph_filesystem_mount_on_masters: true
+accu_rook_ceph_filesystem_mount_on_masters: false
 
 # AccuInsight+ Ceph Object Storage (s3)
 accu_rook_ceph_object_storage_enabled: true
@@ -290,7 +289,7 @@ accu_nfs_provisioner_server: "{{ groups['accu-nfs-server'][0] }}"
 accu_nfs_provisioner_path: /nfs
 accu_nfs_provisioner_replicas: 2
 accu_nfs_provisioner_storageclass_name: accu-nfs-provisioner
-accu_nfs_provisioner_mount_on_masters: true
+accu_nfs_provisioner_mount_on_masters: false
 
 
 # AccuInsight+ Harbor
@@ -300,7 +299,7 @@ accu_harbor_version: 1.6.1
 accu_harbor_namespace: accu-harbor
 accu_harbor_fqdn_core: harbor.accuinsight.io
 accu_harbor_fqdn_notary: notary.accuinsight.io
-accu_harbor_pass: admin
+accu_harbor_pass: AccuInsight+k8s@
 accu_harbor_registry_storage_class: accu-ceph-cephfs
 accu_harbor_registry_storage_size: 100Gi
 accu_harbor_registry_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
@@ -336,7 +335,7 @@ accu_registry_pass: dpcore
 
 
 # AccuInsight+ Chartmuseum
-accu_chartmuseum_enabled: true
+accu_chartmuseum_enabled: false
 accu_chartmuseum_release: accu-chartmuseum
 accu_chartmuseum_version: 2.14.2
 accu_chartmuseum_namespace: "{{ accu_system_namespace }}"
@@ -359,7 +358,7 @@ accu_monitoring_prometheus_fqdn: accupc.accuinsight.io
 accu_monitoring_prometheus_storage_class: accu-ceph-block
 accu_monitoring_prometheus_storage_size: 50Gi
 accu_monitoring_grafana_fqdn: accupm.accuinsight.io
-accu_monitoring_grafana_pass: admin
+accu_monitoring_grafana_pass: AccuInsight+k8s@
 accu_monitoring_grafana_storage_class: accu-ceph-block
 accu_monitoring_grafana_storage_size: 1Gi
 
@@ -396,7 +395,7 @@ accu_accelerator_device_metric_version: 2.1.4-2.3.1-ubuntu18.04
 ################################################################################
 
 # AccuInsight+ Helm Operator
-accu_helm_operator_enabled: true
+accu_helm_operator_enabled: false
 accu_helm_operator_version: 1.2.0
 accu_helm_operator_release: accu-helm-operator
 accu_helm_operator_namespace: "{{ accu_service_namespace }}"
@@ -407,9 +406,9 @@ accu_mariadb_enabled: true
 accu_mariadb_version: 7.10.4
 accu_mariadb_release: accu-mariadb
 accu_mariadb_namespace: "{{ accu_service_namespace }}"
-accu_mariadb_admin_pass: admin
+accu_mariadb_admin_pass: AccuInsight+k8s@
 accu_mariadb_default_user_name: accuinsight
-accu_mariadb_default_user_pass: accuinsight
+accu_mariadb_default_user_pass: AccuInsight+k8s@
 accu_mariadb_default_user_database: accuinsight
 accu_mariadb_storage_class: accu-ceph-block
 accu_mariadb_storage_size: 50Gi

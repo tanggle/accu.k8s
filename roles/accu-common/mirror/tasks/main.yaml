@@ -42,9 +42,9 @@
         group: root
         mode: '0644'
       loop:
-        - 'accu-registry-mirror-d.yaml'
-        - 'accu-registry-mirror-g.yaml'
-        - 'accu-registry-mirror-q.yaml'
+        - 'accu-registry-mirror-d.yaml' # for *.docker.io
+        - 'accu-registry-mirror-g.yaml' # for *.gcr.io
+        - 'accu-registry-mirror-q.yaml' # for *.quay.io
     
     
     - name: AccuInsight+ Registry Mirror | Apply manifests for Registry Mirrors
@@ -56,9 +56,9 @@
         executable: /bin/bash
       run_once: true
       loop:
-        - 'accu-registry-mirror-d.yaml'
-        - 'accu-registry-mirror-g.yaml'
-        - 'accu-registry-mirror-q.yaml'
+        - 'accu-registry-mirror-d.yaml' # for *.docker.io
+        - 'accu-registry-mirror-g.yaml' # for *.gcr.io
+        - 'accu-registry-mirror-q.yaml' # for *.quay.io
       
 
     - name: AccuInsight+ Registry Mirror | Mirroring Images to '{{ accu_registry_fqdn }}'

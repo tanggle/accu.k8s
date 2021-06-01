@@ -7,7 +7,7 @@ metadata:
     app: accu-load-balancer
 spec:
   containers:
-  - image: haproxy:2.2.5
+  - image: haproxy:{{ accu_load_balancer_version }}
     name: haproxy
     livenessProbe:
       failureThreshold: 8

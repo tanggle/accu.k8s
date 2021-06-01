@@ -1,20 +1,12 @@
 
 provider "aws" {
-  region = local.region
+  # profile = "default"
+  # region = var.AWS_DEFAULT_REGION
+  # access_key = var.AWS_ACCESS_KEY_ID
+  # secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
-locals {
-  region = "ap-northeast-2"
-}
-
-#provider "aws" {
-# profile = "default"
-# region = var.AWS_DEFAULT_REGION
-# access_key = var.AWS_ACCESS_KEY_ID
-# secret_key = var.AWS_SECRET_ACCESS_KEY
-#}
-
-#data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {}
 
 resource "aws_key_pair" "accuinsight" {
   key_name   = "accuinsight-k8s-${var.aws_cluster_name}"
@@ -43,16 +35,14 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "k8s-lb" {
-  #  ami                         = data.aws_ami.ubuntu.id
+#  ami                         = data.aws_ami.ubuntu.id
   ami                         = "data.aws_ami.${var.aws_os}.id"
   instance_type               = var.aws_kube_lb_type
   count                       = var.aws_kube_lb_num
   associate_public_ip_address = true
-  #  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
-  availability_zone = module.vpc.azs[count.index]
-  #  security_groups   = ["k8s-${var.aws_cluster_name}-securitygroup"]
-  vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
-  key_name               = aws_key_pair.accuinsight.id
+  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
+  security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
+  key_name                    = aws_key_pair.accuinsight.id
   tags = merge(var.default_tags, tomap({
     Name = "k8s-${var.aws_cluster_name}-alb"
     Role = "LB"
@@ -98,11 +88,9 @@ resource "aws_instance" "k8s-nfs" {
   instance_type               = var.aws_kube_nfs_type
   count                       = var.aws_kube_nfs_num
   associate_public_ip_address = true
-  #  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
-  availability_zone = module.vpc.azs[count.index]
-  #  security_groups   = ["k8s-${var.aws_cluster_name}-securitygroup"]
-  vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
-  key_name               = aws_key_pair.accuinsight.id
+  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
+  security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
+  key_name                    = aws_key_pair.accuinsight.id
   tags = merge(var.default_tags, tomap({
     Name = "k8s-${var.aws_cluster_name}-nfs"
     Role = "NFS"
@@ -154,11 +142,9 @@ resource "aws_instance" "k8s-gpu" {
   instance_type               = var.aws_kube_gpu_type
   count                       = var.aws_kube_gpu_num
   associate_public_ip_address = true
-  #  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
-  availability_zone = module.vpc.azs[count.index]
-  #  security_groups   = ["k8s-${var.aws_cluster_name}-securitygroup"]
-  vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
-  key_name               = aws_key_pair.accuinsight.id
+  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
+  security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
+  key_name                    = aws_key_pair.accuinsight.id
   tags = merge(var.default_tags, tomap({
     Name = "k8s-${var.aws_cluster_name}-g0${count.index + 1}"
     Role = "GPU"
@@ -204,24 +190,6 @@ resource "aws_instance" "k8s-gpu" {
   }
 }
 
-resource "aws_network_interface" "public" {
-  count     = length("${module.vpc.public_subnets}")
-  subnet_id = module.vpc.public_subnets[count.index]
-
-  tags = {
-    Name = "public_network_interface"
-  }
-}
-
-resource "aws_network_interface" "private" {
-  count     = length("${module.vpc.private_subnets}")
-  subnet_id = module.vpc.private_subnets[count.index]
-
-  tags = {
-    Name = "private_network_interface"
-  }
-}
-
 #
 # Create K8s Master and worker nodes and etcd instances
 #
@@ -230,12 +198,9 @@ resource "aws_instance" "k8s-master" {
   instance_type               = var.aws_kube_master_type
   count                       = var.aws_kube_master_num
   associate_public_ip_address = true
-  #  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
-  availability_zone = module.vpc.azs[count.index]
-  subnet_id         = module.vpc.public_subnets[count.index]
-  #  security_groups   = ["k8s-${var.aws_cluster_name}-securitygroup"]
-  vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
-  key_name               = aws_key_pair.accuinsight.id
+  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
+  security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
+  key_name                    = aws_key_pair.accuinsight.id
   tags = merge(var.default_tags, tomap({
     Name = "k8s-${var.aws_cluster_name}-m0${count.index + 1}"
     Role = "MASTER"
@@ -248,17 +213,6 @@ resource "aws_instance" "k8s-master" {
     delete_on_termination = true
     volume_size           = 200
   }
-
-  #  network_interface {
-  #    network_interface_id = aws_network_interface.public[count.index]
-  #    device_index         = 0
-  #  }
-
-  #  network_interface {
-  #    network_interface_id = aws_network_interface.private[count.index]
-  #    device_index         = 1
-  #  }
-
 
   connection {
     type        = "ssh"
@@ -297,11 +251,9 @@ resource "aws_instance" "k8s-worker" {
   instance_type               = var.aws_kube_worker_type
   count                       = var.aws_kube_worker_num
   associate_public_ip_address = true
-  #  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
-  availability_zone = module.vpc.azs[count.index]
-  #  security_groups   = ["k8s-${var.aws_cluster_name}-securitygroup"]
-  vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
-  key_name               = aws_key_pair.accuinsight.id
+  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
+  security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
+  key_name                    = aws_key_pair.accuinsight.id
   tags = merge(var.default_tags, tomap({
     Name = "k8s-${var.aws_cluster_name}-w0${count.index + 1}"
     Role = "WORKER,CEPH"
@@ -361,11 +313,9 @@ resource "aws_instance" "k8s-multi" {
   instance_type               = var.aws_kube_multi_type
   count                       = var.aws_kube_multi_num
   associate_public_ip_address = true
-  #  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
-  availability_zone = module.vpc.azs[count.index]
-  #  security_groups   = ["k8s-${var.aws_cluster_name}-securitygroup"]
-  vpc_security_group_ids = ["${aws_security_group.kubernetes.id}"]
-  key_name               = aws_key_pair.accuinsight.id
+  availability_zone           = element(slice(data.aws_availability_zones.available.names, 0, 2), count.index)
+  security_groups             = ["k8s-${var.aws_cluster_name}-securitygroup"]
+  key_name                    = aws_key_pair.accuinsight.id
   tags = merge(var.default_tags, tomap({
     Name = "k8s-${var.aws_cluster_name}-x0${count.index + 1}"
     Role = "LB,NFS,GPU"

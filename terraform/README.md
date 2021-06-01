@@ -2,7 +2,7 @@
 
 * Terraform 요구사항
 
-  - Terraform v0.12.29
+  > Terraform v0.15.3 ([Download](https://www.terraform.io/downloads.html))
 
 
 * AWS 설정 (최초 한번만 실행)
@@ -53,18 +53,24 @@
   - Ubuntu 인스턴스 생성
 
     > cd ubuntu
+    >
+    > terraform init
 
   - CentOS 인스턴스 생성
 
     > cd centos
+    >
+    > terraform init
 
   - RHEL 인스턴스 생성
 
     > cd redhat
+    >
+    > terraform init
 
   > terraform apply
   >
-  > region 선택
+  > region 선택 (ap-northeast-2)
 
   - 인스턴스 생성 후 Inventory 파일
 

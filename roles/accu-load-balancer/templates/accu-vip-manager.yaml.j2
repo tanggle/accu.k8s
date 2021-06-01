@@ -7,7 +7,7 @@ metadata:
     app: accu-vip-manager
 spec:
   containers:
-  - image: osixia/keepalived:2.0.20
+  - image: osixia/keepalived:{{ accu_vip_manager_version }}
     name: keepalived
     resources: {}
     securityContext:

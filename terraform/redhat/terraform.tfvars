@@ -1,5 +1,5 @@
 ### PLEASE CHANGE THIS TO YOUR IDENTICAL STRING ###
-aws_cluster_name = "tanggle-ceph-test"
+aws_cluster_name = "tanggle-redhat"
 ###################################################
 
 # Official RHEL Version
@@ -20,15 +20,15 @@ aws_kube_gpu_num  = 0
 
 # Kubernetes Master
 aws_kube_master_type = "t3.medium"
-aws_kube_master_num  = 0
+aws_kube_master_num  = 3
 
 # Kubernetes Worker
 aws_kube_worker_type = "t3.large"
-aws_kube_worker_num  = 0
+aws_kube_worker_num  = 3
 
 # Kubernetes Multipurpose (HAPROXY, NFS, GPU)
 aws_kube_multi_type = "g3s.xlarge"
-aws_kube_multi_num  = 2
+aws_kube_multi_num  = 1
 
 default_tags = {
   #  Env = "devtest"
