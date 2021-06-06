@@ -34,6 +34,14 @@ kube_external_network_interface: bond0
 # Master node accept normal workload if this value is false.
 kube_master_node_taint: true
 
+# Kubernetes Data Directory
+# kube_data_dir_cri: (default: /var/lib/docker)
+kube_data_dir_cri: /data/cri
+# kube_data_dir_kubelet: (default: /var/lib/kubelet)
+kube_data_dir_kubelet: /data/k8s/kubelet
+# kube_data_dir_etcd: (default: /var/lib/etcd)
+kube_data_dir_etcd: /data/k8s/etcd
+
 ###############################
 # AccuInsight+ Kubernetes CNI #
 ###############################
@@ -366,7 +374,8 @@ accu_accelerator_driver_version: 418.197.02
 accu_accelerator_kernel_version:
   # for AWS TEST
   - "{{ ansible_kernel }}"
-  # for NH Bank
+  - "3.10.0-957.el7.x86_64"
+  # for RedHat 7.x family, kernel version must be 3.10.0-1127.el7.x86_64 at least for ceph.
   - "3.10.0-1127.el7.x86_64"
 # NVIDIA K8S Device Plugin Version
 # refer to  https://github.com/NVIDIA/k8s-device-plugin/releases

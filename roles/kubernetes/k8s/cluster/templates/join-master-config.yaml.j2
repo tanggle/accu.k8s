@@ -16,4 +16,6 @@ discovery:
   tlsBootstrapToken: accuxx.0123456789abcdef
 nodeRegistration:
   criSocket: {{ default_cri_socket[kube_cri] }}
+  kubeletExtraArgs:
+    root-dir: {{ kube_data_dir_kubelet }}
 

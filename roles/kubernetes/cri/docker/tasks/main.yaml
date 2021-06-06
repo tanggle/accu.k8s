@@ -52,6 +52,8 @@
     - { path: drop-in, file: accu-cgroup.conf }
     # Docker insecure registry
     - { path: drop-in, file: accu-registry.conf }
+    # Docker data directory
+    - { path: drop-in, file: accu-data-root.conf }
   notify:
     - CRI | Docker | Restart
     - CRI | Docker | Wait for Ready

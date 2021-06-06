@@ -36,5 +36,7 @@ dhp.web.ini
 .terraform/
 
 # AccuInsight+ Terraform generated files
-hosts.*
+hosts.redhat
+hosts.centos
+hosts.ubuntu
 

@@ -89,6 +89,7 @@
       - '--set discover.nodeAffinity="node-role.kubernetes.io/ceph=storage"'
       - '--set discover.toleration=NoSchedule'
       - '--set discover.tolerationKey=node-role.kubernetes.io/ceph'
+      - '--set csi.kubeletDirPath={{ kube_data_dir_kubelet }}'
       - '--set csi.provisionerNodeAffinity="node-role.kubernetes.io/ceph=storage"'
       - '--set csi.provisionerTolerations[0].effect=NoSchedule,csi.provisionerTolerations[0].key=node-role.kubernetes.io/ceph,csi.provisionerTolerations[0].operator=Equal,csi.provisionerTolerations[0].value=storage'
   run_once: true

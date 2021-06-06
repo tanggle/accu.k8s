@@ -15,6 +15,8 @@ bootstrapTokens:
   - authentication
 nodeRegistration:
   criSocket: {{ default_cri_socket[kube_cri] }}
+  kubeletExtraArgs:
+    root-dir: {{ kube_data_dir_kubelet }}
 certificateKey: c8f8e3749f3a399ad68d704685c657d8c1b916ea1ef0d262b807453e40471c7d
 
 ---
@@ -27,7 +29,7 @@ networking:
   serviceSubnet: {{ kube_svc_cidr }}
 etcd:
   local:
-    dataDir: /var/lib/etcd
+    dataDir: {{ kube_data_dir_etcd }}
     extraArgs:
       listen-metrics-urls: http://0.0.0.0:2381
 apiServer:
