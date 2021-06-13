@@ -70,7 +70,9 @@ spec:
         volumeMounts:
           - name: device-plugin
             mountPath: /var/lib/kubelet/device-plugins
+      # NOTE: kubelet device-plugins directory is not configurable
+      #       https://github.com/kubernetes/kubernetes/issues/68567
       volumes:
         - name: device-plugin
           hostPath:
-            path: {{ kube_data_dir_kubelet }}/device-plugins
+            path: /var/lib/kubelet/device-plugins

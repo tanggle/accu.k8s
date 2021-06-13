@@ -202,6 +202,8 @@
         mode: '0644'
       loop:
         # SOURCE: https://github.com/NVIDIA/k8s-device-plugin/blob/master/nvidia-device-plugin.yml
+        # NOTE: kubelet device-plugins directory is not configurable
+        #       https://github.com/kubernetes/kubernetes/issues/68567
         - 'accu-nvidia-device-plugin.yaml'
         # SOURCE: https://github.com/NVIDIA/gpu-monitoring-tools/blob/master/dcgm-exporter.yaml
         - 'accu-nvidia-device-metric.yaml'

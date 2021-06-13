@@ -28,8 +28,8 @@ kube_svc_cidr: 10.10.0.0/16
 # Currently. only support for iptables
 kube_proxy_mode: iptables
 
-kube_internal_network_interface: bond3
-kube_external_network_interface: bond0
+kube_internal_network_interface: eth0
+kube_external_network_interface: eth0
 
 # Master node accept normal workload if this value is false.
 kube_master_node_taint: true
