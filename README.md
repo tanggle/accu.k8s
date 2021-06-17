@@ -140,6 +140,24 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
   $ pip3 install --disable-pip-version-check *
   ```
 
+### 쿠버네티스 배포
+
+* 설정
+
+  * 노드 구성
+
+    - inventory/accuinsight/**hosts.`<OS>`**
+
+  * 상세 설정
+  
+    - inventory/accuinsight/groups_all/all/**accuinsight.yaml**
+
+* 배포
+
+  ```bash
+  $ ansible-playbook -i inventory/accuinsight/hosts.<OS> accuk8s.yaml --flush-cache
+  ```
+
 ### 쿠버네티스 테스트
 
 * /etc/hosts 파일에 아래의 FQDN을 추가후 테스트
