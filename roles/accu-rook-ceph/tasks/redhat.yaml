@@ -42,5 +42,5 @@
       - 'ceph-common'
       - 'lvm2'
     state: present
-    disable_excludes: Ceph
+    disable_excludes: AccuInsight-Ceph
 

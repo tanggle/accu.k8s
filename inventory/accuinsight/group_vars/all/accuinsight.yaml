@@ -1,4 +1,5 @@
 ---
+
 ################################################################################
 #                                                                              #
 # AccuInsight+ Kubernetes Platform                                             #
@@ -35,12 +36,9 @@ kube_external_network_interface: eth0
 kube_master_node_taint: true
 
 # Kubernetes Data Directory
-# kube_data_dir_cri: (default: /var/lib/docker)
-kube_data_dir_cri: /data/cri
-# kube_data_dir_kubelet: (default: /var/lib/kubelet)
-kube_data_dir_kubelet: /data/k8s/kubelet
-# kube_data_dir_etcd: (default: /var/lib/etcd)
-kube_data_dir_etcd: /data/k8s/etcd
+kube_data_dir_cri: /data/cri             # default: /var/lib/docker
+kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
+kube_data_dir_etcd: /data/k8s/etcd       # default: /var/lib/etcd
 
 ###############################
 # AccuInsight+ Kubernetes CNI #
@@ -96,19 +94,16 @@ kube_default_domain: accuinsight.io
 # AccuInsight+ Offline Materials
 accu_offline_enabled: true
 accu_offline_source: "{{ inventory_dir }}/../../data/offline"
-accu_offline_target: /accuinsight/offline
+accu_offline_target: /data/accuinsight/k8s
 
 # AccuInsight+ Offline Registry Mirror
+# If accu_offline_image_mirror set to true, some registries (docker.io / gcr.io / quay.io) will be transparently emulated to internal registry.
+# accu-registry will be used. (accu-harbor has some problems with unqualified image)
 accu_offline_image_mirror: true
-
-# AccuInsight+ Systeme Materials
-#accu_system_enabled: true
-#accu_system_source: "{{ inventory_dir }}/../../data/system"
-#accu_system_target: /accuinsight/system
 
 # AccuInsight+ Service Materials
 accu_service_source: "{{ inventory_dir }}/../../data/service"
-accu_service_target: /accuinsight/service
+accu_service_target: /data/accuinsight/service
 
 # AccuInsight+ Collector
 accu_collector_target: /accuinsight/collector
@@ -374,7 +369,6 @@ accu_accelerator_driver_version: 418.197.02
 accu_accelerator_kernel_version:
   # for AWS TEST
   - "{{ ansible_kernel }}"
-  - "3.10.0-957.el7.x86_64"
   # for RedHat 7.x family, kernel version must be 3.10.0-1127.el7.x86_64 at least for ceph.
   - "3.10.0-1127.el7.x86_64"
 # NVIDIA K8S Device Plugin Version

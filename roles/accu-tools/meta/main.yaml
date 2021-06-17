@@ -3,5 +3,6 @@
 dependencies:
 
   - { role: accu-common/default, component: accu-tools }
-  - { role: accu-common/offline }
+  - { role: accu-common/online, when: not accu_offline_enabled | bool }
+  - { role: accu-common/offline, when: accu_offline_enabled | bool }
 

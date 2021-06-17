@@ -1,0 +1,30 @@
+---
+
+- name: AccuInsight+ Online | Prepare online directory
+  when:
+    - component == item.0.component
+    - inventory_hostname in groups[item.1.dest]
+  become: yes
+  file:
+    path: "{{ accu_offline_target }}/{{ item.0.component }}/files"
+    state: directory
+    recurse: yes
+    mode: '0755'
+  loop: "{{ files | subelements('list') }}"
+  loop_control:
+    label: "{{ accu_offline_target }}/{{ item.0.component }}/files"
+
+
+- name: AccuInsight+ Online | Prepare online materials
+  when:
+    - component == item.0.component
+    - inventory_hostname in groups[item.1.dest]
+  become: yes
+  get_url:
+    url: "{{ item.1.url }}"
+    dest: "{{ accu_offline_target }}/{{ item.0.component }}/files"
+  loop: "{{ files | subelements('list') }}"
+  loop_control:
+    label: "{{ item.1.url }}"
+
+

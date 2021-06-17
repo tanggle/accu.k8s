@@ -1,6 +1,6 @@
 ---
 
-- name: AccuInsight+ GPU Accelerator | Configure Accelerator Nodes
+- name: AccuInsight+ K8S Tools | Configure K8S Tools
   when:
     - inventory_hostname in groups['kube-master']
   become: yes 
