@@ -32,11 +32,15 @@
 
 - name: AccuInsight+ Storage Ceph | Override taint for ceph nodes
   when:
-    - accu_rook_ceph_node_taint | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
+    if [ "{{ accu_rook_ceph_node_taint }}" == "True" ]
+    then
       kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule --overwrite
+    else
+      kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule- || /bin/true
+    fi
   run_once: true
   loop: "{{ groups['accu-ceph'] }}"
 

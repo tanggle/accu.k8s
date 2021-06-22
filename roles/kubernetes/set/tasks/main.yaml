@@ -33,30 +33,41 @@
 
 
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#control-plane-node-isolation
-- name: AccuInsight+ Kubernetes | Set taint for worker nodes
+- name: AccuInsight+ Kubernetes | Set taint for master nodes
   become: yes
   shell: |
-      kubectl taint node {{ item }} node-role.kubernetes.io/master- || /bin/true
+    if [ "{{ kube_master_node_taint }}" == "True" ]
+    then
+      kubectl taint node {{ item }} node-role.kubernetes.io/master=:NoSchedule --overwrite
+    else
+      kubectl taint node {{ item }} node-role.kubernetes.io/master=:NoSchedule- || /bin/true
+    fi
   run_once: true
-  loop: "{{ groups['kube-worker'] }}"
+  loop: "{{ groups['kube-master'] }}"
 
 
 - name: AccuInsight+ Kubernetes | Set taint for ceph nodes
-  when:
-    - accu_rook_ceph_node_taint | bool
   become: yes
   shell: |
+    if [ "{{ accu_rook_ceph_node_taint }}" == "True" ]
+    then
       kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule --overwrite
+    else
+      kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule- || /bin/true
+    fi
   run_once: true
   loop: "{{ groups['accu-ceph'] }}"
 
 
 - name: AccuInsight+ Kubernetes | Set taint for accelerator nodes
-  when:
-    - accu_accelerator_node_taint | bool
   become: yes
   shell: |
+    if [ "{{ accu_accelerator_node_taint }}" == "True" ]
+    then
       kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule --overwrite
+    else
+      kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule- || /bin/true
+    fi
   run_once: true
   loop: "{{ groups['accu-nvidia'] }}"
 
