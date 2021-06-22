@@ -1,6 +1,6 @@
 ---
 
-- name: AccuInsight+ Registry Mirror | Push Offline Images Mirroring
+- name: AccuInsight+ Registry Mirror | Mirroring offline images
   when:
     - accu_offline_enabled | bool
     - accu_offline_image_mirror | bool
@@ -61,8 +61,10 @@
         - 'accu-registry-mirror-q.yaml' # for *.quay.io
       
 
-    - name: AccuInsight+ Registry Mirror | Mirroring Images to '{{ accu_registry_fqdn }}'
+    # TODO: need implementation for containerd & cri-o
+    - name: AccuInsight+ Registry Mirror | Mirroring offline images to '{{ accu_registry_fqdn }}'
       when:
+        - groups[item] | length > 0
         - inventory_hostname in groups[item][0]
       shell: |
         shopt -s nullglob
