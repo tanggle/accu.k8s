@@ -23,8 +23,8 @@
       synchronize:
         src: "{{ accu_offline_target }}/{{ component }}/files/{{ accu.os.distro }}-{{ accu.os.version }}/"
         dest: "{{ accu_package_repository_path }}/pool/ubuntu/"
-        checksum: yes 
-        delete: yes 
+        checksum: yes
+        delete: yes
       delegate_to: "{{ inventory_hostname }}"
 
 

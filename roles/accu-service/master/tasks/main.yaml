@@ -12,7 +12,7 @@
 
 
 - name: AccuInsight+ Service | Create directories for AccuInsight+ service
-  become: yes 
+  become: yes
   file:
     path: "{{ accu_service_target }}/{{ item.path }}"
     state: directory
@@ -25,12 +25,12 @@
 
 
 - name: AccuInsight+ Service | Synchronize AccuInsight+ service (images & charts)
-  become: yes 
+  become: yes
   synchronize:
     src: "{{ accu_service_source }}/{{ item.path }}/"
     dest: "{{ accu_service_target }}/{{ item.path }}/"
-    checksum: yes 
-    delete: yes 
+    checksum: yes
+    delete: yes
   with_items:
     - { path: 'charts' }
     - { path: 'images' }
@@ -38,7 +38,7 @@
 
 
 - name: AccuInsight+ Service | Import AccuInsight+ service charts
-  become: yes 
+  become: yes
   shell: |
       shopt -s nullglob
       for CHART in {{ accu_service_target }}/charts/*.tgz
@@ -52,7 +52,7 @@
 
 
 - name: AccuInsight+ Service | Import AccuInsight+ service images (load)
-  become: yes 
+  become: yes
   shell: |
       shopt -s nullglob
       for IMAGE in {{ accu_service_target }}/images/*.tar.gz
@@ -64,7 +64,7 @@
   run_once: yes
 
 #- name: AccuInsight+ Service | Import AccuInsight+ service images (tag)
-#  become: yes 
+#  become: yes
 #  shell: |
 #      do something to tag (need some considereations for offline environment)
 #  args:
@@ -73,7 +73,7 @@
 # TODO: have to use 'crictl images' instead of 'docker images'
 
 - name: AccuInsight+ Service | Import AccuInsight+ service images (push)
-  become: yes 
+  become: yes
   shell: |
       IMAGES=$(docker images \
              | grep "{{ accu_registry_fqdn }}" \

@@ -3,7 +3,7 @@
 - name: AccuInsight+ Collector | Collect Images for Offline Installation
   when:
     - inventory_hostname == groups['accu-pkg-server'][0]
-  become: yes 
+  become: yes
   block:
 
 #    - name: AccuInsight+ Collector | Load List of Images

@@ -7,7 +7,7 @@
 
 # READ: https://docs.projectcalico.org/maintenance/troubleshoot/troubleshooting#configure-networkmanager
 - name: AccuInsight+ Kubernetes | CNI | Check if NetworkManager is running
-  become: yes 
+  become: yes
   command: "pidof NetworkManager"
   register: nm_status
   changed_when: false
@@ -35,7 +35,7 @@
 
 
 - name: AccuInsight+ Kubernetes | CNI | Create menifests directory for Calico
-  become: yes 
+  become: yes
   file:
     path: "{{ accu_manifests_location}}/{{ component }}"
     state: directory
@@ -46,7 +46,7 @@
 
 
 - name: AccuInsight+ Kubernetes | CNI | Create manifests for Calico
-  become: yes 
+  become: yes
   template:
     src: calico.yaml.j2
     dest: "{{ accu_manifests_location }}/{{ component }}/calico.yaml"
@@ -57,7 +57,7 @@
 
 - name: AccuInsight+ Kubernetes | CNI | Initialize Calico
   when: inventory_hostname == groups['kube-master'][0]
-  become: yes 
+  become: yes
   shell: |
     kubectl apply -f {{ accu_manifests_location }}/{{ component }}/calico.yaml
   args:
@@ -71,7 +71,7 @@
 
 - name: AccuInsight+ Kubernetes | CNI | Wait for Calico to complete
   when: inventory_hostname == groups['kube-master'][0]
-  become: yes 
+  become: yes
   shell: |
     kubectl -n kube-system get pods | grep calico-node
   args:
@@ -85,7 +85,7 @@
 # Rarely, coredns get hung after deploying calico.
 - name: AccuInsight+ Kubernetes | CNI | Restart CoreDNS
   when: inventory_hostname == groups['kube-master'][0]
-  become: yes 
+  become: yes
   shell: |
     kubectl -n kube-system delete pods -l k8s-app=kube-dns
   args:

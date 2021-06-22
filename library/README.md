@@ -43,27 +43,27 @@
 ## Examples
 ```yaml
 - name: AccuInsight+ Ingress - Deploy
-  become: yes 
+  become: yes
   helm_cmd:
     name: stable/nginx-ingress
     release: accu-ingress
     version: 1.41.3
     namespace: accu-system
     state: present
-    update_cache: yes 
+    update_cache: yes
     wait: true
     options:
       - '--set first.params=original' 
     
 - name: AccuInsight+ Ingress - Update with new optoins
-  become: yes 
+  become: yes
   helm_cmd:
     name: stable/nginx-ingress
     release: accu-ingress
     version: 1.41.3
     namespace: accu-system
     state: present
-    update_cache: yes 
+    update_cache: yes
     force: true
     wait: true
     options:
@@ -71,7 +71,7 @@
 
 
 - name: AccuInsight+ Ingress - Install from chart file
-  become: yes 
+  become: yes
   helm_cmd:
     name: /home/accuinsight/nginx-ingress-1.41.3.tgz
     release: accu-ingress

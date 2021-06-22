@@ -36,7 +36,7 @@
     - not accu_package_repository_enabled | bool
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version | int == 8
-  become: yes 
+  become: yes
   ini_file:
     path: /etc/yum.repos.d/AccuInsight-Docker.repo
     state: present

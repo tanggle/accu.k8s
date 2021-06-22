@@ -3,7 +3,7 @@
 - name: AccuInsight+ GPU Accelerator | Configure Accelerator Nodes
   when:
     - inventory_hostname in groups['accu-nvidia']
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ GPU Accelerator | Set NVIDIA Driver ({{ accu_accelerator_nvidia_type }}, {{ accu_accelerator_driver_version }})
@@ -53,7 +53,7 @@
 
 
 #   - name: AccuInsight+ GPU Accelerator | Reboot accelerator nodes before installing driver
-#     become: yes 
+#     become: yes
 #     when: kernel_update_status is changed
 #     reboot:
 #       reboot_timeout: 300
@@ -164,7 +164,7 @@
 - name: AccuInsight+ GPU Accelerator | Configure Kubernetes for Accelerator
   when:
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ GPU Accelerator | Override label for accelerator nodes

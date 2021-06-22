@@ -74,7 +74,7 @@
   when:
     - accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   helm_repository:
     name: stable
     url: "http://{{ accu_chartmuseum_fqdn }}"

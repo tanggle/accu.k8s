@@ -17,8 +17,8 @@
         state: present
         baseurl: "{{ item.url }}"
         gpgkey: "{{ item.key }}"
-        enabled: yes 
-        gpgcheck: yes 
+        enabled: yes
+        gpgcheck: yes
       loop: "{{ redhat.repos }}"
       loop_control:
         label: "{{ item.name }}"
@@ -60,8 +60,8 @@
         state: present
         metalink: "https://mirrors.fedoraproject.org/metalink?repo=epel-{{ ansible_distribution_major_version }}&arch=$basearch&infra=$infra&content=$contentdir"
         gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
-        enabled: yes 
-        gpgcheck: yes 
+        enabled: yes
+        gpgcheck: yes
 
     - name: AccuInsight+ Collector | Add Package Repository 'NVIDIA'
       shell: |
@@ -136,7 +136,7 @@
         mode: pull
         src: "{{ down_location }}"
         dest: "{{ pull_location }}"
-        checksum: yes 
+        checksum: yes
         delete: yes
 
 

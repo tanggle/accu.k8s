@@ -3,7 +3,7 @@
 - name: AccuInsight+ K8S Tools | Configure K8S Tools
   when:
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ K8S Tools | Install bash-completion package
@@ -19,7 +19,7 @@
         dest: /usr/local/bin
         owner: root
         group: root
-        remote_src: yes 
+        remote_src: yes
         exclude:
           - 'LICENSE'
       loop:
@@ -83,7 +83,7 @@
         dest: /usr/local/bin
         owner: root
         group: root
-        remote_src: yes 
+        remote_src: yes
         exclude:
           - 'LICENSE'
           - 'README.md'
@@ -95,7 +95,7 @@
         dest: /usr/local/bin
         owner: root
         group: root
-        remote_src: yes 
+        remote_src: yes
         exclude:
           - 'LICENSE'
           - 'README.md'

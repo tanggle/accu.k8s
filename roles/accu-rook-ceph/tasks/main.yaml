@@ -670,7 +670,7 @@
       delay: 10
 
     - name: AccuInsight+ Storage Ceph | Enable Ceph NFS Ganesha on Ceph Dashboard
-      become: yes 
+      become: yes
       shell: |
         kubectl -n {{ accu_rook_ceph_namespace }} exec -it $(kubectl -n {{ accu_rook_ceph_namespace }} get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- \ 
           ceph dashboard set-ganesha-clusters-rados-pool-namespace {{ accu_rook_ceph_ganesha_pool_name }}/{{ accu_rook_ceph_ganesha_pool_namespace }}

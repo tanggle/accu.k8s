@@ -118,7 +118,7 @@
         mode: pull
         src: "{{ down_location }}"
         dest: "{{ pull_location }}"
-        checksum: yes 
+        checksum: yes
         delete: yes
 
 

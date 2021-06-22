@@ -7,7 +7,7 @@
 - name: AccuInsight+ GPU Accelerator | Configure Load Balancer Nodes
   when:
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ Load Balancer | Create directories for {{ component }}

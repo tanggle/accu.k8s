@@ -1,7 +1,7 @@
 ---
 
 - name: Kubelet | Restart
-  become: yes 
+  become: yes
   systemd:
     name: kubelet
     state: restarted

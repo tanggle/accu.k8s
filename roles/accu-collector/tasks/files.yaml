@@ -3,7 +3,7 @@
 - name: AccuInsight+ Collector | Collect Files for Offline Installation
   when:
     - inventory_hostname == groups['accu-pkg-server'][0]
-  become: yes 
+  become: yes
   block:
 
 #    - name: AccuInsight+ Collector | Load List of Files
@@ -35,8 +35,8 @@
         mode: pull
         src: "{{ accu_collector_target }}/{{ item.component }}/files"
         dest: "{{ accu_offline_source }}/{{ item.component }}"
-        checksum: yes 
-        delete: yes 
+        checksum: yes
+        delete: yes
       loop: "{{ files }}"
       loop_control:
         label: "{{ item.component }}"

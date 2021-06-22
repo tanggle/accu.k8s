@@ -3,7 +3,7 @@
 - name: AccuInsight+ Collector | Clean up Collector
   when:
     - inventory_hostname == groups['accu-pkg-server'][0]
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ Collector | Clean up Collector
@@ -30,7 +30,7 @@
          - pigz
         state: absent
         update_cache: yes
-        autoremove: yes 
+        autoremove: yes
 
 
     - name: AccuInsight+ Collector | Remove Container Management Tool
@@ -42,7 +42,7 @@
           - pigz
         state: absent
         update_cache: yes
-        autoremove: yes 
+        autoremove: yes
         autoclean: yes
 
 

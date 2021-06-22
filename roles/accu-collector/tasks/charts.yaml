@@ -3,7 +3,7 @@
 - name: AccuInsight+ Collector | Collect Charts for Offline Installation
   when:
     - inventory_hostname == groups['accu-pkg-server'][0]
-  become: yes 
+  become: yes
   block:
 
 #    - name: AccuInsight+ Collector | Load List of Charts
@@ -20,7 +20,7 @@
       unarchive:
         src: "/tmp/helm-v{{ accu_helm_version }}-linux-amd64.tar.gz"
         dest: /usr/bin
-        remote_src: yes 
+        remote_src: yes
         exclude:
           - 'LICENSE'
           - 'README.md'
@@ -51,8 +51,8 @@
         mode: pull
         src: "{{ accu_collector_target }}/{{ item.component }}/charts"
         dest: "{{ accu_offline_source }}/{{ item.component }}"
-        checksum: yes 
-        delete: yes 
+        checksum: yes
+        delete: yes
       loop: "{{ charts }}"
       loop_control:
         label: "{{ item.component }}"

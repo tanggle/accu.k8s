@@ -43,7 +43,7 @@
     - not accu_package_repository_enabled | bool
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version | int == 8
-  become: yes 
+  become: yes
   ini_file:
     path: "/etc/yum.repos.d/{{ item }}.repo"
     state: present
@@ -63,7 +63,7 @@
     - not accu_package_repository_enabled | bool
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 7
-  become: yes 
+  become: yes
   yum:
     list: container-selinux
   register: repo_status
@@ -76,7 +76,7 @@
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int == 7
     - repo_status.results | length == 0
-  become: yes 
+  become: yes
   yum_repository:
     description: CentOS Extras
     name: AccuInsight-CentOS-Extras

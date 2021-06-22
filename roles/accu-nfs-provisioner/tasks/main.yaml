@@ -62,7 +62,7 @@
   when:
     - accu_nfs_provisioner_mount_on_masters | bool
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ NFS Provisioner | Create mount directory for NFS Filesystem

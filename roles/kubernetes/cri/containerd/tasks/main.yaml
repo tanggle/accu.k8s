@@ -2,7 +2,7 @@
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
 - name: AccuInsight+ Kubernetes | Set Kernel modules for Containerd (1/2)
-  become: yes 
+  become: yes
   modprobe:
     name: "{{ item }}"
     state: present
@@ -13,7 +13,7 @@
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
 - name: AccuInsight+ Kubernetes | Set Kernel modules for Containerd (2/2)
-  become: yes 
+  become: yes
   lineinfile:
     path: /etc/modules-load.d/containerd.conf
     line: "{{ item }}"
@@ -21,7 +21,7 @@
     owner: root
     group: root
     mode: '0644'
-    create: yes 
+    create: yes
   loop:
     - 'overlay'
     - 'br_netfilter'
@@ -29,13 +29,13 @@
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
 - name: AccuInsight+ Kubernetes | Set Kernel parameters for Containerd
-  become: yes 
+  become: yes
   sysctl:
     name: "{{ item.key }}"
     value: '{{ item.value }}'
     state: present
     sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
-    reload: yes 
+    reload: yes
   loop:
     - { key: 'net.ipv4.ip_forward', value: '1' }
     - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
@@ -53,7 +53,7 @@
 
 
 - name: AccuInsight+ Kubernetes | Generate default configuration for Containerd
-  become: yes 
+  become: yes
   shell: |
       containerd config default > /etc/containerd/config.toml
   args:

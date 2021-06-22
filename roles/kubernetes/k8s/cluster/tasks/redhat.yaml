@@ -5,15 +5,15 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   yum_repository:
     description: Official Kubernetes
     name: AccuInsight-Kubernetes
     state: present
     baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
     gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-    enabled: yes 
-    gpgcheck: yes 
+    enabled: yes
+    gpgcheck: yes
     #repo_gpgcheck: yes
     exclude: kubelet kubeadm kubectl
 
@@ -24,7 +24,7 @@
     - not accu_package_repository_enabled | bool
     - ansible_os_family == "RedHat"
     - ansible_distribution_major_version | int == 8
-  become: yes 
+  become: yes
   ini_file:
     path: /etc/yum.repos.d/AccuInsight-Kubernetes.repo
     state: present
@@ -35,7 +35,7 @@
 
 # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
 - name: AccuInsight+ Kubernetes | Install Kubernetes '{{ kube_version }}'
-  become: yes 
+  become: yes
   yum:
     name:
       - 'kubelet-{{ kube_version }}'

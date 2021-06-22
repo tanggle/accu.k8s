@@ -91,7 +91,7 @@
       copy:
         src: /etc/kubernetes/admin.conf
         dest: "{{ ansible_env.HOME | default('/root') }}/.kube/config"
-        remote_src: yes 
+        remote_src: yes
         mode: '0600'
     
     

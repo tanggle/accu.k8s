@@ -1,7 +1,7 @@
 ---
 
 - name: AccuInsight+ Collector | Prepare Ansible
-  become: yes 
+  become: yes
   file:
     path: /root/.ansible/tmp
     mode: '0700'

@@ -13,7 +13,7 @@
   when:
     - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   helm_repository:
     name: bitnami
     url: https://charts.bitnami.com/bitnami

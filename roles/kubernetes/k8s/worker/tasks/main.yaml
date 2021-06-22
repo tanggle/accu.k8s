@@ -3,7 +3,7 @@
 - name: AccuInsight+ Kubernetes | Worker
   when:
     - inventory_hostname in groups['kube-worker']
-  become: yes 
+  become: yes
   block:
 
     # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/kubelet-integration/

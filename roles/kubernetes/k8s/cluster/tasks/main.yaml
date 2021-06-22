@@ -17,7 +17,7 @@
 
 
 - name: AccuInsight+ Kubernetes | Set default configuration for Kubernetes (crictl)
-  become: yes 
+  become: yes
   template:
     src: crictl.yaml.j2
     dest: /etc/crictl.yaml
@@ -27,7 +27,7 @@
 
 
 - name: AccuInsight+ Kubernetes | Set command completion for Kubernetes (crictl)
-  become: yes 
+  become: yes
   shell: |
     crictl completion bash > /etc/bash_completion.d/crictl
   args:

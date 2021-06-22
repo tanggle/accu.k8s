@@ -33,7 +33,7 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   apt_key:
     url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/Release.key"
     state: present
@@ -43,7 +43,7 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   apt_repository:
     repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ crio_os }}/ /"
     filename: "AccuInsight-CRI-O-{{ crio_version }}"
@@ -56,7 +56,7 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-CRI-O
     owner: root

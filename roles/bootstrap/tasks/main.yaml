@@ -8,7 +8,7 @@
 
 
 - name: AccuInsight+ OS Default Settings | Create ansible temporary directory
-  become: yes 
+  become: yes
   file:
     path: "{{ ansible_env.HOME | default('/root') }}/.ansible/tmp"
     mode: '0700'
@@ -24,11 +24,11 @@
 
 
 - name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
-  become: yes 
+  become: yes
   synchronize:
     src: "{{ inventory_dir }}/../../accuinsight.pem"
     dest: "{{ ansible_env.HOME | default('/root') }}/.ssh/id_rsa"
-    checksum: yes 
+    checksum: yes
     delete: yes
 
 
@@ -114,7 +114,7 @@
 
 #- name: AccuInsight+ OS Default Settings | Check OpenSSL CA Status
 #  when: inventory_hostname == groups['kube-master'][0]
-#  become: yes 
+#  become: yes
 #  stat:
 #    path: "{{ accu_certificates_location }}/ca.key"
 #  register: ca_status
@@ -135,7 +135,7 @@
 # DOCS: docs/accu-certificate.md
 - name: AccuInsight+ OS Default Settings | Generate OpenSSL CA KEY 
   when: inventory_hostname == groups['kube-master'][0]
-  become: yes 
+  become: yes
   shell: |
     openssl genrsa -out {{ accu_certificates_location }}/ca.key {{ accu_certificates_bits }}
   args:
@@ -145,7 +145,7 @@
 # DOCS: docs/accu-certificate.md
 - name: AccuInsight+ OS Default Settings | Generate OpenSSL CA CRT 
   when: inventory_hostname == groups['kube-master'][0]
-  become: yes 
+  become: yes
   shell: |
     openssl req -x509 -new -nodes -days {{ accu_certificates_expiration }} \
                 -subj "/C=KR/O=SK holdings C&C/CN=AccuInsight+ Kubernetes" \

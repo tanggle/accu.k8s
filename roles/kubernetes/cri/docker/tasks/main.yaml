@@ -10,7 +10,7 @@
 
 # READ: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
 - name: AccuInsight+ Kubernetes | Create configuration directories for Docker
-  become: yes 
+  become: yes
   file:
     path: "{{ item.path }}"
     owner: root

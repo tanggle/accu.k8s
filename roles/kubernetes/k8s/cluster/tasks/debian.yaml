@@ -29,7 +29,7 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-Kubernetes
     owner: root
@@ -58,7 +58,7 @@
 
 # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
 - name: AccuInsight+ Kubernetes | Mark packages as held back for Kubernetes
-  become: yes 
+  become: yes
   command: apt-mark hold kubeadm kubectl kubelet
 
 

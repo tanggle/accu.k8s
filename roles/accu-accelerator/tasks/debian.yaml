@@ -1,7 +1,7 @@
 ---
 
 #- name: AccuInsight+ GPU Accelerator | Upgrade Kernel to the latest version
-#  become: yes 
+#  become: yes
 #  apt:
 #    name: linux-aws # THIS SHOULD BE CHANGED FOR REAL MACHINE (linux-generic, linux-virtual or linux-aws)
 #    state: latest
@@ -17,7 +17,7 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   shell: |
       # for more details, refer to https://nvidia.github.io/nvidia-docker/
       curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add -

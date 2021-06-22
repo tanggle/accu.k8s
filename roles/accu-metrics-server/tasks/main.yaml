@@ -17,7 +17,7 @@
 - name: AccuInsight+ Metrics Server | Deploy {{ accu_metrics_server_release }}
   when:
     - inventory_hostname in groups['kube-master']
-  become: yes 
+  become: yes
   helm_cmd:
     name: "{{ chartname }}"
     release: "{{ accu_metrics_server_release }}"

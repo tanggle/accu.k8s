@@ -40,7 +40,7 @@
   when:
     - not accu_offline_enabled | bool
     - not accu_package_repository_enabled | bool
-  become: yes 
+  become: yes
   copy:
     dest: /etc/apt/preferences.d/AccuInsight-Containerd
     owner: root

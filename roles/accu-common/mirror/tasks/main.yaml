@@ -5,7 +5,7 @@
     - accu_offline_enabled | bool
     - accu_offline_image_mirror | bool
     - accu_registry_enabled | bool
-  become: yes 
+  become: yes
   block:
 
     - name: AccuInsight+ Registry Mirror | Add FQDN for Mirrors to /etc/hosts file
