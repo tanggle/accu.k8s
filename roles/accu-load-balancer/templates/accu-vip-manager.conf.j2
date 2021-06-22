@@ -17,7 +17,7 @@ vrrp_instance VI_1 {
         auth_pass accu-k8s
     }
     virtual_ipaddress {
-        {{ accu_load_balancer_vip }}/24 label {{ accu_vip_manager_nic }}:vip
+        {{ accu_load_balancer_vip }} label {{ accu_vip_manager_nic }}:vip
     }
     track_script {
         check_k8s_apiserver

@@ -1,6 +1,6 @@
 ---
 # Calico Container Network Interface v3.17.1
-#  - curl https://docs.projectcalico.org/manifests/calico.yaml -O
+#  - curl https://docs.projectcalico.org/v3.17/manifests/calico.yaml -O
 #  - https://docs.projectcalico.org/getting-started/kubernetes/self-managed-onprem/onpremises
 #  - https://docs.projectcalico.org/getting-started/clis/calicoctl/install
 
@@ -14,7 +14,6 @@
   failed_when: false
 
 
-# TODO: Need to check if delegate_to is required.
 # READ: https://docs.projectcalico.org/maintenance/troubleshoot/troubleshooting#configure-networkmanager
 - name: AccuInsight+ Kubernetes | CNI | Prevent NetworkManager from controlling Calico interfaces
   when: nm_status.rc == 0
@@ -34,7 +33,24 @@
     - CNI | Calico | Reload NetworkManager
 
 
+# NOTE: 'private_ip' is referenced from inventory file.
+- name: AccuInsight+ Kubernetes | CNI | Get default cidr for calico nodes
+  become: yes
+  shell:
+    ip -o address show | grep {{ private_ip }} | awk '{print $4}'
+  args:
+    executable: /bin/bash
+  register: node_default_cidr
+
+
+- name: AccuInsight+ Kubernetes | CNI | Set default cidr for calico nodes
+  set_fact:
+    calico_node_cidr: "{{ node_default_cidr.stdout }}"
+
+
 - name: AccuInsight+ Kubernetes | CNI | Create menifests directory for Calico
+  when:
+    - inventory_hostname in groups['kube-master']
   become: yes
   file:
     path: "{{ accu_manifests_location}}/{{ component }}"
@@ -46,22 +62,50 @@
 
 
 - name: AccuInsight+ Kubernetes | CNI | Create manifests for Calico
+  when:
+    - inventory_hostname in groups['kube-master']
   become: yes
   template:
-    src: calico.yaml.j2
-    dest: "{{ accu_manifests_location }}/{{ component }}/calico.yaml"
+    src: "{{ item }}.j2"
+    dest: "{{ accu_manifests_location }}/{{ component }}/{{ item }}"
     owner: root
     group: root
     mode: '0644'
+  loop:
+    # SOURCE: https://docs.projectcalico.org/v3.17/manifests/calico.yaml
+    - 'calico.yaml'
+    # READ: https://docs.projectcalico.org/networking/ip-autodetection
+    #       https://docs.projectcalico.org/reference/resources/node
+    #       https://docs.projectcalico.org/networking/node
+    - 'calico-node-default-cidr.yaml'
 
 
 - name: AccuInsight+ Kubernetes | CNI | Initialize Calico
-  when: inventory_hostname == groups['kube-master'][0]
+  when:
+    - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
     kubectl apply -f {{ accu_manifests_location }}/{{ component }}/calico.yaml
   args:
     executable: /bin/bash
+  run_once: true
+  register: cni_result
+  failed_when: cni_result is failed
+  until: cni_result is succeeded
+  retries: 3
+  delay: 60
+
+
+- name: QKS Kubernetes | CNI | Initialize Calico (complex autodetection)
+  when:
+    - cni_calico_cidr_autodetection_method == 'complex'
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+    kubectl apply -f {{ qks_manifests_location }}/{{ component }}/calico-node-default-cidr.yaml
+  args:
+    executable: /bin/bash
+  run_once: true
   register: cni_result
   failed_when: cni_result is failed
   until: cni_result is succeeded
@@ -70,12 +114,14 @@
 
 
 - name: AccuInsight+ Kubernetes | CNI | Wait for Calico to complete
-  when: inventory_hostname == groups['kube-master'][0]
+  when:
+    - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
     kubectl -n kube-system get pods | grep calico-node
   args:
     executable: /bin/bash
+  run_once: true
   register: calico_node
   until: calico_node.stdout.count("Running") >= ( groups['kube-master'] | count )
   retries: 10
@@ -84,11 +130,13 @@
 
 # Rarely, coredns get hung after deploying calico.
 - name: AccuInsight+ Kubernetes | CNI | Restart CoreDNS
-  when: inventory_hostname == groups['kube-master'][0]
+  when:
+    - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
     kubectl -n kube-system delete pods -l k8s-app=kube-dns
   args:
     executable: /bin/bash
+  run_once: true
 
 

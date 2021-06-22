@@ -1,0 +1,10 @@
+{% for host in groups['kube-cluster'] %}
+---
+apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/IPv4Address: {{ hostvars[host]['calico_node_cidr'] }}
+  name: {{ host }} 
+
+{% endfor %}

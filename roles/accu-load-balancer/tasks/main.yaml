@@ -19,6 +19,7 @@
         mode: '0755'
         recurse: yes
 
+
     - name: AccuInsight+ Load Balancer | Create configuration for Load Balancer (haproxy)
       when:
         - accu_load_balancer_enabled | bool or accu_vip_manager_enabled | bool
@@ -41,23 +42,23 @@
         mode: '0644'
 
 
-    # NOTE: 'private_ip' is referenced from inventory file.
-    - name: AccuInsight+ Load Balancer | Get default NIC for VIP Manager
-      when:
-        - accu_vip_manager_enabled | bool
-      shell:
-        ip -o address show | grep {{ private_ip }} | awk '{print $2}'
-      args:
-        executable: /bin/bash
-      register: default_nic
+#    # NOTE: 'private_ip' is referenced from inventory file.
+#    - name: AccuInsight+ Load Balancer | Get default NIC for VIP Manager
+#      when:
+#        - accu_vip_manager_enabled | bool
+#      shell:
+#        ip -o address show | grep {{ private_ip }} | awk '{print $2}'
+#      args:
+#        executable: /bin/bash
+#      register: default_nic
 
 
-    # NOTE: 'accu_vip_manager_nic' is referenced by accu_vip_manager.conf.j2 templcate.
-    - name: AccuInsight+ Load Balancer | Set default NIC for VIP Manager
-      when:
-        - accu_vip_manager_enabled | bool
-      set_fact:
-        accu_vip_manager_nic: "{{ default_nic.stdout }}"
+#    # NOTE: 'accu_vip_manager_nic' is referenced by accu_vip_manager.conf.j2 templcate.
+#    - name: AccuInsight+ Load Balancer | Set default NIC for VIP Manager
+#      when:
+#        - accu_vip_manager_enabled | bool
+#      set_fact:
+#        accu_vip_manager_nic: "{{ default_nic.stdout }}"
 
   
     - name: AccuInsight+ Load Balancer | Create configuration for VIP Manager (keepalived)

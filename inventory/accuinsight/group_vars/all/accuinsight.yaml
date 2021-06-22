@@ -29,8 +29,6 @@ kube_svc_cidr: 10.10.0.0/16
 # Currently. only support for iptables
 kube_proxy_mode: iptables
 
-kube_internal_network_interface: eth0
-kube_external_network_interface: eth0
 
 # Master node accept normal workload if this value is false.
 kube_master_node_taint: true
@@ -46,6 +44,7 @@ kube_data_dir_etcd: /data/k8s/etcd       # default: /var/lib/etcd
 
 # Currently, only support for calico
 kube_cni: calico
+
 cni_calico_version: 3.17.1
 
 # Configure the MTU to use for workload interfaces and tunnels.
@@ -58,6 +57,17 @@ cni_calico_mtu: 0
 # Choose Calico iptables backend: "Legacy", "Auto" or "NFT"
 # If iptables >= 1.8, Auto or NFT should be set.
 cni_calico_iptablesbackend: Auto
+
+# The method to use to autodetect the IPv4 address for nodes.
+#
+# default:
+#   default method provided by calico.
+#
+# complex: 
+#   this is for complex network environment.
+#   for example, nodes have many network interfaces and use different cidr.
+#   this is based on 'private_ip' from inventory file and set a seperate cidr for each nodes.
+cni_calico_cidr_autodetection_method: complex
 
 
 ###############################
@@ -78,14 +88,14 @@ cri_insecure_registries: # 0.0.0.0/0 can be used
 #  - "{{ accu_registry_fqdn }}"
 
 
-# Choose default registry between accu-registry and accu-harbor
-kube_default_registry: accu-registry
-
-# Choose default storageclass among accu-nfs-provisioner, accu-ceph-block and accu-ceph-cephfs
-kube_default_storage: accu-nfs-provisioner
-
 # Define default domain name which is used for base service.
 kube_default_domain: accuinsight.io
+
+# Choose default registry between accu-registry and accu-harbor
+#kube_default_registry: accu-registry
+
+# Choose default storageclass among accu-nfs-provisioner, accu-ceph-block and accu-ceph-cephfs
+#kube_default_storage: accu-nfs-provisioner
 
 ################################################################################
 ######################################################################## END ###
@@ -94,7 +104,7 @@ kube_default_domain: accuinsight.io
 # AccuInsight+ Offline Materials
 accu_offline_enabled: true
 accu_offline_source: "{{ inventory_dir }}/../../data/offline"
-accu_offline_target: /data/accuinsight/k8s
+accu_offline_target: /data/accuinsight/offline
 
 # AccuInsight+ Offline Registry Mirror
 # If accu_offline_image_mirror set to true, some registries (docker.io / gcr.io / quay.io) will be transparently emulated to internal registry.
@@ -154,6 +164,7 @@ accu_helm_stable_repo: "https://charts.helm.sh/stable"
 # AccuInsight+ Load Balancer
 accu_vip_manager_enabled: false
 accu_vip_manager_version: 2.0.20
+accu_vip_manager_nic: eth0
 accu_load_balancer_enabled: true
 accu_load_balancer_version: 2.2.5
 accu_load_balancer_namespace: "{{ accu_system_namespace }}"
