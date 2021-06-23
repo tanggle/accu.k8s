@@ -357,12 +357,20 @@ accu_monitoring_enabled: true
 accu_monitoring_release: accu-monitor
 accu_monitoring_version: 14.6.2
 accu_monitoring_namespace: accu-monitor
-accu_monitoring_prometheus_fqdn: accupc.accuinsight.io
-accu_monitoring_prometheus_storage_class: accu-ceph-block
+accu_monitoring_prometheus_fqdn: pc.accuinsight.io
+accu_monitoring_prometheus_retention: 4w
+accu_monitoring_prometheus_storage_class: accu-ceph-cephfs
+accu_monitoring_prometheus_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_monitoring_prometheus_storage_size: 50Gi
-accu_monitoring_grafana_fqdn: accupm.accuinsight.io
+accu_monitoring_alertmanager_fqdn: pa.accuinsight.io
+accu_monitoring_alertmanager_retention: 120h
+accu_monitoring_alertmanager_storage_class: accu-ceph-cephfs
+accu_monitoring_alertmanager_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
+accu_monitoring_alertmanager_storage_size: 50Gi
+accu_monitoring_grafana_fqdn: pm.accuinsight.io
 accu_monitoring_grafana_pass: AccuInsight+k8s
-accu_monitoring_grafana_storage_class: accu-ceph-block
+accu_monitoring_grafana_storage_class: accu-ceph-cephfs
+accu_monitoring_grafana_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_monitoring_grafana_storage_size: 1Gi
 
 
