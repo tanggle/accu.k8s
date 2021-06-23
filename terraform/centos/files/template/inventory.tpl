@@ -23,6 +23,7 @@ ${list_master}
 [kube-worker:children]
 accu-worker
 accu-nvidia
+accu-ceph
 
 [accu-worker]
 ${list_worker}

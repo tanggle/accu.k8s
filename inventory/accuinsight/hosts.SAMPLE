@@ -43,6 +43,7 @@ accu-k8s-m03
 [kube-worker:children]
 accu-worker
 accu-nvidia
+accu-ceph
 
 # Kubernetes Worker로 설정될 호스트 목록
 [accu-worker]
