@@ -93,12 +93,6 @@
   become: yes
   block:
 
-    - name: AccuInsight+ Package Repository | Clean up repository cache
-      command: yum clean all
-      args:
-        warn: no
-
-
     # READ: https://access.redhat.com/solutions/265523
     - name: AccuInsight+ Package Repository | Change Settings for Online Repositories (Selective Skip)
       when:
@@ -187,6 +181,12 @@
       loop: "{{ accu.repo.offline }}"
       loop_control:
         label: "{{ item.desc }}"
+
+
+    - name: AccuInsight+ Package Repository | Clean up repository cache
+      command: yum clean all
+      args:
+        warn: no
 
 
     #- name: AccuInsight+ Package Repository | Enable fastestmirror plugin
