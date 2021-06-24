@@ -1,6 +1,0 @@
----
-
-dependencies:
-
-  - { role: accu-common/default, component: bootstrap }
-

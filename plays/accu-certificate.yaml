@@ -1,0 +1,10 @@
+---
+# Playbook for AccuInsight+ Certificates
+
+- name: AccuInsight+ Certificates
+  hosts: kube-cluster,accu-server
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  gather_facts: true
+  roles:
+    - { role: accu-certificate }
+

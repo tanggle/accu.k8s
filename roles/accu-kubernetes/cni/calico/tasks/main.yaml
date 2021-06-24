@@ -96,13 +96,13 @@
   delay: 60
 
 
-- name: QKS Kubernetes | CNI | Initialize Calico (complex autodetection)
+- name: AccuInsight+ Kubernetes | CNI | Initialize Calico (complex autodetection)
   when:
     - cni_calico_cidr_autodetection_method == 'complex'
     - inventory_hostname in groups['kube-master']
   become: yes
   shell: |
-    kubectl apply -f {{ qks_manifests_location }}/{{ component }}/calico-node-default-cidr.yaml
+    kubectl apply -f {{ accu_manifests_location }}/{{ component }}/calico-node-default-cidr.yaml
   args:
     executable: /bin/bash
   run_once: true

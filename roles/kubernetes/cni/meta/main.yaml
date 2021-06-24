@@ -1,6 +1,0 @@
----
-
-dependencies:
-
-  - { role: kubernetes/cni/calico, when: kube_cni == 'calico' }
-

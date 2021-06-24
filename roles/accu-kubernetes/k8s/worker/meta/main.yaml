@@ -6,6 +6,5 @@ allow_duplicates: true
 
 dependencies:
 
-  - { role: accu-common/default, component: kubernetes, scope: master }
-  - { role: accu-common/offline, when: accu_offline_enabled | bool }
+  - { role: accu-common/default, component: accu-kubernetes, scope: worker }
 

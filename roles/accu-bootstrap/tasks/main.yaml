@@ -1,0 +1,125 @@
+---
+
+# TODO: NEED TO CHECK IF PYTHON IS INSTALLED IN ANSIBLE MANAGED NODES.
+
+- name: AccuInsight+ OS Default Settings | Print OS Information
+  debug:
+    msg: "{{ ansible_os_family }} : {{ ansible_distribution }} : {{ ansible_distribution_version }} : {{ ansible_kernel }}"
+
+
+- name: AccuInsight+ OS Default Settings | Create ansible temporary directory
+  become: yes
+  file:
+    path: "{{ ansible_env.HOME | default('/root') }}/.ansible/tmp"
+    mode: '0700'
+    state: directory
+
+
+#- name: AccuInsight+ OS Default Settings | Change permission of SSH KEY
+#  file:
+#    path: "{{ inventory_dir }}/../../accuinsight.pem"
+#    mode: '0600'
+#  delegate_to: localhost
+#  run_once: true
+
+
+- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
+  become: yes
+  synchronize:
+    src: "{{ inventory_dir }}/../../accuinsight.pem"
+    dest: "{{ ansible_env.HOME | default('/root') }}/.ssh/id_rsa"
+    checksum: yes
+    delete: yes
+
+
+- name: AccuInsight+ OS Default Settings | Set hostname with inventory hostname
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+
+- name: AccuInsight+ OS Default Settings | Add hostnames to /etc/hosts
+  become: yes
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item]['private_ip'] }} {{ item }}"
+    state: present
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ groups['all'] }}"
+
+
+- name: AccuInsight+ OS Default Settings | Set timezone to '{{ os_timezone | default('UTC') }}'
+  become: yes
+  timezone:
+    name: "{{ os_timezone | default('UTC') }}"
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin
+- name: AccuInsight+ OS Default Settings | Disable swap (/etc/fstab)
+  become: yes
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  loop:
+    - 'swap'
+    - 'none'
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin
+- name: AccuInsight+ OS Default Settings | Disable swap (swapoff -a)
+  become: yes
+  command:
+    cmd: swapoff -a
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: AccuInsight+ OS Default Settings | Letting iptables see bridged traffic (1/3)
+  become: yes
+  modprobe:
+    name: br_netfilter
+    state: present
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: AccuInsight+ OS Default Settings | Letting iptables see bridged traffic (2/3)
+  become: yes
+  lineinfile:
+    path: /etc/modules-load.d/kubernetes.conf
+    line: br_netfilter
+    state: present
+    owner: root
+    group: root
+    mode: '0644'
+    create: yes
+
+
+# READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: AccuInsight+ OS Default Settings | Letting iptables see bridged traffic (3/3)
+  become: yes
+  sysctl:
+    name: "{{ item.key }}"
+    value: '{{ item.value }}'
+    state: present
+    sysctl_file: /etc/sysctl.d/kubernetes.conf
+    reload: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+  loop_control:
+    label: "{{ item.value }}, {{ item.key }}"
+
+
+# TODO: NEED TO SUPPORT IPVS
+
+
+- import_tasks: redhat.yaml
+  when: ansible_os_family == 'RedHat'
+
+
+- import_tasks: debian.yaml
+  when: ansible_os_family == 'Debian'
+
+

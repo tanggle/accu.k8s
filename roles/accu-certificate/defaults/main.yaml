@@ -1,0 +1,7 @@
+---
+
+accu_certificates_location: /etc/kubernetes/accuinsight/certificates
+accu_certificates_bits: 2048
+accu_certificates_expiration: 3650 # specify in days
+accu_certificates_recreation: false
+

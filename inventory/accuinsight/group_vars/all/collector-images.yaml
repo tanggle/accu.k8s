@@ -135,7 +135,7 @@ images:
       - tags: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1
         dest: kube-worker
 
-  - component: calico
+  - component: accu-cni-calico
     list:
       - tags: docker.io/calico/cni:v{{ cni_calico_version }}
         dest: kube-cluster
@@ -146,7 +146,7 @@ images:
       - tags: docker.io/calico/pod2daemon-flexvol:v{{ cni_calico_version }}
         dest: kube-cluster
 
-  - component: kubernetes
+  - component: accu-kubernetes
     list:
       - tags: k8s.gcr.io/kube-proxy:v{{ kube_version }}
         dest: kube-cluster

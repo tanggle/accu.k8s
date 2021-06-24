@@ -1,0 +1,219 @@
+---
+
+- name: AccuInsight+ Certificate | Check System Trust Store
+  become: yes
+  stat:
+    path: "{{ accu.trust_ca_store }}/accuinsight.crt"
+  register: trust_store
+
+
+- name: AccuInsight+ Certificate | Prepare OpenSSL Certificates (directory)
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  file:
+    path: "{{ accu_certificates_location }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+    recurse: yes
+
+
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ Certificate | Generate OpenSSL CA KEY 
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    openssl genrsa -out {{ accu_certificates_location }}/ca.key {{ accu_certificates_bits }}
+  args:
+    executable: /bin/bash
+
+
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ Certificate | Generate OpenSSL CA CRT 
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    openssl req -x509 -new -nodes -days {{ accu_certificates_expiration }} \
+                -subj "/C=KR/O=SK holdings C&C/CN=AccuInsight+ Kubernetes" \
+                -key {{ accu_certificates_location }}/ca.key \
+                -out {{ accu_certificates_location }}/ca.crt
+  args:
+    executable: /bin/bash
+
+
+# NOTE: openssl_privatekey module requires Python libraries cryptography (>= 1.3) or PyOpenSSL (>= 0.15)
+#- name: AccuInsight+ Certificate | Generate OpenSSL KEY
+#  when:
+#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#    - inventory_hostname == groups['kube-master'][0]
+#  become: yes
+#  openssl_privatekey:
+#    path: "{{ accu_certificates_location }}/server.key"
+#    size: "{{ accu_certificates_bits }}"
+
+
+# Replacing openssl_privatekey module above to openssl command for reducing python library dependancy
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ Certificate | Generate OpenSSL KEY
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    openssl genrsa -out {{ accu_certificates_location }}/server.key {{ accu_certificates_bits }}
+  args:
+    executable: /bin/bash
+
+
+# NOTE: openssl_privatekey module requires Python libraries cryptography (>= 1.3) or PyOpenSSL (>= 0.15)
+#- name: AccuInsight+ Certificate | Generate OpenSSL CSR
+#  when:
+#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#    - inventory_hostname == groups['kube-master'][0]
+#  become: yes
+#  openssl_csr:
+#    path: "{{ accu_certificates_location }}/server.csr"
+#    privatekey_path: "{{ accu_certificates_location }}/server.key"
+#    common_name: "{{ kube_default_domain }}"
+#    subject_alt_name:
+#      - 'DNS:*.{{ kube_default_domain }}'
+#      - 'DNS:gcr.io'
+#      - 'DNS:*.gcr.io'
+#      - 'DNS:quay.io'
+#      - 'DNS:*.quay.io'
+#      - 'DNS:docker.io'
+#      - 'DNS:*.docker.io'
+
+
+# Replacing openssl_csr module above to openssl command for reducing python library dependancy
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ Certificate | Generate OpenSSL SAN
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  template:
+    src: san.cnf.j2
+    dest: "{{ accu_certificates_location }}/san.cnf"
+    owner: root
+    group: root
+    mode: '0644'
+  run_once: true
+
+
+- name: AccuInsight+ Certificate | Generate OpenSSL CSR
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    openssl req -new -subj "/C=KR/O=SK holding C&C/CN={{ kube_default_domain }}" \
+                -key {{ accu_certificates_location }}/server.key \
+                -out {{ accu_certificates_location }}/server.csr \
+                -config {{ accu_certificates_location }}/san.cnf
+  args:
+    executable: /bin/bash
+
+
+# NOTE: openssl_certificate module requires Python libraries cryptography (>= 1.3) or PyOpenSSL (>= 0.15)
+#- name: AccuInsight+ Certificate | Generate OpenSSL CRT
+#  when:
+#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#    - inventory_hostname == groups['kube-master'][0]
+#  become: yes
+#  openssl_certificate:
+#    path: "{{ accu_certificates_location }}/server.crt"
+#    csr_path: "{{ accu_certificates_location }}/server.csr"
+#    ownca_path: "{{ accu_certificates_location }}/ca.crt"
+#    ownca_privatekey_path: "{{ accu_certificates_location }}/ca.key"
+#    selfsigned_not_after: "+{{ accu_certificates_expiration }}d"
+#    provider: ownca
+
+
+# Replacing openssl_certificate module above to openssl command for reducing python library dependancy
+# DOCS: docs/accu-certificate.md
+- name: AccuInsight+ Certificate | Generate OpenSSL CRT
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    openssl x509 -req -days {{ accu_certificates_expiration }} -CAcreateserial \
+                 -CA {{ accu_certificates_location }}/ca.crt \
+                 -CAkey {{ accu_certificates_location }}/ca.key \
+                 -in {{ accu_certificates_location }}/server.csr \
+                 -out {{ accu_certificates_location }}/server.crt \
+                 -extensions req_ext -extfile {{ accu_certificates_location }}/san.cnf
+  args:
+    executable: /bin/bash
+
+
+# Seems to be some privilege escalation timing issues in ansible.
+# Before pulling certificates in next task, change permission of certificates to 644.
+- name: AccuInsight+ Certificate | Change permission of OpenSSL Certificates
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname == groups['kube-master'][0]
+  become: yes
+  shell: |
+    chmod 644 {{ accu_certificates_location }}/*
+  args:
+    executable: /bin/bash
+    warn: no
+
+
+# For safety, copy certificates to each master
+- name: AccuInsight+ Certificate | Copy OpenSSL Certificates to masters
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+    - inventory_hostname in groups['kube-master']
+    - inventory_hostname != groups['kube-master'][0]
+  become: yes
+  shell: |
+    scp -r -o StrictHostKeyChecking=no \
+        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/* \
+        {{ accu_certificates_location }}
+  args:
+    executable: /bin/bash
+
+
+## Normally, synchronize module with 'delegate_to' uses 'ansible_host' address defined in inventory file as a destination.
+## This can be a problem if 'ansible_host' address is unreachable from each node.
+#- name: AccuInsight+ Certificate | Install OpenSSL CA CRT to System Trust Store
+#  when:
+#  become: yes
+#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#  synchronize:
+#    src: "{{ accu_certificates_location }}/ca.crt"
+#    dest: "{{ accu.trust_ca_store }}/accuinsight.crt"
+#    checksum: yes
+#    delete: yes
+#  delegate_to: "{{ groups['kube-master'][0] }}"
+
+
+- name: AccuInsight+ Certificate | Install OpenSSL CA CRT to System Trust Store
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+  become: yes
+  shell: |
+    scp -o StrictHostKeyChecking=no \
+        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/ca.crt \
+        {{ accu.trust_ca_store }}/accuinsight.crt
+  args:
+    executable: /bin/bash
+
+
+- name: AccuInsight+ Certificate | Update System Trust Store
+  when:
+    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+  become: yes
+  command: "{{ accu.trust_ca_update }}"
+
+

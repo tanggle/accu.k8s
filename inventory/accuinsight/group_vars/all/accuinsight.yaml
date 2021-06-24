@@ -24,7 +24,7 @@ kube_version: 1.18.17
 # DOCS: https://en.wikipedia.org/wiki/Private_network
 # TOOL: http://www.subnet-calculator.com
 kube_pod_cidr: 10.0.0.0/16
-kube_svc_cidr: 10.10.0.0/16
+kube_svc_cidr: 10.1.0.0/16
 
 # Currently. only support for iptables
 kube_proxy_mode: iptables
@@ -130,6 +130,7 @@ accu_manifests_location: /etc/kubernetes/accuinsight
 accu_certificates_location: /etc/kubernetes/accuinsight/certificates
 accu_certificates_bits: 2048
 accu_certificates_expiration: 3650 # specify in days
+accu_certificates_recreation: false
 
 # AccuInsight+ Namespace
 accu_system_namespace: accu-system
@@ -331,10 +332,8 @@ accu_registry_namespace: "{{ accu_system_namespace }}"
 accu_registry_replicas: 2
 accu_registry_storage_class: accu-ceph-cephfs
 accu_registry_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
-accu_registry_storage_size: 100Gi
+accu_registry_storage_size: 50Gi
 accu_registry_fqdn: images.accuinsight.io
-accu_registry_user: dpcore
-accu_registry_pass: dpcore
 
 
 # AccuInsight+ Chartmuseum
@@ -348,8 +347,8 @@ accu_chartmuseum_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_chartmuseum_storage_size: 1Gi
 accu_chartmuseum_fqdn: charts.accuinsight.io
 accu_chartmuseum_name: accuinsight
-accu_chartmuseum_user: dpcore
-accu_chartmuseum_pass: dpcore
+accu_chartmuseum_user: accuinsight
+accu_chartmuseum_pass: AccuInsight+k8s
 
 
 # AccuInsight+ Prometheus
@@ -389,7 +388,7 @@ accu_accelerator_kernel_version:
   # for AWS TEST
   - "{{ ansible_kernel }}"
   # for RedHat 7.x family, kernel version must be 3.10.0-1127.el7.x86_64 at least for ceph.
-  - "3.10.0-1127.el7.x86_64"
+  #- "3.10.0-1127.el7.x86_64"
 # NVIDIA K8S Device Plugin Version
 # refer to  https://github.com/NVIDIA/k8s-device-plugin/releases
 accu_accelerator_device_plugin_version: v0.9.0

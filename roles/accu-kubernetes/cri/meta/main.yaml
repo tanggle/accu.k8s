@@ -1,0 +1,10 @@
+---
+
+dependencies:
+
+  - { role: accu-common/default,  component: accu-kubernetes }
+  - { role: accu-kubernetes/cri/containerd, when: kube_cri == 'containerd' }
+  - { role: accu-kubernetes/cri/cri-o,      when: kube_cri == 'cri-o' }
+  - { role: accu-kubernetes/cri/docker,     when: kube_cri == 'docker' }
+
+
