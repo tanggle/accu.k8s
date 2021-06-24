@@ -7,7 +7,18 @@
 #  run_once: true
 
 
+- name: AccuInsight+ Offline | Check offline materials
+  stat:
+    path: "{{ accu_offline_source }}/{{ component }}"
+  delegate_to: localhost
+  run_once: true
+  register: material
+
+
 - name: AccuInsight+ Offline | Analyze offline materials (types)
+  when:
+    - material.stat.exists
+    - material.stat.isdir
   shell: |
     ls -l {{ accu_offline_source }}/{{ component }} | grep ^d | awk '{ print $NF }'
   args:
@@ -24,6 +35,9 @@
 
 
 - name: AccuInsight+ Offline | Analyze offline materials (destinations)
+  when:
+    - material.stat.exists
+    - material.stat.isdir
   shell: |
     ls -l {{ accu_offline_source }}/{{ component }}/{{ item }} | grep ^d | awk '{ print $NF }'
   args:
@@ -41,6 +55,9 @@
 
 
 - name: AccuInsight+ Offline | Generate offline materials structure
+  when:
+    - material.stat.exists
+    - material.stat.isdir
   set_fact:
     structure: |
       [
@@ -68,7 +85,7 @@
       ]
 
 
-- name: Debug 'structure'
+- name: AccuInsight+ Offline | Print 'structure'
   debug:
     msg: "{{ structure }}"
   run_once: true
@@ -104,7 +121,6 @@
 
 - name: AccuInsight+ Offline | Preload offline images ({{ component }})
   when:
-#    - accu_offline_enabled | bool
     - item.0.type == 'images'
     - inventory_hostname in groups[item.1]
   become: yes
@@ -135,20 +151,5 @@
   loop: "{{ structure | subelements('dest') }}"
   loop_control:
     label: "{{ item.0.type }}, {{ item.1 }}'"
-
-
-# - name: AccuInsight+ Offline | Push charts to '{{ accu_chartmuseum_fqdn }}'
-#   when:
-#     - inventory_hostname in groups[item]
-#   shell: |
-#     shopt -s nullglob
-#     for CHART in {{ accu_offline_target }}/charts/{{ component }}/*.tgz
-#     do
-#       helm push --force --username {{ accu_chartmuseum_user }} --password {{ accu_chartmuseum_pass }} ${CHART} {{ accu_chartmuseum_name }}
-#     done
-#   args:
-#     executable: /bin/bash
-#   loop: "{{ structure.charts }}"
-#   run_once: true
 
 
