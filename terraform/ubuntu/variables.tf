@@ -19,10 +19,6 @@ variable "aws_cluster_name" {
 #
 # Official Ubuntu Version
 #
-variable "aws_os" {
-  description = "OS"
-}
-
 variable "aws_ubuntu_version" {
   description = "Officail Ubuntu Version"
 }

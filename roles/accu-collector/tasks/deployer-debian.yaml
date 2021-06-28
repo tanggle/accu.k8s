@@ -1,0 +1,86 @@
+---
+
+- name: AccuInsight+ Collector | Collect Ansible Deployer Environment for Offline Installation
+  when:
+    - inventory_hostname == groups['accu-pkg-server'][0]
+  become: yes
+  block:
+
+
+    - name: AccuInsight+ Collector | Set facts for Deployer and Locations
+      set_fact:
+        down_location: "{{ accu_collector_target }}/deployer"
+        pull_location: "{{ accu_offline_source }}/../deployer"
+        name_deployer: "accu.k8s.deployer-{{ ansible_distribution | lower }}{{ ansible_distribution_version | replace('.', '') }}"
+
+
+    - name: AccuInsight+ Collector | Collect Ansible Deployer
+      shell: |
+        # Update repository metadata.
+        apt update
+
+        # Create directories.
+        mkdir -p {{ down_location }}/media/python
+        mkdir -p {{ down_location }}/media/ansible
+
+        # Download python packages required by running ansible.
+        cd {{ down_location }}/media/python
+        apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces python3 python3-pip python3-venv | grep "^\w" | sort -u | xargs apt download python3 python3-pip python3-venv
+
+        # Install python packages for gathering ansible and its modules.
+        apt install -y python3 python3-pip python3-venv
+
+        # Create ansible virtual environment for collector.
+        cd {{ down_location }}
+        python3 -m venv collector
+
+        # Activate ansible virtual environment for collector.
+        source collector/bin/activate
+
+        # Upgrade pip in virtual environment for collector.
+        pip3 install --upgrade pip
+
+        # Download ansible and its requirements modules.
+        cd {{ down_location }}/media/ansible
+        pip3 download pip netaddr 'ansible==2.9.6'
+
+        # Create compressed tar ball.
+        cd {{ down_location }}
+        tar cvzf {{ name_deployer }}.tar.gz media
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    - name: AccuInsight+ Collector | Generate Ansible Deployer Script
+      become: yes 
+      template:
+        src: accu.k8s.deployer.sh.j2
+        dest: "{{ down_location }}/{{ name_deployer }}.sh"
+        owner: root
+        group: root
+        mode: '0755'
+
+
+    - name: AccuInsight+ Collector | Prepare Ansible Deployer (directory)
+      become: no
+      file:
+        path: "{{ pull_location }}"
+        state: directory
+        recurse: yes
+        mode: '0755'
+      delegate_to: localhost
+
+
+    - name: AccuInsight+ Collector | Synchronize Ansible Deployer
+      synchronize:
+        mode: pull
+        src: "{{ down_location }}/{{ item }}"
+        dest: "{{ pull_location }}/{{ item }}"
+        checksum: yes
+        perms: yes
+      loop:
+        - '{{ name_deployer }}.tar.gz'
+        - '{{ name_deployer }}.sh'
+
+

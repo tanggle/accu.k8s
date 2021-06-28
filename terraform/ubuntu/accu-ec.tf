@@ -24,7 +24,6 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name = "name"
-    #    values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
     values = ["ubuntu/images/hvm-ssd/ubuntu-*-${var.aws_ubuntu_version}-amd64-server-*"]
   }
 
@@ -35,8 +34,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "k8s-lb" {
-#  ami                         = data.aws_ami.ubuntu.id
-  ami                         = "data.aws_ami.${var.aws_os}.id"
+  ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.aws_kube_lb_type
   count                       = var.aws_kube_lb_num
   associate_public_ip_address = true

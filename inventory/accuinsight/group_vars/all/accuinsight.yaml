@@ -117,6 +117,7 @@ accu_service_target: /data/accuinsight/service
 
 # AccuInsight+ Collector
 accu_collector_target: /accuinsight/collector
+accu_collector_gathering_deployer: true
 accu_collector_gathering_packages: true
 accu_collector_gathering_charts: true
 accu_collector_gathering_files: true
@@ -157,7 +158,7 @@ accu_tools_kubestr_version: 0.4.16   # https://kubestr.io/
 
 # AccuInsight+ Helm
 accu_helm_enabled: true
-accu_helm_version: 3.5.3
+accu_helm_version: 3.6.1
 accu_helm_max_history: 10
 accu_helm_stable_repo: "https://charts.helm.sh/stable"
 

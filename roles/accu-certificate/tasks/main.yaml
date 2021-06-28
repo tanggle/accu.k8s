@@ -188,8 +188,8 @@
 ## This can be a problem if 'ansible_host' address is unreachable from each node.
 #- name: AccuInsight+ Certificate | Install OpenSSL CA CRT to System Trust Store
 #  when:
-#  become: yes
 #    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#  become: yes
 #  synchronize:
 #    src: "{{ accu_certificates_location }}/ca.crt"
 #    dest: "{{ accu.trust_ca_store }}/accuinsight.crt"

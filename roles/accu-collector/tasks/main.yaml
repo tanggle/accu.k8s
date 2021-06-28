@@ -8,6 +8,18 @@
     state: directory
 
 
+- include_tasks: deployer-redhat.yaml
+  when:
+    - accu_collector_gathering_deployer | bool
+    - ansible_os_family == 'RedHat'
+
+
+- include_tasks: deployer-debian.yaml
+  when:
+    - accu_collector_gathering_deployer | bool
+    - ansible_os_family == 'Debian'
+
+
 - include_tasks: packages-redhat.yaml
   when:
     - accu_collector_gathering_packages | bool

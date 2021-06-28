@@ -1,0 +1,61 @@
+#!/bin/bash
+
+ROOT_DIR=$PWD
+
+echo "################################################################################"
+echo "###                                                                          ###"
+echo "###       AccuInsight+ Kubernetes Deployer for Air-gapped environment        ###"
+echo "###                                                                          ###"
+echo "################################################################################"
+echo ""
+
+
+echo -n "* Extracting tarball ...................................................... "
+tar xvzf accu.k8s.deployer*.tar.gz > /dev/null 2>&1
+echo "DONE"
+
+
+echo -n "* Installing python ....................................................... "
+cd $ROOT_DIR/media/python > /dev/null 2>&1
+{% if ansible_os_family == 'RedHat' and ansible_distribution_major_version | int == 7 %}
+sudo rpm -U python3* libtirpc* > /dev/null 2>&1
+{% endif %}
+{% if ansible_os_family == 'RedHat' and ansible_distribution_major_version | int == 8 %}
+sudo rpm -U python3* platform-python* > /dev/null 2>&1
+{% endif %}
+{% if ansible_os_family == 'Debian' %}
+sudo dpkg -i python* > /dev/null 2>&1
+{% endif %}
+cd $ROOT_DIR > /dev/null 2>&1
+echo "DONE"
+
+
+echo -n "* Activating venv ......................................................... "
+python3 -m venv deployer > /dev/null 2>&1
+source deployer/bin/activate > /dev/null 2>&1
+cd $ROOT_DIR > /dev/null 2>&1
+echo "DONE"
+
+
+echo -n "* Installing ansible ...................................................... "
+cd $ROOT_DIR/media/ansible > /dev/null 2>&1
+pip3 install --disable-pip-version-check pip-*.whl > /dev/null 2>&1
+pip3 install --disable-pip-version-check * > /dev/null 2>&1
+cd $ROOT_DIR > /dev/null 2>&1
+echo "DONE"
+
+
+echo -n "* Cleaning up materials ................................................... "
+rm -rf $ROOT_DIR/media > /dev/null 2>&1
+echo "DONE"
+
+
+echo ""
+echo "================================================================================"
+echo ""
+echo "    To use ansible,"
+echo ""
+echo "        type 'source $ROOT_DIR/deployer/bin/activate'"
+echo ""
+echo "================================================================================"
+
