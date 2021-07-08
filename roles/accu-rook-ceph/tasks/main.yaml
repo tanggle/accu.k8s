@@ -87,15 +87,15 @@
       - '--set rbacEnable=true'
       - '--set pspEnable=true'
       - '--set nodeSelector."node-role\.kubernetes\.io/ceph"=storage'
-      - '--set tolerations[0].effect=NoSchedule,tolerations[0].key=node-role.kubernetes.io/ceph,tolerations[0].operator=Equal,tolerations[0].value=storage'
+      - '--set tolerations[0].effect=NoSchedule,tolerations[0].key=accuinsight.io/ceph,tolerations[0].operator=Exists'
       - '--set agent.toleration=NoSchedule'
-      - '--set agent.tolerationKey=node-role.kubernetes.io/ceph'
+      - '--set agent.tolerationKey=accuinsight.io/ceph'
       - '--set discover.nodeAffinity="node-role.kubernetes.io/ceph=storage"'
       - '--set discover.toleration=NoSchedule'
-      - '--set discover.tolerationKey=node-role.kubernetes.io/ceph'
+      - '--set discover.tolerationKey=accuinsight.io/ceph'
       - '--set csi.kubeletDirPath={{ kube_data_dir_kubelet }}'
       - '--set csi.provisionerNodeAffinity="node-role.kubernetes.io/ceph=storage"'
-      - '--set csi.provisionerTolerations[0].effect=NoSchedule,csi.provisionerTolerations[0].key=node-role.kubernetes.io/ceph,csi.provisionerTolerations[0].operator=Equal,csi.provisionerTolerations[0].value=storage'
+      - '--set csi.provisionerTolerations[0].effect=NoSchedule,csi.provisionerTolerations[0].key=accuinsight.io/ceph,csi.provisionerTolerations[0].operator=Exists'
   run_once: true
 
 
