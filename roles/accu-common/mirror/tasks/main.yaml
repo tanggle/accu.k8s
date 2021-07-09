@@ -79,7 +79,10 @@
 
         if [ "{{ kube_cri }}" == "containerd" ]
         then
-            echo "Not implemented yet !"
+          for IMAGE in $(ctr -n k8s.io image ls | grep -v REF | grep -v "^sha256" | awk '{print $1}')
+          do
+            ctr -n k8s.io image push $IMAGE
+          done
         fi
 
         if [ "{{ kube_cri }}" == "cri-o" ]

@@ -75,7 +75,7 @@ cni_calico_cidr_autodetection_method: complex
 ###############################
 
 # containerd | cri-o | docker
-kube_cri: docker
+kube_cri: containerd
 
 # NOTE: Specify cri version to be installed.
 # This will be calculated automatically according to cri compatible matrix if leave it blank.
@@ -205,7 +205,7 @@ accu_ingress_backend_replicas: 1
 
 
 # AccuInsight+ NFS Server
-accu_nfs_server_enabled: false
+accu_nfs_server_enabled: true
 accu_nfs_server_export_path: /nfs
 accu_nfs_server_export_opts: "*(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
 
@@ -286,14 +286,14 @@ accu_rook_ceph_ganesha_export_path: ganesha
 
 
 # AccuInsight+ NFS Provisioner
-accu_nfs_provisioner_enabled: false
+accu_nfs_provisioner_enabled: true
 accu_nfs_provisioner_release: accu-nfs-provisioner
 accu_nfs_provisioner_version: 1.2.11
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
 accu_nfs_provisioner_server: "{{ groups['accu-nfs-server'][0] }}"
 accu_nfs_provisioner_path: /nfs
 accu_nfs_provisioner_replicas: 2
-accu_nfs_provisioner_storageclass_name: accu-nfs-provisioner
+accu_nfs_provisioner_storageclass_name: accu-nfs
 accu_nfs_provisioner_mount_on_masters: false
 
 
@@ -375,9 +375,9 @@ accu_monitoring_grafana_storage_size: 1Gi
 
 
 # AccuInsight+ GPU Accelerator
-accu_accelerator_enabled: true
+accu_accelerator_enabled: false
 accu_accelerator_namespace: "{{ accu_system_namespace }}"
-accu_accelerator_node_taint: false
+accu_accelerator_node_taint: true
 #accu_accelerator_node_taint_key: "accuinsight.io/accelerator"
 accu_accelerator_nvidia_type: tesla # tesla or gtx
 # NOTE: Check proper driver version according to CUDA toolkit to be used.
@@ -413,7 +413,7 @@ accu_helm_operator_namespace: "{{ accu_service_namespace }}"
 
 
 # AccuInsight+ MariaDB
-accu_mariadb_enabled: true
+accu_mariadb_enabled: false
 accu_mariadb_version: 7.10.4
 accu_mariadb_release: accu-mariadb
 accu_mariadb_namespace: "{{ accu_service_namespace }}"

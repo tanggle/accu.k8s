@@ -85,6 +85,7 @@
       - 'yum-utils'
       - 'device-mapper-persistent-data'
       - 'lvm2'
+      - 'patch'
     state: present
     disable_excludes: AccuInsight-Containerd
 

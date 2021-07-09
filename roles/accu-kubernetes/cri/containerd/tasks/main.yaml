@@ -52,12 +52,29 @@
   when: ansible_os_family == 'Debian'
 
 
-- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd
+# TODO: consider if it is better using template for default configuration.
+- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd (1/2)
   become: yes
   shell: |
       containerd config default > /etc/containerd/config.toml
   args:
     executable: /bin/bash
+  notify:
+    - CRI | Containerd | Restart
+    - CRI | Containerd | Wait for Ready
+
+
+- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd (2/2)
+  become: yes
+  lineinfile:
+    dest: /etc/containerd/config.toml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^root =', line: 'root = "{{ kube_data_dir_cri }}/root"' }
+    - { regexp: '^state =', line: 'state = "{{ kube_data_dir_cri }}/state"' }
+  loop_control:
+    label: "{{ item.line }}"
   notify:
     - CRI | Containerd | Restart
     - CRI | Containerd | Wait for Ready

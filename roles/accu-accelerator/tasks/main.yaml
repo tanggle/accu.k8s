@@ -141,6 +141,7 @@
         mode: '0644'
 
 
+    # NOTE: Before go ahead, MUST be checked where kube-apiserver is healthy
     - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (containerd) (3/3)
       when:
         - kube_cri == 'containerd'
@@ -156,9 +157,6 @@
 
     - name: AccuInsight+ GPU Accelerator | Flush Handlers before deploying device plugin
       meta: flush_handlers
-
-
-# NOTE: Before go ahead, MUST be checked where kube-apiserver is healthy
 
 
 - name: AccuInsight+ GPU Accelerator | Configure Kubernetes for Accelerator

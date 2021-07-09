@@ -17,6 +17,8 @@
 
 
 - name: AccuInsight+ Kubernetes | Set label for ceph nodes
+  when:
+    - accu_rook_ceph_enabled | bool
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/ceph=storage --overwrite
@@ -25,6 +27,8 @@
 
 
 - name: AccuInsight+ Kubernetes | Set label for accelerator nodes
+  when:
+    - accu_accelerator_enabled | bool
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/accelerator=nvidia --overwrite
@@ -47,6 +51,8 @@
 
 
 - name: AccuInsight+ Kubernetes | Set taint for ceph nodes
+  when:
+    - accu_rook_ceph_enabled | bool
   become: yes
   shell: |
     if [ "{{ accu_rook_ceph_node_taint }}" == "True" ]
@@ -60,6 +66,8 @@
 
 
 - name: AccuInsight+ Kubernetes | Set taint for accelerator nodes
+  when:
+    - accu_accelerator_enabled | bool
   become: yes
   shell: |
     if [ "{{ accu_accelerator_node_taint }}" == "True" ]
