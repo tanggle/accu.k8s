@@ -95,7 +95,5 @@
       - 'podman'
     state: present
     disable_excludes: "AccuInsight-CRI-O-{{ crio_version }}"
-  notify:
-    - CRI | CRI-O | Restart
-    - CRI | CRI-O | Wait for Ready
+
 

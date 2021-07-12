@@ -115,7 +115,14 @@
         {% endfor %}
 
         # Dwonload packages defined in 'redhat.pkgs' and all of their dependancies recursively even if they were already installed.
-        yum install -y --setopt=protected_multilib=false --releasever={{ releasever }} --installroot=/tmp/xxx --downloadonly --downloaddir={{ down_location }} {{ packages }}
+        # NOTE: cri-o runtime (runc) is conflict with one provided by docker repository. if kube_cri is cri-o, docker repository should be disabled.
+        {% if kube_cri == 'cri-o'                %}
+        {%    set repo = '--disablerepo=*Docker' %}
+        {% else                                  %}
+        {%    set repo = '--enablerepo=*Docker'  %}
+        {% endif                                 %}
+
+        yum install -y --setopt=protected_multilib=false --releasever={{ releasever }} {{ repo }} --installroot=/tmp/xxx --downloadonly --downloaddir={{ down_location }} {{ packages }}
       args:
         executable: /bin/bash
         warn: no

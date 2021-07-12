@@ -57,6 +57,9 @@ spec:
           capabilities:
             add:
             - SYS_ADMIN
+{% if kube_cri == 'cri-o' %}
+            - CAP_SETFCAP
+{% endif %}
         volumeMounts:
         - name: pod-gpu-resources
           readOnly: true

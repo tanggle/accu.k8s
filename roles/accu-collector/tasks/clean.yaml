@@ -26,7 +26,7 @@
         - ansible_os_family == 'RedHat'
       yum:
         name:
-         - docker-ce
+         - podman
          - pigz
         state: absent
         update_cache: yes
@@ -38,7 +38,7 @@
         - ansible_os_family == 'Debian'
       apt:
         name:
-          - docker-ce
+          - podman
           - pigz
         state: absent
         update_cache: yes

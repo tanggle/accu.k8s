@@ -79,9 +79,6 @@
       - 'cri-o-runc'
       - 'podman-rootless'
     state: present
-  notify: 
-    - CRI | CRI-O | Restart
-    - CRI | CRI-O | Wait for Ready
 
 
 - name: AccuInsight+ Kubernetes | Mark packages as held back for CRI-O

@@ -61,7 +61,6 @@
         - 'accu-registry-mirror-q.yaml' # for *.quay.io
       
 
-    # TODO: need implementation for containerd & cri-o
     - name: AccuInsight+ Registry Mirror | Mirroring offline images to '{{ accu_registry_fqdn }}'
       when:
         - groups[item] | length > 0
@@ -79,7 +78,7 @@
 
         if [ "{{ kube_cri }}" == "containerd" ]
         then
-          for IMAGE in $(ctr -n k8s.io image ls | grep -v REF | grep -v "^sha256" | awk '{print $1}')
+          for IMAGE in $(ctr -n k8s.io image ls | grep -v REF | grep -v "^sha256" | awk '{ print $1 }')
           do
             ctr -n k8s.io image push $IMAGE
           done
@@ -87,7 +86,10 @@
 
         if [ "{{ kube_cri }}" == "cri-o" ]
         then
-            echo "Not implemented yet !"
+          for IMAGE in $(podman images | grep -v REPOSITORY | awk '{ print $1":"$2 }')
+          do
+              podman push $IMAGE
+          done
         fi
       args:
         executable: /bin/bash

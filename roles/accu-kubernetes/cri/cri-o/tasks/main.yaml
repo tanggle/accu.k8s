@@ -52,3 +52,19 @@
   when: ansible_os_family == 'Debian'
 
 
+- name: AccuInsight+ Kubernetes | Generate default configuration for CRI-O
+  become: yes
+  lineinfile:
+    dest: /etc/containers/storage.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^graphroot =', line: 'graphroot = "{{ kube_data_dir_cri }}/root"' }
+    - { regexp: '^runroot =', line: 'runroot = "{{ kube_data_dir_cri }}/state"' }
+  loop_control:
+    label: "{{ item.line }}"
+  notify:
+    - CRI | CRI-O | Restart
+    - CRI | CRI-O | Wait for Ready
+
+

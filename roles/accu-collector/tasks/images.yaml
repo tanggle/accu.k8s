@@ -21,13 +21,14 @@
 #
 #       Now (2021.04.26), replaced podman with docker as a container management tool to resolve bad package naming conventions with RedHat family.
         name:
-          - docker-ce 
+          - podman
           - pigz
         state: latest
         update_cache: yes
-      notify:
-        - Container Management Tool | Restart
-        - Container Management Tool | Wait for Ready
+        disablerepo: Collector-Docker
+#      notify:
+#        - Container Management Tool | Restart
+#        - Container Management Tool | Wait for Ready
 
 
     - name: AccuInsight+ Collector | Install Container Management Tool
@@ -35,12 +36,12 @@
         - ansible_os_family == 'Debian'
       apt:
         name:
-          - docker-ce
+          - podman
           - pigz
         state: latest
-      notify:
-        - Container Management Tool | Restart
-        - Container Management Tool | Wait for Ready
+#      notify:
+#        - Container Management Tool | Restart
+#        - Container Management Tool | Wait for Ready
 
 
     - name: AccuInsight+ GPU Accelerator | Flush Handlers for Container Management Tool
@@ -59,7 +60,7 @@
         mkdir -p {{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.1.dest }}
 
         # Pull images
-        docker pull {{ item.1.tags }}
+        podman pull {{ item.1.tags }}
 
         # Save images (This step will be skipped if the saved images already exist.)
         FILE="{{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.1.dest }}/{{ item.1.tags | replace(    '/', '--') | replace(':', '--') }}.tar.gz"
@@ -67,11 +68,11 @@
         # NOTE: Replaced gzip with pigz for better performance (multicore compress).
         if [ ! -f ${FILE} ];
         then
-          docker save {{ item.1.tags }} | pigz -9 > ${FILE}
+          podman save {{ item.1.tags }} | pigz -9 > ${FILE}
         fi
 
         # Delete images after saving.
-        docker rmi {{ item.1.tags }}
+        podman rmi {{ item.1.tags }}
 
         ## Update images information. this file is not used in any codes but just information.
         echo {{ item.1.tags }} >> {{ accu_collector_target }}/{{ item.0.component }}/images/{{ item.0.component }}.lst

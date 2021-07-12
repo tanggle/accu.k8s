@@ -75,7 +75,7 @@ cni_calico_cidr_autodetection_method: complex
 ###############################
 
 # containerd | cri-o | docker
-kube_cri: containerd
+kube_cri: cri-o
 
 # NOTE: Specify cri version to be installed.
 # This will be calculated automatically according to cri compatible matrix if leave it blank.
@@ -128,7 +128,7 @@ accu_collector_cleanup: true
 accu_manifests_location: /etc/kubernetes/accuinsight
 
 # AccuInsight+ Certificates Location
-accu_certificates_location: /etc/kubernetes/accuinsight/certificates
+accu_certificates_location: /etc/kubernetes/accuinsight/accu-certificates
 accu_certificates_bits: 2048
 accu_certificates_expiration: 3650 # specify in days
 accu_certificates_recreation: false
@@ -375,7 +375,7 @@ accu_monitoring_grafana_storage_size: 1Gi
 
 
 # AccuInsight+ GPU Accelerator
-accu_accelerator_enabled: false
+accu_accelerator_enabled: true
 accu_accelerator_namespace: "{{ accu_system_namespace }}"
 accu_accelerator_node_taint: true
 #accu_accelerator_node_taint_key: "accuinsight.io/accelerator"
