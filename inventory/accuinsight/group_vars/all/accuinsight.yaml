@@ -18,7 +18,8 @@ ext_lb_addr: "{{ accu_load_balancer_addr }}"
 ext_lb_port: 8443
 
 # 1.17.x / 1.18.x / 1.19.x / 1.20.x (experimental)
-kube_version: 1.18.17
+#kube_version: 1.18.17
+kube_version: 1.20.8
 
 # NOTE: kube_pod_cidr and kube_svc_cidr MUST NOT be overlaped with customer's existing network subnet.
 # DOCS: https://en.wikipedia.org/wiki/Private_network
@@ -75,7 +76,7 @@ cni_calico_cidr_autodetection_method: complex
 ###############################
 
 # containerd | cri-o | docker
-kube_cri: cri-o
+kube_cri: containerd
 
 # NOTE: Specify cri version to be installed.
 # This will be calculated automatically according to cri compatible matrix if leave it blank.
@@ -150,10 +151,10 @@ accu_package_repository_online_handling: all_disable
 # AccuInsight+ K8S Tools
 accu_tools_enabled: true
 accu_tools_powerline_version: 1.21.0 # https://github.com/justjanne/powerline-go
-accu_tools_kubectx_version: 0.9.3    # https://github.com/ahmetb/kubectx
-accu_tools_kubens_version: 0.9.3     # https://github.com/ahmetb/kubectx
-accu_tools_k9scli_version: 0.24.10   # https://k9scli.io/
-accu_tools_kubestr_version: 0.4.16   # https://kubestr.io/
+accu_tools_kubectx_version: 0.9.4    # https://github.com/ahmetb/kubectx
+accu_tools_kubens_version: 0.9.4     # https://github.com/ahmetb/kubectx
+accu_tools_k9scli_version: 0.24.14   # https://k9scli.io/
+accu_tools_kubestr_version: 0.4.17   # https://kubestr.io/
 
 
 # AccuInsight+ Helm

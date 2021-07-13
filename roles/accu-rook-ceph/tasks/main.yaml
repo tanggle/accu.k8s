@@ -26,6 +26,8 @@
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/ceph=storage --overwrite
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['accu-ceph'] }}"
 
@@ -41,6 +43,8 @@
     else
       kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule- || /bin/true
     fi
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['accu-ceph'] }}"
 

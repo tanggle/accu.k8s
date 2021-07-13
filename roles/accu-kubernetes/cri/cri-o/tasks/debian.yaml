@@ -77,7 +77,8 @@
     name:
       - 'cri-o'
       - 'cri-o-runc'
-      - 'podman-rootless'
+      - 'podman'
+      #- 'podman-rootless'
     state: present
 
 

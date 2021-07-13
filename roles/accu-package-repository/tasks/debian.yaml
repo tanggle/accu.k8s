@@ -176,9 +176,16 @@
   become: yes
   block:
 
-    - name: AccuInsight+ Package Repository | Clean up repository cache
+    - name: AccuInsight+ Package Repository | Change Settings for Online Repositories
+      when:
+        - accu_offline_enabled | bool
       shell: |
         rm -rf /var/lib/apt/lists/*
+
+        if [ -f "/etc/apt/sources.list" ]
+        then
+          mv -f /etc/apt/sources.list /etc/apt/sources.list.DISABLED-BY-ACCUINSIGHT
+        fi
       args:
         executable: /bin/bash
         warn: no

@@ -24,7 +24,7 @@ sudo rpm -U python3* libtirpc* > /dev/null 2>&1
 sudo rpm -U python3* platform-python* > /dev/null 2>&1
 {% endif %}
 {% if ansible_os_family == 'Debian' %}
-sudo dpkg -i python* > /dev/null 2>&1
+sudo dpkg -i python* libpython* > /dev/null 2>&1
 {% endif %}
 cd $ROOT_DIR > /dev/null 2>&1
 echo "DONE"

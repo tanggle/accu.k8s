@@ -8,9 +8,8 @@
 
 
 - name: AccuInsight+ OS Default Settings | Create ansible temporary directory
-  become: yes
   file:
-    path: "{{ ansible_env.HOME | default('/root') }}/.ansible/tmp"
+    path: "{{ ansible_env.HOME }}/.ansible/tmp"
     mode: '0700'
     state: directory
 
@@ -24,12 +23,20 @@
 
 
 - name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
-  become: yes
-  synchronize:
+  copy:
     src: "{{ inventory_dir }}/../../accuinsight.pem"
-    dest: "{{ ansible_env.HOME | default('/root') }}/.ssh/id_rsa"
-    checksum: yes
-    delete: yes
+    dest: "{{ ansible_env.HOME }}/.ssh/id_rsa"
+    mode: '0600'
+    backup: yes
+
+
+#- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
+#  become: yes
+#  synchronize:
+#    src: "{{ inventory_dir }}/../../accuinsight.pem"
+#    dest: "{{ ansible_env.HOME }}/.ssh/id_rsa"
+#    checksum: yes
+#    delete: yes
 
 
 - name: AccuInsight+ OS Default Settings | Set hostname with inventory hostname

@@ -4,6 +4,8 @@
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/master= --overwrite
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['kube-master'] }}"
 
@@ -12,6 +14,8 @@
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/worker= --overwrite
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['kube-worker'] }}"
 
@@ -22,6 +26,8 @@
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/ceph=storage --overwrite
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['accu-ceph'] }}"
 
@@ -32,6 +38,8 @@
   become: yes
   shell: |
       kubectl label node {{ item }} node-role.kubernetes.io/accelerator=nvidia --overwrite
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['accu-nvidia'] }}"
 
@@ -46,6 +54,8 @@
     else
       kubectl taint node {{ item }} node-role.kubernetes.io/master=:NoSchedule- || /bin/true
     fi
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['kube-master'] }}"
 
@@ -61,6 +71,8 @@
     else
       kubectl taint node {{ item }} accuinsight.io/ceph=:NoSchedule- || /bin/true
     fi
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['accu-ceph'] }}"
 
@@ -76,6 +88,8 @@
     else
       kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule- || /bin/true
     fi
+  args:
+    executable: /bin/bash
   run_once: true
   loop: "{{ groups['accu-nvidia'] }}"
 

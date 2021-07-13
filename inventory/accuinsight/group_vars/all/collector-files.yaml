@@ -29,7 +29,7 @@ files:
         dest: kube-master
       - url: "https://github.com/ahmetb/kubectx/releases/download/v{{ accu_tools_kubens_version }}/kubens_v{{ accu_tools_kubens_version }}_linux_x86_64.tar.gz"
         dest: kube-master
-      - url: "https://github.com/derailed/k9s/releases/download/v{{ accu_tools_k9scli_version }}/k9s_v{{ accu_tools_k9scli_version }}_Linux_x86_64.tar.gz"
+      - url: "https://github.com/derailed/k9s/releases/download/v{{ accu_tools_k9scli_version }}/k9s_Linux_x86_64.tar.gz"
         dest: kube-master
       - url: "https://github.com/justjanne/powerline-go/releases/download/v{{ accu_tools_powerline_version }}/powerline-go-linux-amd64"
         dest: kube-master

@@ -168,6 +168,8 @@
     - name: AccuInsight+ GPU Accelerator | Override label for accelerator nodes
       shell: |
           kubectl label node {{ item }} node-role.kubernetes.io/accelerator=nvidia --overwrite
+      args:
+        executable: /bin/bash
       run_once: true
       loop: "{{ groups['accu-nvidia'] }}"
     
@@ -180,6 +182,8 @@
         else
           kubectl taint node {{ item }} accuinsight.io/accelerator=:NoSchedule- || /bin/true
         fi
+      args:
+        executable: /bin/bash
       run_once: true
       loop: "{{ groups['accu-nvidia'] }}"
 

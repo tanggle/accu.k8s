@@ -25,7 +25,21 @@
 
         # Download python packages required by running ansible.
         cd {{ down_location }}/media/python
-        apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces python3 python3-pip python3-venv | grep "^\w" | sort -u | xargs apt download python3 python3-pip python3-venv
+
+        if [ "{{ ansible_distribution_version }}" == "20.04" ]
+        then
+          LIBPYTHON="libpython3.8"
+        fi
+
+        if [ "{{ ansible_distribution_version }}" == "18.04" ]
+        then
+          LIBPYTHON="libpython3.6"
+        fi
+
+        apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces python3 python3-pip python3-venv $LIBPYTHON \
+        | grep "^\w" \
+        | sort -u \
+        | xargs apt download python3 python3-pip python3-venv $LIBPYTHON
 
         # Install python packages for gathering ansible and its modules.
         apt install -y python3 python3-pip python3-venv

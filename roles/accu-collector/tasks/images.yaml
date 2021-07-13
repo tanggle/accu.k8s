@@ -6,29 +6,16 @@
   become: yes
   block:
 
-#    - name: AccuInsight+ Collector | Load List of Images
-#      include_vars: images.yaml
-
-
     - name: AccuInsight+ Collector | Install Container Management Tool
       when:
         - ansible_os_family == 'RedHat'
       yum:
-# NOTE: At this time (2021.04.20), there are some package dependency problem with containers-common.
-#       the latest podman requires containers-common-4:1-15 which has a dependency (container-selinux >= 2:2.160.0-1)
-#       but RedHat changed package naming convention from 2:2.160.0-x to 2.160.0-x (without Epoch).
-#       Currently, we use a previous version of podman-2.2.1 instead of 3.0.x and have to wait for RedHat to solve this issue.
-#
-#       Now (2021.04.26), replaced podman with docker as a container management tool to resolve bad package naming conventions with RedHat family.
         name:
           - podman
           - pigz
         state: latest
         update_cache: yes
         disablerepo: Collector-Docker
-#      notify:
-#        - Container Management Tool | Restart
-#        - Container Management Tool | Wait for Ready
 
 
     - name: AccuInsight+ Collector | Install Container Management Tool
@@ -39,13 +26,6 @@
           - podman
           - pigz
         state: latest
-#      notify:
-#        - Container Management Tool | Restart
-#        - Container Management Tool | Wait for Ready
-
-
-    - name: AccuInsight+ GPU Accelerator | Flush Handlers for Container Management Tool
-      meta: flush_handlers
 
 
     - name: AccuInsight+ Collector | Collect Images

@@ -65,23 +65,23 @@ docker_matrix: # docker_matrix['kube_version']
   # https://v1-17.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # On each of your machines, install Docker. Version 19.03.4 is recommended, but 1.13.1, 17.03, 17.06, 17.09, 18.06 and 18.09 are known to work as well.
   # https://github.com/kubernetes/kubernetes/blob/v1.17.17/vendor/k8s.io/system-validators/validators/docker_validator.go#L52
-  "1.17": 19.03.4
+  '1.17': "19.03.4"
   # https://v1-18.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # On each of your machines, install Docker. Version 19.03.11 is recommended, but 1.13.1, 17.03, 17.06, 17.09, 18.06 and 18.09 are known to work as well.
   # https://github.com/kubernetes/kubernetes/blob/v1.18.20/vendor/k8s.io/system-validators/validators/docker_validator.go#L52
-  "1.18": 19.03.11
+  '1.18': "19.03.11"
   # https://v1-19.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # The Kubernetes release notes list which versions of Docker are compatible with that version of Kubernetes.
   # https://github.com/kubernetes/kubernetes/blob/v1.19.12/vendor/k8s.io/system-validators/validators/docker_validator.go#L52
-  "1.19": 19.03.14
+  '1.19': "19.03.14"
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # The Kubernetes release notes list which versions of Docker are compatible with that version of Kubernetes.
   # https://github.com/kubernetes/kubernetes/blob/v1.21.2/vendor/k8s.io/system-validators/validators/docker_validator.go#L52
-  "1.20": 19.03.14
+  '1.20': "19.03.14"
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # You can find the latest validated version of Docker in this dependencies file.
   # https://github.com/kubernetes/kubernetes/blob/v1.21.2/vendor/k8s.io/system-validators/validators/docker_validator.go#L52
-  "1.21": 20.10.7
+  '1.21': "20.10.7"
   # NOTE: https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/
   # If you’re rolling your own clusters, you will also need to make changes to avoid your clusters breaking.
   # At v1.20, you will get a deprecation warning for Docker. When Docker runtime support is removed in a future release
@@ -95,21 +95,23 @@ docker_version: "{{ lookup('vars', 'kube_cri_version') | default(docker_matrix[k
 # CONTAINERD #
 ##############
 
+# NOTE: There is no clear support matrix for containerd.
+#       Following matrix is decided according to what version of 'pause' is used by containerd and kubernetes.
 # The recommended containerd version will be selected automatically if 'kube_cri_version' is not defined.
 containerd_matrix: # containerd_matrix['kube_version']
   # https://v1-17.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-  "1.17": 1.3.9
+  '1.17': "1.3.9" # pause 3.1
   # https://v1-18.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
-  "1.18": 1.4.4
+  '1.18': "1.4.4" # pasue 3.2
   # https://v1-19.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # The Kubernetes release notes list which versions of containerd are compatible with that version of Kubernetes.
-  "1.19": 1.4.4
+  '1.19': "1.4.4" # pause 3.2
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # The Kubernetes release notes list which versions of containerd are compatible with that version of Kubernetes.
-  "1.20": 1.4.4
+  '1.20': "1.4.4" # pause 3.2
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # No more comment on compatibility.
-  "1.21": 1.4.6
+  '1.21': "1.4.6" # pause: kubernetes uses 3.4.1 but containerd uses 3.5.0. need further investigation.
 
 containerd_version: "{{ lookup('vars', 'kube_cri_version') | default(containerd_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
 
@@ -126,11 +128,11 @@ containerd_version: "{{ lookup('vars', 'kube_cri_version') | default(containerd_
 
 # The recommended cri-o version will be selected automatically if 'kube_cri_version' is not defined.
 crio_matrix: # crio_matrix['kube_version']
-  "1.17": 1.17
-  "1.18": 1.18
-  "1.19": 1.19
-  "1.20": 1.20
-  "1.21": 1.21
+  '1.17': "1.17"
+  '1.18': "1.18"
+  '1.19': "1.19"
+  '1.20': "1.20"
+  '1.21': "1.21"
 
 crio_version: "{{ lookup('vars', 'kube_cri_version') | default(crio_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
 

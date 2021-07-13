@@ -79,7 +79,7 @@
 
     - name: AccuInsight+ K8S Tools | Copy k9scli binary
       unarchive:
-        src: "{{ accu_offline_target }}/{{ component }}/files/k9s_v{{ accu_tools_k9scli_version }}_Linux_x86_64.tar.gz"
+        src: "{{ accu_offline_target }}/{{ component }}/files/k9s_Linux_x86_64.tar.gz"
         dest: /usr/local/bin
         owner: root
         group: root

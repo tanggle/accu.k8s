@@ -28,7 +28,7 @@ debian:
             "containerd.io",
             {% endif                         %}
             {% if kube_cri == 'cri-o'        %}
-            "cri-o cri-o-runc podman-rootless",
+            "cri-o cri-o-runc podman",
             {% endif                         %}
             {% if kube_cri == 'docker'       %}
             "docker-ce docker-ce-cli",
@@ -59,7 +59,7 @@ debian:
       - 'gdisk'
       # for debugging utilities
       - 'net-tools'
-      - 'bind9-dnsutils'
+      - '{% if ansible_distribution_version == "18.04" %}dnsutils{% else %}bind9-dnsutils{% endif %}'
       - 'lsof'
       - 'pciutils'
       - 'lshw'
