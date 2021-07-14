@@ -301,7 +301,7 @@ accu_nfs_provisioner_mount_on_masters: false
 # AccuInsight+ Harbor
 accu_harbor_enabled: true
 accu_harbor_release: accu-harbor
-accu_harbor_version: 1.6.1
+accu_harbor_version: 1.7.0
 accu_harbor_namespace: accu-harbor
 accu_harbor_fqdn_core: harbor.accuinsight.io
 accu_harbor_fqdn_notary: notary.accuinsight.io
@@ -356,7 +356,7 @@ accu_chartmuseum_pass: AccuInsight+k8s
 # AccuInsight+ Prometheus
 accu_monitoring_enabled: true
 accu_monitoring_release: accu-monitor
-accu_monitoring_version: 14.6.2
+accu_monitoring_version: 16.13.0
 accu_monitoring_namespace: accu-monitor
 accu_monitoring_prometheus_fqdn: pc.accuinsight.io
 accu_monitoring_prometheus_retention: 4w

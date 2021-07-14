@@ -8,7 +8,6 @@
 - name: AccuInsight+ OS Default Settings
   hosts: kube-cluster,accu-server
   gather_facts: true
-  become: yes
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   roles:
     - { role: accu-bootstrap }

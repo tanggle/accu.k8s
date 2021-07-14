@@ -111,7 +111,7 @@ containerd_matrix: # containerd_matrix['kube_version']
   '1.20': "1.4.4" # pause 3.2
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd
   # No more comment on compatibility.
-  '1.21': "1.4.6" # pause: kubernetes uses 3.4.1 but containerd uses 3.5.0. need further investigation.
+  '1.21': "1.4.6" # pause: kubernetes uses 3.4.1 but containerd uses 3.2. need further investigation.
 
 containerd_version: "{{ lookup('vars', 'kube_cri_version') | default(containerd_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
 
@@ -132,7 +132,7 @@ crio_matrix: # crio_matrix['kube_version']
   '1.18': "1.18"
   '1.19': "1.19"
   '1.20': "1.20"
-  '1.21': "1.21"
+  '1.21': "1.21" # pause: kubernetes use 3.4.1 but cri-o uses 3.5. need further investigation.
 
 crio_version: "{{ lookup('vars', 'kube_cri_version') | default(crio_matrix[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')], true) }}"
 

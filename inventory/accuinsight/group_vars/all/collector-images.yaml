@@ -25,27 +25,29 @@ images:
 
   - component: accu-harbor
     list:
-      - tags: goharbor/chartmuseum-photon:v2.2.1
+      - tags: goharbor/chartmuseum-photon:v2.3.0
         dest: kube-worker
-      - tags: goharbor/harbor-core:v2.2.1
+      - tags: goharbor/harbor-core:v2.3.0
         dest: kube-worker
-      - tags: goharbor/harbor-db:v2.2.1
+      - tags: goharbor/harbor-db:v2.3.0
         dest: kube-worker
-      - tags: goharbor/harbor-jobservice:v2.2.1
+      - tags: goharbor/harbor-exporter:v2.3.0
         dest: kube-worker
-      - tags: goharbor/harbor-portal:v2.2.1
+      - tags: goharbor/harbor-jobservice:v2.3.0
         dest: kube-worker
-      - tags: goharbor/harbor-registryctl:v2.2.1
+      - tags: goharbor/harbor-portal:v2.3.0
         dest: kube-worker
-      - tags: goharbor/notary-server-photon:v2.2.1
+      - tags: goharbor/harbor-registryctl:v2.3.0
         dest: kube-worker
-      - tags: goharbor/notary-signer-photon:v2.2.1
+      - tags: goharbor/notary-server-photon:v2.3.0
         dest: kube-worker
-      - tags: goharbor/redis-photon:v2.2.1
+      - tags: goharbor/notary-signer-photon:v2.3.0
         dest: kube-worker
-      - tags: goharbor/registry-photon:v2.2.1
+      - tags: goharbor/redis-photon:v2.3.0
         dest: kube-worker
-      - tags: goharbor/trivy-adapter-photon:v2.2.1
+      - tags: goharbor/registry-photon:v2.3.0
+        dest: kube-worker
+      - tags: goharbor/trivy-adapter-photon:v2.3.0
         dest: kube-worker
 
   - component: accu-helm-operator
@@ -79,31 +81,33 @@ images:
   - component: accu-monitoring
     list:
       # Prometheus Operator
-      - tags: quay.io/prometheus-operator/prometheus-operator:v0.46.0
+      - tags: quay.io/prometheus-operator/prometheus-operator:v0.48.1
         dest: kube-worker
-      - tags: jettech/kube-webhook-certgen:v1.5.0
+      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.48.1
+        dest: kube-worker
+      - tags: jettech/kube-webhook-certgen:v1.5.2
+        dest: kube-worker
+      - tags: quay.io/thanos/thanos:v0.17.2
         dest: kube-worker
       # Prometheus and Alertmanager
-      - tags: quay.io/prometheus/prometheus:v2.24.0
+      - tags: quay.io/prometheus/prometheus:v2.27.1
         dest: kube-worker
-      - tags: quay.io/prometheus/alertmanager:v0.21.0
-        dest: kube-worker
-      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.46.0
+      - tags: quay.io/prometheus/alertmanager:v0.22.2
         dest: kube-worker
       # Prometheus Node Exporter
       - tags: quay.io/prometheus/node-exporter:v1.1.2
         dest: kube-cluster
       # Kube State Metrics
-      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v1.9.8
+      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0
         dest: kube-worker
       # Grafana
-      - tags: grafana/grafana:7.5.3
+      - tags: grafana/grafana:8.0.3
         dest: kube-worker
       - tags: curlimages/curl:7.73.0
         dest: kube-worker
       - tags: busybox:1.31.1
         dest: kube-worker
-      - tags: quay.io/kiwigrid/k8s-sidecar:1.10.7
+      - tags: quay.io/kiwigrid/k8s-sidecar:1.12.2
         dest: kube-worker
 
   - component: accu-nfs-provisioner

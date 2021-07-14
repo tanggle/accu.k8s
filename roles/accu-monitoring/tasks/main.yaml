@@ -71,6 +71,8 @@
       - '--set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage={{ accu_monitoring_prometheus_storage_size }}'
       - '--set prometheus.ingress.enabled=true'
       - '--set prometheus.ingress.hosts[0]={{ accu_monitoring_prometheus_fqdn }}'
+      - '--set prometheus.ingress.paths[0]=/'
+      - '--set prometheus.ingress.pathType=ImplementationSpecific'
       # AlertManagr
       - '--set alertmanager.alertmanagerSpec.retention={{ accu_monitoring_alertmanager_retention }}'
       - '--set alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.storageClassName={{ accu_monitoring_alertmanager_storage_class }}'
@@ -78,8 +80,10 @@
       - '--set alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.resources.requests.storage={{ accu_monitoring_alertmanager_storage_size }}'
       - '--set alertmanager.ingress.enabled=true'
       - '--set alertmanager.ingress.hosts[0]={{ accu_monitoring_alertmanager_fqdn }}'
-      - '--set grafana.adminPassword={{ accu_monitoring_grafana_pass }}'
+      - '--set alertmanager.ingress.paths[0]=/'
+      - '--set alertmanager.ingress.pathType=ImplementationSpecific'
       # Grafana
+      - '--set grafana.adminPassword={{ accu_monitoring_grafana_pass }}'
       - '--set grafana.persistence.enabled=true'
       - '--set grafana.persistence.storageClassName={{ accu_monitoring_grafana_storage_class }}'
       - '--set grafana.persistence.accessModes[0]={{ accu_monitoring_grafana_storage_mode }}'
@@ -88,6 +92,7 @@
       - '--set grafana.initChownData.enabled=false'
       - '--set grafana.ingress.enabled=true'
       - '--set grafana.ingress.hosts[0]={{ accu_monitoring_grafana_fqdn }}'
+      - '--set grafana.ingress.path=/'
       # - '--set grafana.plugins[0]=grafana-piechart-panel'
   run_once: yes
 
