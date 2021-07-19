@@ -39,6 +39,11 @@ kube_data_dir_cri: /data/cri             # default: /var/lib/docker
 kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
 kube_data_dir_etcd: /data/k8s/etcd       # default: /var/lib/etcd
 
+# Kubernetes admin users
+kube_admin_users:
+  - "{{ ansible_user }}"
+  - "root"
+
 ###############################
 # AccuInsight+ Kubernetes CNI #
 ###############################

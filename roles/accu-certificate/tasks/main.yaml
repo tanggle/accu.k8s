@@ -176,38 +176,53 @@
     - inventory_hostname in groups['kube-master']
     - inventory_hostname != groups['kube-master'][0]
   become: yes
-  shell: |
-    scp -r -o StrictHostKeyChecking=no \
-        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/* \
-        {{ accu_certificates_location }}
-  args:
-    executable: /bin/bash
+  synchronize:
+    src: "{{ accu_certificates_location }}/"
+    dest: "{{ accu_certificates_location }}"
+    checksum: yes
+    delete: yes
+  delegate_to: "{{ groups['kube-master'][0] }}"
+
+
+# For safety, copy certificates to each master
+#- name: AccuInsight+ Certificate | Copy OpenSSL Certificates to masters
+#  when:
+#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#    - inventory_hostname in groups['kube-master']
+#    - inventory_hostname != groups['kube-master'][0]
+#  become: yes
+#  shell: |
+#    scp -r -o StrictHostKeyChecking=no \
+#        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/* \
+#        {{ accu_certificates_location }}
+#  args:
+#    executable: /bin/bash
 
 
 ## Normally, synchronize module with 'delegate_to' uses 'ansible_host' address defined in inventory file as a destination.
 ## This can be a problem if 'ansible_host' address is unreachable from each node.
-#- name: AccuInsight+ Certificate | Install OpenSSL CA CRT to System Trust Store
-#  when:
-#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
-#  become: yes
-#  synchronize:
-#    src: "{{ accu_certificates_location }}/ca.crt"
-#    dest: "{{ accu.trust_ca_store }}/accuinsight.crt"
-#    checksum: yes
-#    delete: yes
-#  delegate_to: "{{ groups['kube-master'][0] }}"
-
-
 - name: AccuInsight+ Certificate | Install OpenSSL CA CRT to System Trust Store
   when:
     - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
   become: yes
-  shell: |
-    scp -o StrictHostKeyChecking=no \
-        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/ca.crt \
-        {{ accu.trust_ca_store }}/accuinsight.crt
-  args:
-    executable: /bin/bash
+  synchronize:
+    src: "{{ accu_certificates_location }}/ca.crt"
+    dest: "{{ accu.trust_ca_store }}/accuinsight.crt"
+    checksum: yes
+    delete: yes
+  delegate_to: "{{ groups['kube-master'][0] }}"
+
+
+#- name: AccuInsight+ Certificate | Install OpenSSL CA CRT to System Trust Store
+#  when:
+#    - not trust_store.stat.exists | bool or accu_certificates_recreation | bool
+#  become: yes
+#  shell: |
+#    scp -o StrictHostKeyChecking=no \
+#        {{ ansible_user }}@{{ hostvars[groups['kube-master'][0]]['private_ip'] }}:{{ accu_certificates_location }}/ca.crt \
+#        {{ accu.trust_ca_store }}/accuinsight.crt
+#  args:
+#    executable: /bin/bash
 
 
 - name: AccuInsight+ Certificate | Update System Trust Store

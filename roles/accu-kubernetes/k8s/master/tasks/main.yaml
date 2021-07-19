@@ -77,22 +77,23 @@
       notify:
         - Kubelet | Restart
      
-    
-    # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information
-    - name: AccuInsight+ Kubernetes | Set Superuser privileges (1/2)
-      file:
-        path: "{{ ansible_env.HOME | default('/root') }}/.kube"
-        mode: '0700'
-        state: directory
-    
-    
-    # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information
-    - name: AccuInsight+ Kubernetes | Set Superuser privileges (2/2)
-      copy:
-        src: /etc/kubernetes/admin.conf
-        dest: "{{ ansible_env.HOME | default('/root') }}/.kube/config"
-        remote_src: yes
-        mode: '0600'
+
+    # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information    
+    - name: AccuInsight+ Kubernetes | Set Superuser privileges for kube_admin_users
+      shell: |
+        # Set home directory of kube_admin_users.
+        HOME=$(grep ^{{ item }}: /etc/passwd | cut -d ':' -f 6)
+
+        # Create directory for kube_admin_users.
+        mkdir -p $HOME/.kube
+
+        # Copy kubeconfig for users.
+        cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+
+        chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.kube
+      args:
+        executable: /bin/bash
+      loop: "{{ kube_admin_users }}"
     
     
     - name: AccuInsight+ Kubernetes | Set command completion for Kubernetes
