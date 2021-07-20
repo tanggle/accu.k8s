@@ -6,17 +6,16 @@
   become: yes
   block:
 
-
-    - name: AccuInsight+ Collector | Set facts for RedHat (releasever)
+    - name: AccuInsight+ Collector | Set facts for RedHat Family (releasever)
       when:
-        - ansible_distribution == "RedHat"
+        - (ansible_distribution == "RedHat" and ansible_distribution_major_version | int == 7)
       set_fact:
         releasever: "{{ ansible_distribution_major_version }}Server"
         
 
-    - name: AccuInsight+ Collector | Set facts for Centos (releasever)
+    - name: AccuInsight+ Collector | Set facts for RedHat Family (releasever)
       when:
-        - ansible_distribution == "CentOS"
+        - (ansible_distribution != "RedHat" or ansible_distribution_major_version | int != 7)
       set_fact:
         releasever: "{{ ansible_distribution_major_version }}"
 
@@ -28,6 +27,14 @@
         name_deployer: "accu.k8s.deployer-{{ ansible_distribution | lower }}{{ ansible_distribution_version | replace('.', '') }}"
 
 
+    # NOTE: How to check RELEASEVER on RedHat Family
+    #
+    # 8.x:
+    # /usr/libexec/platform-python -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
+    #
+    # 7.x:
+    # python -c 'import yum, json; yb = yum.YumBase(); print json.dumps(yb.conf.yumvar, indent=2)'
+    #
     - name: AccuInsight+ Collector | Collect Ansible Deployer
       shell: |
         # Setup installroot.

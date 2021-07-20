@@ -15,23 +15,40 @@
       - '--strip-components=1'
 
 
-- name: AccuInsight+ Helm | Prepare helm plugin (push) on masters
-  when:
-    - inventory_hostname in groups['kube-master']
-  become: yes
-  file:
-    path: /root/.local/share/helm/plugins/helm-push
-    state: directory
-
-
 - name: AccuInsight+ Helm | Install helm plugin (push) on masters
   when:
     - inventory_hostname in groups['kube-master']
   become: yes
-  unarchive:
-    src: "{{ accu_offline_target }}/{{ component }}/files/helm-push_0.8.1_linux_amd64.tar.gz"
-    dest: /root/.local/share/helm/plugins/helm-push
-    remote_src: yes
+  shell: |
+    HOME=$(grep ^{{ item }}: /etc/passwd | cut -d ':' -f 6)
+
+    mkdir -p $HOME/.local/share/helm/plugins/helm-push
+
+    tar xzf {{ accu_offline_target }}/{{ component }}/files/helm-push_0.9.0_linux_amd64.tar.gz -C $HOME/.local/share/helm/plugins/helm-push
+
+    chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.local/share/helm
+  args:
+    executable: /bin/bash
+  loop: "{{ kube_admin_users }}"
+
+
+#- name: AccuInsight+ Helm | Prepare helm plugin (push) on masters
+#  when:
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  file:
+#    path: /root/.local/share/helm/plugins/helm-push
+#    state: directory
+
+
+#- name: AccuInsight+ Helm | Install helm plugin (push) on masters
+#  when:
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  unarchive:
+#    src: "{{ accu_offline_target }}/{{ component }}/files/helm-push_0.9.0_linux_amd64.tar.gz"
+#    dest: /root/.local/share/helm/plugins/helm-push
+#    remote_src: yes
 
 
 - name: AccuInsight+ Helm | Update charts repository (obsolete stable)

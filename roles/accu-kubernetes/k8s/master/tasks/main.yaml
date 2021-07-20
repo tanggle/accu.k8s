@@ -76,9 +76,9 @@
       delay: 60
       notify:
         - Kubelet | Restart
-     
 
-    # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information    
+
+    # READ: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#more-information
     - name: AccuInsight+ Kubernetes | Set Superuser privileges for kube_admin_users
       shell: |
         # Set home directory of kube_admin_users.

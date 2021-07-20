@@ -10,14 +10,14 @@
 
 * 지원 OS (Air-gapped 환경을 위한 OS 저장소 지원)
 
-  - RedHat 7.8 / 8.2
-  - CentOS 7.8 / 8.2
+  - RedHat 7.x / 8.x
+  - CentOS 7.x / 8.x
   - Ubuntu 18.04 / 20.04
 
 
 * 지원 K8S
 
-  - Kubernetes 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x
+  - Kubernetes 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (검증 테스트 필요)
 
 
 * 지원 CRI (Kubernetes Container Runtime Interface)
@@ -41,38 +41,8 @@
 ```bash
 git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
 ```
-> Username: ***accuinsight***, Password: ***AccuInsight+k8s@***
+> Username: ***accuinsight***, Password: ***CONTACT ME (<tanggle@gmail.com>)***
 
-
-
-### Air-gapped 환경을 위한 Ansible 환경 수집
-
-* Python 수집
-
-  ```bash
-  $ sudo rm -rf /tmp/xxx; sudo mkdir -p /tmp/xxx/etc; sudo cp /etc/os-release /tmp/xxx/etc
-  $ sudo mkdir -p /tmp/offline/python
-  $ sudo yum install -y --releasever=*RELEASEVER* --installroot=/tmp/xxx --downloadonly --downloaddir=/tmp/offline/python python3 python3-pip 
-  ```
-  > Replace `RELEASEVER` with `7Server`(RHEL 7.x), `8Server`(RHEL 8.x), `7`(CentoS 7.x), `8`(CentOS 8.x)
-
-* Ansible 수집
-
-  ```bash
-  $ python3 -m venv ansible
-  $ source ansible/bin/activate
-  $ mkdir /tmp/offline/ansible; cd /tmp/offline/ansible
-  $ pip3 download pip; pip3 install pip-*.whl
-  $ pip3 download ansible==2.9.6 
-  ```
-
-* 압축
-
-  ```bash
-  $ cd /tmp
-  $ tar cvzf ~/ansible.offline.tar.gz offline
-  ```
-> 수집된 `ansible.offline.tar.gz` 파일을 고객사에 반입
 
 ### Air-gapped 환경을 위한 데이터 수집
 
@@ -83,12 +53,25 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
 
 * 실행
 
-  > ansible-playbook -i inventory/accuinsight/**hosts.`<OS>`** plays/accu-collector.yaml --flush-cache
+  ```bash
+  $ ansible-playbook -i inventory/accuinsight/hosts.<OS> plays/accu-collector.yaml --flush-cache
+  ```
+
+* 압축 (반입 미디어 생성)
+
+  ```bash
+  $ ./accuk8s.media
+  ```
+  > 실행 시 고객사 반입을 위한 `accu.k8s.tar.gz` 파일이 생성
+
 
 * 구조
   > **참고**: charts, files, images 는 OS 와 무관하게 동일한 데이터
 
   - data
+    - deployer
+      - accu.k8s.deployer-`<OS>`.sh
+      - accu.k8s.deployer-`<OS>`.tar.gz
     - offline
       - **`<component>`**
         - charts
@@ -110,34 +93,19 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
           - ubuntu-20.04
           - ...
 
-### Air-gapped 환경을 위한 Ansible 환경 구성
+### Air-gapped 환경을 위한 배포
 
 * 압축 해제
 
   ```bash
-  $ tar xvzf ansible.offline.tar.gz 
+  $ tar xvzf accu.k8s.tar.gz
   ```
 
-* Python 설치
+* 배포 환경 생성 (deployer)
 
   ```bash
-  $ sudo yum localinstall python3-*.rpm libtirpc-*.rpm (or rpm -ivh python3-*.rpm libtirpc-*.rpm)
-  ```
-
-* Ansible 설치
-
-  ```bash
-  # 1. Creating virtual environment
-  $ python3 -m venv ansible
-
-  # 2. Activate virtual environment
-  $ source ansible/bin/activate
-
-  # 3. Upgrading pip 
-  $ pip3 install --disable-pip-version-check pip-*.whl
-
-  # 4. Installing ansible
-  $ pip3 install --disable-pip-version-check *
+  $ data/deployer/accu.k8s.deployer-<OS>.sh
+  $ source data/deployer/deployer/bin/activate
   ```
 
 ### 쿠버네티스 배포
