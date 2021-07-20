@@ -10,14 +10,14 @@
 
 * 지원 OS (Air-gapped 환경을 위한 OS 저장소 지원)
 
-  - RedHat 7.x / 8.x
-  - CentOS 7.x / 8.x
-  - Ubuntu 18.04 / 20.04
+  - RedHat 7.x / 8.x (검증 완료: 7.6/7.7/7.8/7.9/8.0/8.1/8.2/8.3)
+  - CentOS 7.x / 8.x (지원 중단 예정)
+  - Ubuntu 18.04 / 20.04 (검증 완료)
 
 
 * 지원 K8S
 
-  - Kubernetes 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (검증 테스트 필요)
+  - Kubernetes 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (검증 진행)
 
 
 * 지원 CRI (Kubernetes Container Runtime Interface)
@@ -32,9 +32,17 @@
   - NFS
   - Ceph (RBD, CEPHFS, OBJECT STORAGE)
 
+
+* 지원 GPU
+
+  - NVIDIA Tesla V100 (검증 완료)
+  - NVIDIA Tesla A100 (Multi-instance GPU 검증 진행)
+
+
 * 기타 지원
 
-  - 소프트웨어 로드밸런서 (자체 HA 지원)
+  - 소프트웨어 로드밸런서 (VIP 이중화 지원)
+
 
 ### 쿠버네티스 소스
 
@@ -118,7 +126,7 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
 
   * 상세 설정
   
-    - inventory/accuinsight/groups_all/all/**accuinsight.yaml**
+    - inventory/accuinsight/group_vars/all/**accuinsight.yaml**
 
 * 배포
 
@@ -145,8 +153,10 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
   # Chart Registry
   xxx.xxx.xxx.xxx charts.accuinsight.io
   # Prometheus Dashboard (Grafana)
-  xxx.xxx.xxx.xxx accupm.accuinsight.io
+  xxx.xxx.xxx.xxx pm.accuinsight.io
   # Prometheus Console
-  xxx.xxx.xxx.xxx accupc.accuinsight.io
+  xxx.xxx.xxx.xxx pc.accuinsight.io
+  # Prometheus Alertmanager
+  xxx.xxx.xxx.xxx pa.accuinsight.io
   ```
   > xxx.xxx.xxx.xxx 는 VIP 또는 Master 노드의 IP로 대체
