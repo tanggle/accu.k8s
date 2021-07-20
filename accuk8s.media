@@ -1,0 +1,4 @@
+#!/bin/bash
+
+tar cvzf accu.k8s.tar.gz accuinsight.pem accuinsight.pub accuk8s.yaml ansible.cfg data inventory library plays roles
+
