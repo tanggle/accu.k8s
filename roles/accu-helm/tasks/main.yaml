@@ -8,6 +8,8 @@
     src: "{{ accu_offline_target }}/{{ component }}/files/helm-v{{ accu_helm_version }}-linux-amd64.tar.gz"
     dest: /usr/bin
     remote_src: yes
+    owner: root
+    group: root
     exclude:
       - 'LICENSE'
       - 'README.md'
@@ -22,11 +24,14 @@
   shell: |
     HOME=$(grep ^{{ item }}: /etc/passwd | cut -d ':' -f 6)
 
-    mkdir -p $HOME/.local/share/helm/plugins/helm-push
+    if [ $HOME ] # if the user exists ...
+    then
+      mkdir -p $HOME/.local/share/helm/plugins/helm-push
 
-    tar xzf {{ accu_offline_target }}/{{ component }}/files/helm-push_0.9.0_linux_amd64.tar.gz -C $HOME/.local/share/helm/plugins/helm-push
+      tar xzf {{ accu_offline_target }}/{{ component }}/files/helm-push_0.9.0_linux_amd64.tar.gz -C $HOME/.local/share/helm/plugins/helm-push
 
-    chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.local/share/helm
+      chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.local/share/helm
+    fi
   args:
     executable: /bin/bash
   loop: "{{ kube_admin_users }}"

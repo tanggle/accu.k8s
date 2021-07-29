@@ -84,13 +84,33 @@
         # Set home directory of kube_admin_users.
         HOME=$(grep ^{{ item }}: /etc/passwd | cut -d ':' -f 6)
 
-        # Create directory for kube_admin_users.
-        mkdir -p $HOME/.kube
+        if [ $HOME ] # if the user exists ...
+        then
+          # Create directory for kube_admin_users.
+          mkdir -p $HOME/.kube
 
-        # Copy kubeconfig for users.
-        cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+          # Copy kubeconfig and change ownership for users.
+          cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+          chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.kube
 
-        chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.kube
+          # Set CRI socket permission for users.
+          if [ "{{ kube_cri }}" == "docker" ]
+          then
+            setfacl -m user:{{ item }}:rw /var/run/docker.sock
+          fi
+
+          if [ "{{ kube_cri }}" == "containerd" ]
+          then
+            setfacl -m user:{{ item }}:x /run/containerd
+            setfacl -m user:{{ item }}:rw /run/containerd/containerd.sock
+          fi
+
+          if [ "{{ kube_cri }}" == "cri-o" ]
+          then
+            setfacl -m user:{{ item }}:x /var/run/crio
+            setfacl -m user:{{ item }}:rw /var/run/crio/crio.sock
+          fi
+        fi
       args:
         executable: /bin/bash
       loop: "{{ kube_admin_users }}"

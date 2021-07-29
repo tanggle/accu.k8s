@@ -41,12 +41,18 @@
 
     - name: AccuInsight+ K8S Tools | Rename K8S context to 'AccuInsight+'
       shell: |
-        if [[ -z $(/usr/local/bin/kubectx | grep -w AccuInsight+) ]]
+        HOME=$(grep ^{{ item }}: /etc/passwd | cut -d ':' -f 6)
+
+        if [ $HOME ] # if the user exists ...
         then
-          /usr/local/bin/kubectx AccuInsight+=.
+          if [[ -z $(sudo -u {{ item }} /usr/local/bin/kubectx | grep -w AccuInsight+) ]]
+          then
+            sudo -u {{ item }} /usr/local/bin/kubectx AccuInsight+=.
+          fi
         fi
       args:
         executable: /bin/bash
+      loop: "{{ kube_admin_users }}"
 
 
     - name: AccuInsight+ K8S Tools | Copy powerline-go binary
@@ -70,13 +76,16 @@
       shell: |
         HOME=$(grep ^{{ item }}: /etc/passwd | cut -d ':' -f 6)
 
-        cp -f {{ accu_offline_target }}/{{ component }}/files/powerline-go.bash  $HOME/.powerline-go
-
-        chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.powerline-go
-
-        if [[ -z $(grep powerline-go $HOME/.bashrc) ]]
+        if [ $HOME ] # if the user exists ...
         then
-          echo "source .powerline-go" >> $HOME/.bashrc
+          cp -f {{ accu_offline_target }}/{{ component }}/files/powerline-go.bash  $HOME/.powerline-go
+
+          chown -R $(id {{ item }} -u):$(id {{ item }} -g) $HOME/.powerline-go
+
+          if [[ -z $(grep powerline-go $HOME/.bashrc) ]]
+          then
+            echo "source .powerline-go" >> $HOME/.bashrc
+          fi
         fi
       args:
         executable: /bin/bash

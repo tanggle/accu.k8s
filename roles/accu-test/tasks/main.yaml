@@ -1,10 +1,6 @@
 ---
 
-- name: Print inventory hostname
+- name: Print OS Information
   debug:
-    msg: "{{ inventory_hostname }}"
-
-- name: Print kernel version
-  debug:
-    msg: "{{ ansible_kernel }}"
+    msg: "{{ inventory_hostname }} : {{ ansible_distribution }} {{ ansible_distribution_version }} : {{ ansible_kernel }}"
 

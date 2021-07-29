@@ -33,7 +33,7 @@
         # Install rpm with dependancies.
         # Always return true even if the package is already installed.
         # https://docs.ansible.com/ansible/latest/user_guide/playbooks_error_handling.html#ensuring-success-for-command-and-shell
-        rpm -U {{ accu.apache.pkgs | join(' ') }} || /bin/true
+        rpm -U --force {{ accu.apache.pkgs | join(' ') }} || /bin/true
       args:
         executable: /bin/bash
         warn: no
@@ -68,7 +68,7 @@
         # Install rpm with dependancies.
         # Always return true even if the package is already installed.
         # https://docs.ansible.com/ansible/latest/user_guide/playbooks_error_handling.html#ensuring-success-for-command-and-shell
-        rpm -U {{ accu.createrepo.pkgs | join(' ') }} || /bin/true
+        rpm -U --force {{ accu.createrepo.pkgs | join(' ') }} || /bin/true
       args:
         executable: /bin/bash
         warn: no

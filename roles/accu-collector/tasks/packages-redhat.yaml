@@ -106,7 +106,7 @@
     #
     # 7.x:
     # python -c 'import yum, json; yb = yum.YumBase(); print json.dumps(yb.conf.yumvar, indent=2)'
-    #
+    # 
     - name: AccuInsight+ Collector | Collect Packages and Dependancies
       shell: |
         # Setup installroot.

@@ -44,6 +44,7 @@ debian:
       - 'build-essential'
       # for accu-accelerator (nvidia)
       - 'patch'
+      - 'nvidia-docker2' # NOTE: this is required for downloading nvidia-container-runtime.
       - 'nvidia-container-runtime'
       - 'nvidia-container-toolkit'
       # for accu-nfs-server

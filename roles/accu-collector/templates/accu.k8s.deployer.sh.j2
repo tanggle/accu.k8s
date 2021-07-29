@@ -19,11 +19,11 @@ echo -n "* Installing python ...................................................
 cd $ROOT_DIR/media/python > /dev/null 2>&1
 {% if ansible_os_family == 'RedHat' and ansible_distribution_major_version | int == 7 %}
 #sudo rpm -U python3* libtirpc* > /dev/null 2>&1
-sudo yum localinstall -y python3* libtirpc* > /dev/null 2>&1
+sudo yum localinstall -y --disablerepo=* python3* libtirpc* > /dev/null 2>&1
 {% endif %}
 {% if ansible_os_family == 'RedHat' and ansible_distribution_major_version | int == 8 %}
 #sudo rpm -U python3* platform-python* > /dev/null 2>&1
-sudo yum localinstall -y python3* platform-python* > /dev/null 2>&1
+sudo yum localinstall --disablerepo=* -y python3* platform-python* > /dev/null 2>&1
 {% endif %}
 {% if ansible_os_family == 'Debian' %}
 sudo dpkg -i python* libpython* > /dev/null 2>&1

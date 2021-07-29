@@ -25,7 +25,7 @@ accu:
       - 'createrepo_c-*'
       - 'createrepo_c-libs-*'
       - 'drpm-*'
-      - 'libmodulemd-2.9.4-2.el8.x86_64.rpm'
+      - 'libmodulemd-*'
 
   repo:
     online: # Repositories to disable in air-gapped environment.
