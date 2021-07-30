@@ -188,7 +188,7 @@
       loop: "{{ groups['accu-nvidia'] }}"
 
 
-    - name: AccuInsight+ GPU Accelerator | Create menifests directory for component
+    - name: AccuInsight+ GPU Accelerator | Create manifests directory for {{ component }}
       file:
         path: "{{ accu_manifests_location}}/{{ component }}"
         state: directory

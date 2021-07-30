@@ -118,7 +118,7 @@
 #  delay: 30
 
 
-- name: AccuInsight+ Storage Ceph | Create menifests directory for {{ component }}
+- name: AccuInsight+ Storage Ceph | Create manifests directory for {{ component }}
   when:
     - inventory_hostname in groups['kube-master']
   become: yes

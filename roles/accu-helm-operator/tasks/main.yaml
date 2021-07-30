@@ -1,6 +1,6 @@
 ---
 
-- name: AccuInsight+ Helm Operator | Create menifests directory for {{ component }}
+- name: AccuInsight+ Helm Operator | Create manifests directory for {{ component }}
   when:
     - inventory_hostname in groups['kube-master']
   become: yes

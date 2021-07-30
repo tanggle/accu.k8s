@@ -48,7 +48,7 @@
     calico_node_cidr: "{{ node_default_cidr.stdout }}"
 
 
-- name: AccuInsight+ Kubernetes | CNI | Create menifests directory for Calico
+- name: AccuInsight+ Kubernetes | CNI | Create manifests directory for {{ component }}
   when:
     - inventory_hostname in groups['kube-master']
   become: yes

@@ -34,7 +34,7 @@
     executable: /bin/bash
 
 
-- name: AccuInsight+ Kubernetes | Create menifests directory for Kubernetes
+- name: AccuInsight+ Kubernetes | Create manifests directory for {{ component }}
   become: yes
   file:
     path: "{{ accu_manifests_location}}/{{ component }}"

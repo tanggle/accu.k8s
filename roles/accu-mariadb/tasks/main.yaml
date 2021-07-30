@@ -66,6 +66,20 @@
   run_once: yes
 
 
+- name: AccuInsight+ MariaDB | Create manifests directory for {{ component }}
+  when:
+    - accu_monitoring_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  file:
+    path: "{{ accu_manifests_location}}/{{ component }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    recurse: true
+
+
 - name: AccuInsight+ MariaDB | Create manifest for MariaDB ServiceMonitors
   when:
     - accu_monitoring_enabled | bool
