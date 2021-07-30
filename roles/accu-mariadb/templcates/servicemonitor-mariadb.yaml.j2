@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: mariadb
+    release: {{ accu_monitoring_release }}
+  name: accu-mariadb
+  namespace: {{ accu_monitoring_namespace }}
+spec:
+  endpoints:
+  - path: /metrics
+    port: metrics
+  namespaceSelector:
+    matchNames:
+    - {{ accu_mariadb_namespace }}
+  selector:
+    matchLabels:
+      app: mariadb
+      release: {{ accu_mariadb_release }}

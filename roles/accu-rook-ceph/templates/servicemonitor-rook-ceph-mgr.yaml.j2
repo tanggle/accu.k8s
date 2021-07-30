@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: rook-ceph-mgr
+    release: {{ accu_monitoring_release }}
+  name: accu-rook-ceph-mgr
+  namespace: {{ accu_accelerator_namespace }}
+spec:
+  endpoints:
+  - path: /metrics
+    port: http-metrics
+  namespaceSelector:
+    matchNames:
+    - {{ accu_rook_ceph_namespace }}
+  selector:
+    matchLabels:
+      app: rook-ceph-mgr
+      rook_cluster: rook-ceph
