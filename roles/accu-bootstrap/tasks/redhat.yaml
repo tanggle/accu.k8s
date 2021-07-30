@@ -1,6 +1,14 @@
 ---
 
+- name: AccuInsight+ OS Default Settings | Check SELinux status
+  command: "getenforce"
+  register: selinux_status
+
+
+# DOCS: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 - name: AccuInsight+ OS Default Settings | Put SELinux in permissive mode
+  when:
+    - selinux_status.stdout == "Enforcing"
   become: yes
   selinux:
     policy: targeted

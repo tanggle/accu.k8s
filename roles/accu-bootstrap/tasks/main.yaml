@@ -25,7 +25,7 @@
 - name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
   copy:
     src: "{{ inventory_dir }}/../../accuinsight.pem"
-    dest: "{{ ansible_env.HOME }}/.ssh/id_rsa"
+    dest: "{{ ansible_env.HOME }}/.ssh/id_rsa.accuinsight"
     mode: '0600'
     backup: yes
 
