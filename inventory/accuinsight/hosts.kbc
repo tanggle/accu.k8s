@@ -1,0 +1,44 @@
+pdapmao1 ansible_host=3.36.77.192 ansible_user=ec2-user private_ip=172.31.11.205
+pdapmao2 ansible_host=3.35.157.172 ansible_user=ec2-user private_ip=172.31.35.107
+pdapmao3 ansible_host=3.36.49.255 ansible_user=ec2-user private_ip=172.31.0.22
+pdapwko1 ansible_host=13.124.66.250 ansible_user=ec2-user private_ip=172.31.6.31
+pdapwko2 ansible_host=13.125.58.42 ansible_user=ec2-user private_ip=172.31.9.112
+pdap-nfs ansible_host=3.36.85.118 ansible_user=ec2-user private_ip=172.31.12.105
+
+[kube-cluster:children]
+kube-master
+kube-worker
+
+[kube-master]
+pdapmao1
+pdapmao2
+pdapmao3
+
+[kube-worker:children]
+accu-worker
+accu-nvidia
+accu-ceph
+
+[accu-worker]
+pdapwko1
+pdapwko2
+
+[accu-nvidia]
+pdapwko1
+pdapwko2
+
+[accu-server:children]
+accu-pkg-server
+accu-nfs-server
+
+[accu-pkg-server]
+pdap-nfs
+#pdapmao1
+#pdapmao2
+#pdapmao3
+
+[accu-nfs-server]
+pdap-nfs
+
+[accu-ceph]
+
