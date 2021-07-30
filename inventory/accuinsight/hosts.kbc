@@ -1,9 +1,9 @@
-pdapmao1 ansible_host=3.36.77.192 ansible_user=ec2-user private_ip=172.31.11.205
-pdapmao2 ansible_host=3.35.157.172 ansible_user=ec2-user private_ip=172.31.35.107
-pdapmao3 ansible_host=3.36.49.255 ansible_user=ec2-user private_ip=172.31.0.22
-pdapwko1 ansible_host=13.124.66.250 ansible_user=ec2-user private_ip=172.31.6.31
-pdapwko2 ansible_host=13.125.58.42 ansible_user=ec2-user private_ip=172.31.9.112
-pdap-nfs ansible_host=3.36.85.118 ansible_user=ec2-user private_ip=172.31.12.105
+pdapmao1 ansible_host=10.215.32.144 ansible_user=root private_ip=10.215.32.144
+pdapmao2 ansible_host=10.215.32.145 ansible_user=root private_ip=10.215.32.145
+pdapmao3 ansible_host=10.215.32.146 ansible_user=root private_ip=10.215.32.146
+pdapwko1 ansible_host=10.215.32.141 ansible_user=root private_ip=10.215.32.141
+pdapwko2 ansible_host=10.215.32.142 ansible_user=root private_ip=10.215.32.142
+pdap-nfs ansible_host=xx.xxx.xx.xxx ansible_user=root private_ip=xx.xxx.xx.xxx
 
 [kube-cluster:children]
 kube-master
@@ -32,10 +32,9 @@ accu-pkg-server
 accu-nfs-server
 
 [accu-pkg-server]
-pdap-nfs
-#pdapmao1
-#pdapmao2
-#pdapmao3
+pdapmao1
+pdapmao2
+pdapmao3
 
 [accu-nfs-server]
 pdap-nfs
