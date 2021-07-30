@@ -66,3 +66,32 @@
   run_once: yes
 
 
+- name: AccuInsight+ MariaDB | Create manifest for MariaDB ServiceMonitors
+  when:
+    - accu_monitoring_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ accu_manifests_location}}/{{ component }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - 'servicemonitor-mariadb.yaml'
+
+
+- name: AccuInsight+ MariaDB | Apply manifests for MariaDB ServiceMonitors
+  when:
+    - accu_monitoring_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl apply -f {{ accu_manifests_location}}/{{ component }}/{{ item }}
+  args:
+    executable: /bin/bash
+  run_once: true
+  loop:
+    - 'servicemonitor-mariadb.yaml'
+
+
