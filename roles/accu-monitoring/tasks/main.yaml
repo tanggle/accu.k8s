@@ -97,3 +97,91 @@
   run_once: yes
 
 
+################################################################################
+# Create Directory for ServiceMonitor manifests                                #
+################################################################################
+- name: AccuInsight+ Monitoring | Create manifests directory for {{ component }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  file:
+    path: "{{ accu_manifests_location}}/{{ component }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    recurse: true
+
+
+################################################################################
+# Deploy Prometheus ServiceMonitor for Ceph                        ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Monitoring | Create manifest for Ceph ServiceMonitors
+  when:
+    - accu_rook_ceph_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ accu_manifests_location}}/{{ component }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - 'servicemonitor-rook-ceph-mgr.yaml'
+    - 'servicemonitor-rook-ceph-csi.yaml'
+
+
+- name: AccuInsight+ Monitoring | Apply manifests for Ceph ServiceMonitors
+  when:
+    - accu_rook_ceph_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl apply -f {{ accu_manifests_location}}/{{ component }}/{{ item }}
+  args:
+    executable: /bin/bash
+  loop:
+    - 'servicemonitor-rook-ceph-mgr.yaml'
+    - 'servicemonitor-rook-ceph-csi.yaml'
+  run_once: yes
+################################################################################
+# Deploy Prometheus ServiceMonitor for Ceph                          ### END ###
+################################################################################
+
+
+################################################################################
+# Deploy Prometheus ServiceMonitor for MariaDB                     ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Monitoring | Create manifest for MariaDB ServiceMonitors
+  when:
+    - accu_mariadb_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ accu_manifests_location}}/{{ component }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - 'servicemonitor-mariadb.yaml'
+
+
+- name: AccuInsight+ Monitoring | Apply manifests for MariaDB ServiceMonitors
+  when:
+    - accu_mariadb_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl apply -f {{ accu_manifests_location}}/{{ component }}/{{ item }}
+  args:
+    executable: /bin/bash
+  loop:
+    - 'servicemonitor-mariadb.yaml'
+  run_once: yes
+################################################################################
+# Deploy Prometheus ServiceMonitor for MariaDB                       ### END ###
+################################################################################
+
+

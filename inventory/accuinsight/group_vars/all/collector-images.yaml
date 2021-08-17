@@ -25,29 +25,29 @@ images:
 
   - component: accu-harbor
     list:
-      - tags: goharbor/chartmuseum-photon:v2.3.0
+      - tags: goharbor/chartmuseum-photon:v2.3.1
         dest: kube-worker
-      - tags: goharbor/harbor-core:v2.3.0
+      - tags: goharbor/harbor-core:v2.3.1
         dest: kube-worker
-      - tags: goharbor/harbor-db:v2.3.0
+      - tags: goharbor/harbor-db:v2.3.1
         dest: kube-worker
-      - tags: goharbor/harbor-exporter:v2.3.0
+      - tags: goharbor/harbor-exporter:v2.3.1
         dest: kube-worker
-      - tags: goharbor/harbor-jobservice:v2.3.0
+      - tags: goharbor/harbor-jobservice:v2.3.1
         dest: kube-worker
-      - tags: goharbor/harbor-portal:v2.3.0
+      - tags: goharbor/harbor-portal:v2.3.1
         dest: kube-worker
-      - tags: goharbor/harbor-registryctl:v2.3.0
+      - tags: goharbor/harbor-registryctl:v2.3.1
         dest: kube-worker
-      - tags: goharbor/notary-server-photon:v2.3.0
+      - tags: goharbor/notary-server-photon:v2.3.1
         dest: kube-worker
-      - tags: goharbor/notary-signer-photon:v2.3.0
+      - tags: goharbor/notary-signer-photon:v2.3.1
         dest: kube-worker
-      - tags: goharbor/redis-photon:v2.3.0
+      - tags: goharbor/redis-photon:v2.3.1
         dest: kube-worker
-      - tags: goharbor/registry-photon:v2.3.0
+      - tags: goharbor/registry-photon:v2.3.1
         dest: kube-worker
-      - tags: goharbor/trivy-adapter-photon:v2.3.0
+      - tags: goharbor/trivy-adapter-photon:v2.3.1
         dest: kube-worker
 
   - component: accu-helm-operator

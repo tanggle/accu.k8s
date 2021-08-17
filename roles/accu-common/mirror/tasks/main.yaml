@@ -20,7 +20,7 @@
         - 'quay.io'
 
 
-    - name: AccuInsight+ Registry Mirror | Create manifests directory for component
+    - name: AccuInsight+ Registry Mirror | Create manifests directory for {{ component }}
       when:
         - inventory_hostname in groups['kube-master']
       file:

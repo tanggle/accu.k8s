@@ -18,7 +18,7 @@ ext_lb_addr: "{{ accu_load_balancer_addr }}"
 ext_lb_port: 8443
 
 # 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (experimental)
-kube_version: 1.18.17
+kube_version: 1.19.14
 
 # NOTE: kube_pod_cidr and kube_svc_cidr MUST NOT be overlaped with customer's existing network subnet.
 # DOCS: https://en.wikipedia.org/wiki/Private_network
@@ -29,18 +29,13 @@ kube_svc_cidr: 10.1.0.0/16
 # Currently. only support for iptables
 kube_proxy_mode: iptables
 
-
 # Master node accept normal workload if this value is false.
 kube_master_node_taint: true
 
 # Kubernetes Data Directory
-#kube_data_dir_cri: /data/cri             # default: /var/lib/docker
-#kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
-#kube_data_dir_etcd: /data/k8s/etcd       # default: /var/lib/etcd
-# for KB Capital
-kube_data_dir_cri: /var/lib/docker
-kube_data_dir_kubelet: /var/lib/kubelet
-kube_data_dir_etcd: /var/lib/etcd
+kube_data_dir_cri: /data/cri             # default: /var/lib/docker
+kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
+kube_data_dir_etcd: /data/k8s/etcd       # default: /var/lib/etcd
 
 # Kubernetes admin users
 kube_admin_users:
@@ -86,7 +81,7 @@ cni_calico_cidr_autodetection_method: default
 ###############################
 
 # containerd | cri-o | docker
-kube_cri: docker
+kube_cri: containerd
 
 # NOTE: Specify cri version to be installed.
 # This will be calculated automatically according to cri compatible matrix if leave it blank.
@@ -222,7 +217,7 @@ accu_nfs_server_export_opts: "*(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
 
 
 # AccuInsight+ Rook Ceph
-accu_rook_ceph_enabled: false
+accu_rook_ceph_enabled: true
 accu_rook_ceph_release: accu-rook-ceph
 accu_rook_ceph_version: 1.5.9
 accu_rook_ceph_namespace: rook-ceph
@@ -311,37 +306,28 @@ accu_nfs_provisioner_mount_on_masters: false
 # AccuInsight+ Harbor
 accu_harbor_enabled: true
 accu_harbor_release: accu-harbor
-accu_harbor_version: 1.7.0
+accu_harbor_version: 1.7.1
 accu_harbor_namespace: accu-harbor
 accu_harbor_fqdn_core: harbor.accuinsight.io
 accu_harbor_fqdn_notary: notary.accuinsight.io
 accu_harbor_pass: AccuInsight+k8s
-#accu_harbor_registry_storage_class: accu-ceph-cephfs
-accu_harbor_registry_storage_class: accu-nfs
+accu_harbor_registry_storage_class: accu-ceph-cephfs
 accu_harbor_registry_storage_size: 100Gi
 accu_harbor_registry_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
-#accu_harbor_chartmuseum_storage_class: accu-ceph-cephfs
-accu_harbor_chartmuseum_storage_class: accu-nfs
+accu_harbor_chartmuseum_storage_class: accu-ceph-cephfs
 accu_harbor_chartmuseum_storage_size: 1Gi
 accu_harbor_chartmuseum_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
-#accu_harbor_jobservice_storage_class: accu-ceph-cephfs
-accu_harbor_jobservice_storage_class: accu-nfs
+accu_harbor_jobservice_storage_class: accu-ceph-cephfs
 accu_harbor_jobservice_storage_size: 1Gi
 accu_harbor_jobservice_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
-#accu_harbor_database_storage_class: accu-ceph-block
-accu_harbor_database_storage_class: accu-nfs
+accu_harbor_database_storage_class: accu-ceph-cephfs
 accu_harbor_database_storage_size: 10Gi
-#accu_harbor_database_storage_mode: ReadWriteOnce # ReadWriteMany / ReadWriteOnce
 accu_harbor_database_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
-#accu_harbor_redis_storage_class: accu-ceph-block
-accu_harbor_redis_storage_class: accu-nfs
+accu_harbor_redis_storage_class: accu-ceph-cephfs
 accu_harbor_redis_storage_size: 10Gi
-#accu_harbor_redis_storage_mode: ReadWriteOnce # ReadWriteMany / ReadWriteOnce
 accu_harbor_redis_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
-#accu_harbor_trivy_storage_class: accu-ceph-block
-accu_harbor_trivy_storage_class: accu-nfs
+accu_harbor_trivy_storage_class: accu-ceph-cephfs
 accu_harbor_trivy_storage_size: 1Gi
-#accu_harbor_trivy_storage_mode: ReadWriteOnce # ReadWriteMany / ReadWriteOnce
 accu_harbor_trivy_storage_mode: ReadWriteNany # ReadWriteMany / ReadWriteOnce
 
 
@@ -351,8 +337,7 @@ accu_registry_release: accu-registry
 accu_registry_version: 1.9.6
 accu_registry_namespace: "{{ accu_system_namespace }}"
 accu_registry_replicas: 2
-#accu_registry_storage_class: accu-ceph-cephfs
-accu_registry_storage_class: accu-nfs
+accu_registry_storage_class: accu-ceph-cephfs
 accu_registry_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_registry_storage_size: 50Gi
 accu_registry_fqdn: images.accuinsight.io
@@ -380,20 +365,17 @@ accu_monitoring_version: 16.13.0
 accu_monitoring_namespace: accu-monitor
 accu_monitoring_prometheus_fqdn: pc.accuinsight.io
 accu_monitoring_prometheus_retention: 4w
-#accu_monitoring_prometheus_storage_class: accu-ceph-cephfs
-accu_monitoring_prometheus_storage_class: accu-nfs
+accu_monitoring_prometheus_storage_class: accu-ceph-cephfs
 accu_monitoring_prometheus_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_monitoring_prometheus_storage_size: 50Gi
 accu_monitoring_alertmanager_fqdn: pa.accuinsight.io
 accu_monitoring_alertmanager_retention: 120h
-#accu_monitoring_alertmanager_storage_class: accu-ceph-cephfs
-accu_monitoring_alertmanager_storage_class: accu-nfs
+accu_monitoring_alertmanager_storage_class: accu-ceph-cephfs
 accu_monitoring_alertmanager_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_monitoring_alertmanager_storage_size: 50Gi
 accu_monitoring_grafana_fqdn: pm.accuinsight.io
 accu_monitoring_grafana_pass: AccuInsight+k8s
-#accu_monitoring_grafana_storage_class: accu-ceph-cephfs
-accu_monitoring_grafana_storage_class: accu-nfs
+accu_monitoring_grafana_storage_class: accu-ceph-cephfs
 accu_monitoring_grafana_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_monitoring_grafana_storage_size: 1Gi
 
@@ -447,8 +429,7 @@ accu_mariadb_admin_pass: AccuInsight+k8s
 accu_mariadb_default_user_name: accuinsight
 accu_mariadb_default_user_pass: AccuInsight+k8s
 accu_mariadb_default_user_database: accuinsight
-#accu_mariadb_storage_class: accu-ceph-block
-accu_mariadb_storage_class: accu-nfs
+accu_mariadb_storage_class: accu-ceph-cephfs
 accu_mariadb_storage_size: 50Gi
 accu_mariadb_slave_enabled: true
 accu_mariadb_slave_replicas: 2
