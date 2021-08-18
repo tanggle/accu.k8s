@@ -392,10 +392,7 @@ accu_accelerator_driver_version: 450.51.06 # NH & KIS are using 418.197.02.
 # If GPU nodes are running on different versions of kernel,
 # Check 'uname -r' output of all GPU nodes and list up them as list.
 accu_accelerator_kernel_version:
-  # for AWS TEST
   - "{{ ansible_kernel }}"
-  # for KB Capital
-  - "4.18.0-193.el8.x86_64"
   # for RedHat 7.x family, kernel version must be 3.10.0-1127.el7.x86_64 at least for ceph.
   #- "3.10.0-1127.el7.x86_64"
 # NVIDIA K8S Device Plugin Version
