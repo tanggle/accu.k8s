@@ -1,7 +1,7 @@
 ---
 
 - name: AccuInsight+ OS Default Settings | Check SELinux status
-  command: "getenforce"
+  command: "/usr/sbin/getenforce"
   register: selinux_status
 
 
