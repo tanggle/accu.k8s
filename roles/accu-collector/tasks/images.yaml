@@ -59,19 +59,6 @@
         gpgcheck: yes
 
 
-    # for pigz
-    - name: AccuInsight+ Collector | Set Package Repository 'CentOS Extras'
-      when:
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int == 8
-      ini_file:
-        path: "/etc/yum.repos.d/Collector-OCI.repo"
-        state: present
-        section: "Collector-OCI"
-        option: module_hotfixes
-        value: "True"
-
-
     - name: AccuInsight+ Collector | Install Container Management Tool
       when:
         - ansible_os_family == 'RedHat'
