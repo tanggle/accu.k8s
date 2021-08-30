@@ -56,7 +56,7 @@ images:
     list:
       - tags: docker.io/jboss/keycloak:14.0.0
         dest: kube-worker
-#      - tags: {{ accu_keycloak_theme }}
+#      - tags: "{{ accu_keycloak_theme }}"
 #        dest: kube-worker
 
   - component: accu-load-balancer
