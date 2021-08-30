@@ -1,7 +1,0 @@
----
-
-dependencies:
-
-  - { role: accu-common/default, component: accu-helm-operator }
-  - { role: accu-common/offline, when: accu_offline_enabled | bool }
-

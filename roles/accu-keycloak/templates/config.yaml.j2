@@ -1,0 +1,109 @@
+
+###############################################################################
+### Container Environment                                         ### BEGIN ###
+###############################################################################
+
+extraEnv: |
+
+  ### Running Keycloak Behind a Reverse Proxy
+  - name: PROXY_ADDRESS_FORWARDING
+    value: "true"
+
+  ### Creating a Keycloak Admin User
+  - name: KEYCLOAK_USER
+    value: {{ accu_keycloak_admin_name }}
+  - name: KEYCLOAK_PASSWORD
+    value: {{ accu_keycloak_admin_pass }}
+
+{% if accu_keycloak_discovery == 'DNS_PING' %}
+  ### High Availability with DNS_PING
+  - name: JGROUPS_DISCOVERY_PROTOCOL
+    value: dns.DNS_PING
+  - name: JGROUPS_DISCOVERY_PROPERTIES
+    value: 'dns_query={{ "{{" }} include "keycloak.serviceDnsName" . {{ "}}" }}'
+  - name: CACHE_OWNERS_COUNT
+    value: "2"
+  - name: CACHE_OWNERS_AUTH_SESSIONS_COUNT
+    value: "2"
+{% endif %}
+
+{% if accu_keycloak_discovery == 'KUBE_PING' %}
+  ### High Availability with KUBE_PING
+  - name: JGROUPS_DISCOVERY_PROTOCOL
+    value: kubernetes.KUBE_PING
+  - name: KUBERNETES_NAMESPACE
+    valueFrom:
+      fieldRef:
+        apiVersion: v1
+        fieldPath: metadata.namespace
+  - name: CACHE_OWNERS_COUNT
+    value: "2"
+  - name: CACHE_OWNERS_AUTH_SESSIONS_COUNT
+    value: "2"
+{% endif %}
+
+  ### Database Setup for MariaDB
+  - name: DB_VENDOR
+    value: {{ accu_keycloak_db_vendor }}
+  - name: DB_ADDR
+    value: {{ accu_keycloak_db_addr }}
+  - name: DB_PORT
+    value: "{{ accu_keycloak_db_port }}"
+  - name: DB_DATABASE
+    value: {{ accu_keycloak_db_name }}
+  - name: DB_USER
+    value: {{ accu_keycloak_db_user }}
+  - name: DB_PASSWORD
+    value: {{ accu_keycloak_db_pass }}
+
+{% if accu_keycloak_discovery == 'KUBE_PING' %}
+### RBAC required for High Availability with KUBE_PING
+rbac:
+  create: true
+  rules:
+    - apiGroups:
+        - ""
+      resources:
+        - pods
+      verbs:
+        - get
+        - list
+{% endif %}
+
+###############################################################################
+### Container Environment                                           ### END ###
+###############################################################################
+
+
+###############################################################################
+### Keycloak Themes                                                         ###
+###############################################################################
+
+extraInitContainers: |
+  - name: theme-provider
+    image: {{ accu_keycloak_theme }}
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+    args:
+      - -c
+      - |
+        echo "Copying theme..."
+        cp -R /themes/* /keycloak-themes
+    volumeMounts:
+      - name: keycloak-themes
+        mountPath: /keycloak-themes
+
+extraVolumes: |
+  - name: keycloak-themes
+    emptyDir: {}
+
+extraVolumeMounts: |
+  - name: keycloak-themes
+    mountPath: /opt/jboss/keycloak/themes
+
+###############################################################################
+### Keycloak Themes                                                 ### END ###
+###############################################################################
+
+

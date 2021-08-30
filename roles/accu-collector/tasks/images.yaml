@@ -6,6 +6,72 @@
   become: yes
   block:
 
+    - name: AccuInsight+ Collector | Clean up Collector Repositories
+      shell: |
+        # Remove package repositories for RedHat family.
+        rm -rf /etc/yum.repos.d/Collector-*
+        # Remove package repositories for Debian family.
+        rm -rf /etc/apt/sources.list.d/Collector-* /etc/apt/preferences.d/Collector
+      args:
+        executable: /bin/bash
+        warn: no
+
+
+    # for podman
+    - name: AccuInsight+ Collector | Add Package Repository 'OCI'
+      when:
+        - ansible_os_family == 'RedHat'
+      yum_repository:
+        description: "Collector-OCI"
+        name: "Collector-OCI"
+        state: present
+        baseurl: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/"
+        gpgkey: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/repodata/repomd.xml.key"
+        enabled: yes
+        gpgcheck: yes
+
+
+    # for podman
+    - name: AccuInsight+ Collector | Set Package Repository 'OCI'
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 8
+      ini_file:
+        path: "/etc/yum.repos.d/Collector-OCI.repo"
+        state: present
+        section: "Collector-OCI"
+        option: module_hotfixes
+        value: "True"
+
+
+    # for pigz
+    - name: AccuInsight+ Collector | Add Package Repository 'CentOS Extras'
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 7
+      yum_repository:
+        description: Collector-CentOS-Extras
+        name: Collector-CentOS-Extras
+        state: present
+        baseurl: http://mirror.centos.org/centos/7/extras/$basearch/
+        gpgkey: http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
+        enabled: yes
+        gpgcheck: yes
+
+
+    # for pigz
+    - name: AccuInsight+ Collector | Set Package Repository 'CentOS Extras'
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 8
+      ini_file:
+        path: "/etc/yum.repos.d/Collector-OCI.repo"
+        state: present
+        section: "Collector-OCI"
+        option: module_hotfixes
+        value: "True"
+
+
     - name: AccuInsight+ Collector | Install Container Management Tool
       when:
         - ansible_os_family == 'RedHat'
@@ -15,7 +81,28 @@
           - pigz
         state: latest
         update_cache: yes
-        disablerepo: Collector-Docker
+#        disablerepo: Collector-Docker
+
+
+    # for podman
+    - name: AccuInsight+ Collector | Add Package Repository (Repository KEY)
+      when:
+        - ansible_os_family == 'Debian'
+      apt_key:
+        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+        state: present
+
+
+    # for podman
+    - name: AccuInsight+ Collector | Add Package Repository (Repository URL)
+      when:
+        - ansible_os_family == 'Debian'
+      apt_repository:
+        repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+        filename: "Collector-OCI"
+        state: present
+        mode: '0644'
+        update_cache: yes
 
 
     - name: AccuInsight+ Collector | Install Container Management Tool

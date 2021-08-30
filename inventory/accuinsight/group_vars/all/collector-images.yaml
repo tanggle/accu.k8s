@@ -11,13 +11,6 @@ images:
 #      - tags: k8s.gcr.io/cuda-vector-add:v0.1
 #        dest: accu-nvidia
 
-  - component: accu-load-balancer
-    list:
-      - tags: osixia/keepalived:{{ accu_vip_manager_version }}
-        dest: kube-master
-      - tags: haproxy:{{ accu_load_balancer_version }}
-        dest: kube-master
-
   - component: accu-chartmuseum
     list:
       - tags: chartmuseum/chartmuseum:v0.12.0
@@ -25,43 +18,29 @@ images:
 
   - component: accu-harbor
     list:
-      - tags: goharbor/chartmuseum-photon:v2.3.1
+      - tags: goharbor/chartmuseum-photon:v2.3.2
         dest: kube-worker
-      - tags: goharbor/harbor-core:v2.3.1
+      - tags: goharbor/harbor-core:v2.3.2
         dest: kube-worker
-      - tags: goharbor/harbor-db:v2.3.1
+      - tags: goharbor/harbor-db:v2.3.2
         dest: kube-worker
-      - tags: goharbor/harbor-exporter:v2.3.1
+      - tags: goharbor/harbor-exporter:v2.3.2
         dest: kube-worker
-      - tags: goharbor/harbor-jobservice:v2.3.1
+      - tags: goharbor/harbor-jobservice:v2.3.2
         dest: kube-worker
-      - tags: goharbor/harbor-portal:v2.3.1
+      - tags: goharbor/harbor-portal:v2.3.2
         dest: kube-worker
-      - tags: goharbor/harbor-registryctl:v2.3.1
+      - tags: goharbor/harbor-registryctl:v2.3.2
         dest: kube-worker
-      - tags: goharbor/notary-server-photon:v2.3.1
+      - tags: goharbor/notary-server-photon:v2.3.2
         dest: kube-worker
-      - tags: goharbor/notary-signer-photon:v2.3.1
+      - tags: goharbor/notary-signer-photon:v2.3.2
         dest: kube-worker
-      - tags: goharbor/redis-photon:v2.3.1
+      - tags: goharbor/redis-photon:v2.3.2
         dest: kube-worker
-      - tags: goharbor/registry-photon:v2.3.1
+      - tags: goharbor/registry-photon:v2.3.2
         dest: kube-worker
-      - tags: goharbor/trivy-adapter-photon:v2.3.1
-        dest: kube-worker
-
-  - component: accu-helm-operator
-    list:
-      - tags: fluxcd/helm-operator:1.2.0
-        dest: kube-worker
-
-  - component: accu-mariadb
-    list:
-      - tags: bitnami/mariadb:10.3.24-debian-10-r49
-        dest: kube-worker
-      - tags: bitnami/minideb:buster
-        dest: kube-worker
-      - tags: bitnami/mysqld-exporter:0.12.1-debian-10-r235
+      - tags: goharbor/trivy-adapter-photon:v2.3.2
         dest: kube-worker
 
   - component: accu-ingress-controller
@@ -73,6 +52,29 @@ images:
       - tags: docker.io/jettech/kube-webhook-certgen:v1.5.1
         dest: kube-worker
 
+  - component: accu-keycloak
+    list:
+      - tags: docker.io/jboss/keycloak:14.0.0
+        dest: kube-worker
+      - tags: {{ accu_keycloak_theme }}
+        dest: kube-worker
+
+  - component: accu-load-balancer
+    list:
+      - tags: osixia/keepalived:{{ accu_vip_manager_version }}
+        dest: kube-master
+      - tags: haproxy:{{ accu_load_balancer_version }}
+        dest: kube-master
+
+  - component: accu-mariadb
+    list:
+      - tags: bitnami/mariadb:10.3.24-debian-10-r49
+        dest: kube-worker
+      - tags: bitnami/minideb:buster
+        dest: kube-worker
+      - tags: bitnami/mysqld-exporter:0.12.1-debian-10-r235
+        dest: kube-worker
+
   - component: accu-metrics-server
     list:
       - tags: k8s.gcr.io/metrics-server-amd64:v0.3.6
@@ -81,27 +83,27 @@ images:
   - component: accu-monitoring
     list:
       # Prometheus Operator
-      - tags: quay.io/prometheus-operator/prometheus-operator:v0.48.1
+      - tags: quay.io/prometheus-operator/prometheus-operator:v0.50.0
         dest: kube-worker
-      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.48.1
+      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.50.0
         dest: kube-worker
       - tags: jettech/kube-webhook-certgen:v1.5.2
         dest: kube-worker
       - tags: quay.io/thanos/thanos:v0.17.2
         dest: kube-worker
       # Prometheus and Alertmanager
-      - tags: quay.io/prometheus/prometheus:v2.27.1
+      - tags: quay.io/prometheus/prometheus:v2.28.1
         dest: kube-worker
       - tags: quay.io/prometheus/alertmanager:v0.22.2
         dest: kube-worker
       # Prometheus Node Exporter
-      - tags: quay.io/prometheus/node-exporter:v1.1.2
+      - tags: quay.io/prometheus/node-exporter:v1.2.2
         dest: kube-cluster
       # Kube State Metrics
-      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0
+      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.1.1
         dest: kube-worker
       # Grafana
-      - tags: grafana/grafana:8.0.3
+      - tags: grafana/grafana:8.1.0
         dest: kube-worker
       - tags: curlimages/curl:7.73.0
         dest: kube-worker

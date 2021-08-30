@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: accu-nvidia-device-metric
+  namespace: {{ accu_monitoring_namespace }}
+  labels:
+    release: {{ accu_monitoring_release }}
+    accuinsight.io/accelerator: dcgm-exporter
+spec:
+  endpoints:
+  - port: metrics
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - {{ accu_accelerator_namespace }}
+  selector:
+    matchLabels:
+      release: {{ accu_monitoring_release }}
+      accuinsight.io/accelerator: dcgm-exporter

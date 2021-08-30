@@ -1,0 +1,97 @@
+---
+
+#- name: AccuInsight+ Keycloak | Add FQDN to /etc/hosts file
+#  become: yes
+#  lineinfile:
+#    dest: /etc/hosts
+#    insertafter: EOF
+#    state: present
+#    line: "{{ accu_load_balancer_addr }} {{ accu_keycloak_fqdn }}"
+
+
+- name: AccuInsight+ Keycloak | Create manifests directory for {{ component }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  file:
+    path: "{{ accu_manifests_location}}/{{ component }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    recurse: true
+
+
+- name: AccuInsight+ Keycloak | Create manifest for {{ component }}
+  when:
+    - accu_mariadb_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ accu_manifests_location}}/{{ component }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - 'config.yaml'
+
+
+- name: AccuInsight+ Keycloak | Add Chart Repository 'codecentric'
+  when:
+    - not accu_offline_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_repository:
+    name: codecentric
+    url: https://codecentric.github.io/helm-charts
+    state: present
+  no_log: true
+
+
+- name: AccuInsight+ Keycloak | Set chart location
+  when:
+    - inventory_hostname in groups['kube-master']
+  set_fact:
+    chartname: >-
+      {% if accu_offline_enabled | bool                                                      %}
+      {{ accu_offline_target }}/{{ component }}/charts/keycloak-{{ accu_keycloak_version }}.tgz
+      {% else                                                                                %}
+      codecentric/keycloak
+      {% endif                                                                               %}
+  run_once: yes
+
+
+- name: AccuInsight+ Keycloak | Deploy {{ accu_keycloak_release }}
+  when:
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  helm_cmd:
+    name: "{{ chartname }}"
+    release: "{{ accu_keycloak_release }}"
+    version: "{{ accu_keycloak_version }}"
+    namespace: "{{ accu_keycloak_namespace }}"
+    state: present
+    update_cache: no
+    force: yes
+    wait: true
+    options:
+      - '-f {{ accu_manifests_location }}/{{ component }}/config.yaml'
+      - '--set fullnameOverride={{ accu_keycloak_release }}'
+      - '--set replicas={{ accu_keycloak_replicas }}'
+      - '--set ingress.enabled=true'
+      - '--set ingress.rules[0].host={{ accu_keycloak_fqdn }}'
+      - '--set ingress.rules[0].paths[0].path=/'
+      - '--set ingress.rules[0].paths[0].pathType=Prefix'
+      - '--set ingress.tls[0].hosts[0]={{ accu_keycloak_fqdn }}'
+      - '--set ingress.console.enabled=true'
+      - '--set ingress.console.rules[0].host={{ accu_keycloak_fqdn }}'
+      - '--set ingress.console.rules[0].paths[0].path=/auth/admin'
+      - '--set ingress.console.rules[0].paths[0].pathType=Prefix'
+      - '--set service.type=NodePort'
+      - '--set service.httpNodePort={{ accu_keycloak_nodeport_insecure }}'
+      - '--set service.httpsNodePort={{ accu_keycloak_nodeport_secure }}'
+      - '--set postgresql.enabled=false'
+  run_once: yes
+
+

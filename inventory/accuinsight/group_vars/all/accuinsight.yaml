@@ -306,7 +306,7 @@ accu_nfs_provisioner_mount_on_masters: false
 # AccuInsight+ Harbor
 accu_harbor_enabled: true
 accu_harbor_release: accu-harbor
-accu_harbor_version: 1.7.1
+accu_harbor_version: 1.7.2
 accu_harbor_namespace: accu-harbor
 accu_harbor_fqdn_core: harbor.accuinsight.io
 accu_harbor_fqdn_notary: notary.accuinsight.io
@@ -361,7 +361,7 @@ accu_chartmuseum_pass: AccuInsight+k8s
 # AccuInsight+ Prometheus
 accu_monitoring_enabled: true
 accu_monitoring_release: accu-monitor
-accu_monitoring_version: 16.13.0
+accu_monitoring_version: 18.0.1
 accu_monitoring_namespace: accu-monitor
 accu_monitoring_prometheus_fqdn: pc.accuinsight.io
 accu_monitoring_prometheus_retention: 4w
@@ -410,13 +410,6 @@ accu_accelerator_device_metric_version: 2.1.4-2.3.1-ubuntu18.04
 #                                                                              #
 ################################################################################
 
-# AccuInsight+ Helm Operator
-accu_helm_operator_enabled: false
-accu_helm_operator_version: 1.2.0
-accu_helm_operator_release: accu-helm-operator
-accu_helm_operator_namespace: "{{ accu_service_namespace }}"
-
-
 # AccuInsight+ MariaDB
 accu_mariadb_enabled: true
 accu_mariadb_version: 7.10.4
@@ -431,5 +424,26 @@ accu_mariadb_storage_size: 50Gi
 accu_mariadb_slave_enabled: true
 accu_mariadb_slave_replicas: 2
 accu_mariadb_metrics_enabled: true
+
+
+# AccuInsight+ Keycloak
+accu_keycloak_enabled: true
+accu_keycloak_version: 14.0.1
+accu_keycloak_release: accu-keycloak
+accu_keycloak_namespace: "{{ accu_service_namespace }}"
+accu_keycloak_fqdn: idp.accuinsight.io
+accu_keycloak_replicas: 2
+accu_keycloak_discovery: DNS_PING # DNS_PING or KUBE_PING
+accu_keycloak_admin_name: admin
+accu_keycloak_admin_pass: AccuInsight+k8s
+accu_keycloak_nodeport_insecure: 32080
+accu_keycloak_nodeport_secure: 32443
+accu_keycloak_db_vendor: mariadb
+accu_keycloak_db_addr: "{{ accu_mariadb_release }}.{{ accu_mariadb_namespace }}"
+accu_keycloak_db_port: 3306
+accu_keycloak_db_name: keycloak
+accu_keycloak_db_user: keycloak
+accu_keycloak_db_pass: AccuInsight+k8s
+accu_keycloak_theme: harbor.accuinsight.io/accuinsight/keycloak-themes:1.0
 
 

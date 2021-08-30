@@ -120,12 +120,12 @@
 #                                                                              #
 ################################################################################
 
-- import_playbook: plays/accu-helm-operator.yaml
-  when: accu_helm_operator_enabled | bool
-
-
 - import_playbook: plays/accu-mariadb.yaml
   when: accu_mariadb_enabled | bool
+
+
+- import_playbook: plays/accu-keycloak.yaml
+  when: accu_keycloak_enabled | bool
 
 
 ################################################################################

@@ -64,7 +64,7 @@
       - '--set kubeScheduler.serviceMonitor.insecureSkipVerify=true'
       - '--set kubeScheduler.service.port=10259'
       - '--set kubeScheduler.service.targetPort=10259'
-      # Prometheus
+      # prometheus
       - '--set prometheus.prometheusSpec.retention={{ accu_monitoring_prometheus_retention }}'
       - '--set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName={{ accu_monitoring_prometheus_storage_class }}'
       - '--set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes[0]={{ accu_monitoring_prometheus_storage_mode }}'
@@ -73,7 +73,7 @@
       - '--set prometheus.ingress.hosts[0]={{ accu_monitoring_prometheus_fqdn }}'
       - '--set prometheus.ingress.paths[0]=/'
       - '--set prometheus.ingress.pathType=ImplementationSpecific'
-      # AlertManagr
+      # alertManagr
       - '--set alertmanager.alertmanagerSpec.retention={{ accu_monitoring_alertmanager_retention }}'
       - '--set alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.storageClassName={{ accu_monitoring_alertmanager_storage_class }}'
       - '--set alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.accessModes[0]={{ accu_monitoring_alertmanager_storage_mode }}'
@@ -82,7 +82,12 @@
       - '--set alertmanager.ingress.hosts[0]={{ accu_monitoring_alertmanager_fqdn }}'
       - '--set alertmanager.ingress.paths[0]=/'
       - '--set alertmanager.ingress.pathType=ImplementationSpecific'
-      # Grafana
+      # kube-state-metrics
+      - '--set kube-state-metrics.metricLabelsAllowlist[0]=namespaces=[*]'
+      - '--set kube-state-metrics.metricLabelsAllowlist[1]=nodes=[*]'
+      - '--set kube-state-metrics.metricLabelsAllowlist[2]=services=[*]'
+      - '--set kube-state-metrics.metricLabelsAllowlist[3]=pods=[*]'
+      # grafana
       - '--set grafana.adminPassword={{ accu_monitoring_grafana_pass }}'
       - '--set grafana.persistence.enabled=true'
       - '--set grafana.persistence.storageClassName={{ accu_monitoring_grafana_storage_class }}'
@@ -93,7 +98,6 @@
       - '--set grafana.ingress.enabled=true'
       - '--set grafana.ingress.hosts[0]={{ accu_monitoring_grafana_fqdn }}'
       - '--set grafana.ingress.path=/'
-      # - '--set grafana.plugins[0]=grafana-piechart-panel'
   run_once: yes
 
 
@@ -116,7 +120,7 @@
 ################################################################################
 # Deploy Prometheus ServiceMonitor for Ceph                        ### BEGIN ###
 ################################################################################
-- name: AccuInsight+ Monitoring | Create manifest for Ceph ServiceMonitors
+- name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (Ceph)
   when:
     - accu_rook_ceph_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -132,7 +136,7 @@
     - 'servicemonitor-rook-ceph-csi.yaml'
 
 
-- name: AccuInsight+ Monitoring | Apply manifests for Ceph ServiceMonitors
+- name: AccuInsight+ Monitoring | Apply manifests for ServiceMonitors (Ceph)
   when:
     - accu_rook_ceph_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -153,7 +157,7 @@
 ################################################################################
 # Deploy Prometheus ServiceMonitor for MariaDB                     ### BEGIN ###
 ################################################################################
-- name: AccuInsight+ Monitoring | Create manifest for MariaDB ServiceMonitors
+- name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (MariaDB)
   when:
     - accu_mariadb_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -168,7 +172,7 @@
     - 'servicemonitor-mariadb.yaml'
 
 
-- name: AccuInsight+ Monitoring | Apply manifests for MariaDB ServiceMonitors
+- name: AccuInsight+ Monitoring | Apply manifests for ServiceMonitors (MariaDB)
   when:
     - accu_mariadb_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -182,6 +186,41 @@
   run_once: yes
 ################################################################################
 # Deploy Prometheus ServiceMonitor for MariaDB                       ### END ###
+################################################################################
+
+
+################################################################################
+# Deploy Prometheus ServiceMonitor for GPU Accelerator             ### BEGIN ###
+################################################################################
+- name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (GPU)
+  when:
+    - accu_accelerator_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ accu_manifests_location}}/{{ component }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - 'servicemonitor-nvidia-device-metrics.yaml'
+
+
+- name: AccuInsight+ Monitoring | Apply manifests for ServiceMonitors (GPU)
+  when:
+    - accu_accelerator_enabled | bool
+    - inventory_hostname in groups['kube-master']
+  become: yes
+  shell: |
+      kubectl apply -f {{ accu_manifests_location}}/{{ component }}/{{ item }}
+  args:
+    executable: /bin/bash
+  loop:
+    - 'servicemonitor-nvidia-device-metrics.yaml'
+  run_once: yes
+################################################################################
+# Deploy Prometheus ServiceMonitor for GPU Accelerator               ### END ###
 ################################################################################
 
 
