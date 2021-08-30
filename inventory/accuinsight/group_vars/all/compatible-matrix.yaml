@@ -5,7 +5,7 @@
 ###############################################################################
 
 # SupportedEtcdVersion constant in kubeadm source code.
-# https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants.go#L460-L472
+# https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants.go#L464-L477
 matrix_etcd:
   '1.13': "3.2.24"
   '1.14': "3.3.10"
@@ -16,36 +16,42 @@ matrix_etcd:
   '1.19': "3.4.13-0"
   '1.20': "3.4.13-0"
   '1.21': "3.4.13-0"
+  '1.22': "3.5.0-0"
+  '1.23': "3.5.0-0"
 
 supported_etcd: "{{ matrix_etcd[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')] }}"
 
 
 # PauseVersion constant in kubeadm source code.
 matrix_pause:
-  '1.13': "3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kubeadm/app/constants/constants.go#L256
-  '1.14': "3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.14/cmd/kubeadm/app/constants/constants.go#L263
-  '1.15': "3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.15/cmd/kubeadm/app/constants/constants.go#L264
-  '1.16': "3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.16/cmd/kubeadm/app/constants/constants.go#L266
-  '1.17': "3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.17/cmd/kubeadm/app/constants/constants.go#L269
-  '1.18': "3.2" # https://github.com/kubernetes/kubernetes/blob/release-1.18/cmd/kubeadm/app/constants/constants_unix.go#L26
-  '1.19': "3.2" # https://github.com/kubernetes/kubernetes/blob/release-1.19/cmd/kubeadm/app/constants/constants_unix.go#L26
-  '1.20': "3.2" # https://github.com/kubernetes/kubernetes/blob/release-1.20/cmd/kubeadm/app/constants/constants_unix.go#L26
-  '1.21': "3.4.1" # https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants_unix.go#L26
+  '1.13': "3.1"   # https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kubeadm/app/constants/constants.go#L256
+  '1.14': "3.1"   # https://github.com/kubernetes/kubernetes/blob/release-1.14/cmd/kubeadm/app/constants/constants.go#L263
+  '1.15': "3.1"   # https://github.com/kubernetes/kubernetes/blob/release-1.15/cmd/kubeadm/app/constants/constants.go#L264
+  '1.16': "3.1"   # https://github.com/kubernetes/kubernetes/blob/release-1.16/cmd/kubeadm/app/constants/constants.go#L266
+  '1.17': "3.1"   # https://github.com/kubernetes/kubernetes/blob/release-1.17/cmd/kubeadm/app/constants/constants.go#L269
+  '1.18': "3.2"   # https://github.com/kubernetes/kubernetes/blob/release-1.18/cmd/kubeadm/app/constants/constants_unix.go#L26
+  '1.19': "3.2"   # https://github.com/kubernetes/kubernetes/blob/release-1.19/cmd/kubeadm/app/constants/constants_unix.go#L26
+  '1.20': "3.2"   # https://github.com/kubernetes/kubernetes/blob/release-1.20/cmd/kubeadm/app/constants/constants_unix.go#L26
+  '1.21': "3.4.1" # https://github.com/kubernetes/kubernetes/blob/release-1.21/cmd/kubeadm/app/constants/constants.go#L403
+  '1.22': "3.5"   # https://github.com/kubernetes/kubernetes/blob/release-1.22/cmd/kubeadm/app/constants/constants.go#L397
+  '1.23': "3.5"   # https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants.go#L402
 
 supported_pause: "{{ matrix_pause[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')] }}"
 
 
 # CoreDNSVersion contant in kubeadm source code.
 matrix_coredns:
-  '1.13': "1.2.6" # https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kubeadm/app/constants/constants.go#L334-L335
-  '1.14': "1.3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.14/cmd/kubeadm/app/constants/constants.go#L341-L342
-  '1.15': "1.3.1" # https://github.com/kubernetes/kubernetes/blob/release-1.15/cmd/kubeadm/app/constants/constants.go#L333-L334
-  '1.16': "1.6.2" # https://github.com/kubernetes/kubernetes/blob/release-1.16/cmd/kubeadm/app/constants/constants.go#L335-L336
-  '1.17': "1.6.5" # https://github.com/kubernetes/kubernetes/blob/release-1.17/cmd/kubeadm/app/constants/constants.go#L338-L339
-  '1.18': "1.6.7" # https://github.com/kubernetes/kubernetes/blob/release-1.18/cmd/kubeadm/app/constants/constants.go#L342-L343
-  '1.19': "1.7.0" # https://github.com/kubernetes/kubernetes/blob/release-1.19/cmd/kubeadm/app/constants/constants.go#L334-L335
-  '1.20': "1.7.0" # https://github.com/kubernetes/kubernetes/blob/release-1.20/cmd/kubeadm/app/constants/constants.go#L352-L353
-  '1.21': "v1.8.0" # https://github.com/kubernetes/kubernetes/blob/release-1.21/cmd/kubeadm/app/constants/constants.go#L333-L334
+  '1.13': "1.2.6"  # https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kubeadm/app/constants/constants.go#L335
+  '1.14': "1.3.1"  # https://github.com/kubernetes/kubernetes/blob/release-1.14/cmd/kubeadm/app/constants/constants.go#L342
+  '1.15': "1.3.1"  # https://github.com/kubernetes/kubernetes/blob/release-1.15/cmd/kubeadm/app/constants/constants.go#L334
+  '1.16': "1.6.2"  # https://github.com/kubernetes/kubernetes/blob/release-1.16/cmd/kubeadm/app/constants/constants.go#L336
+  '1.17': "1.6.5"  # https://github.com/kubernetes/kubernetes/blob/release-1.17/cmd/kubeadm/app/constants/constants.go#L339
+  '1.18': "1.6.7"  # https://github.com/kubernetes/kubernetes/blob/release-1.18/cmd/kubeadm/app/constants/constants.go#L343
+  '1.19': "1.7.0"  # https://github.com/kubernetes/kubernetes/blob/release-1.19/cmd/kubeadm/app/constants/constants.go#L335
+  '1.20': "1.7.0"  # https://github.com/kubernetes/kubernetes/blob/release-1.20/cmd/kubeadm/app/constants/constants.go#L353
+  '1.21': "v1.8.0" # https://github.com/kubernetes/kubernetes/blob/release-1.21/cmd/kubeadm/app/constants/constants.go#L334
+  '1.22': "v1.8.4" # https://github.com/kubernetes/kubernetes/blob/release-1.22/cmd/kubeadm/app/constants/constants.go#L328
+  '1.23': "v1.8.4" # https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants.go#L333
 
 supported_coredns: "{{ matrix_coredns[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')] }}"
 
