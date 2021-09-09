@@ -17,7 +17,8 @@
 
 * 지원 K8S
 
-  - Kubernetes 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (검증 진행)
+  - Kubernetes 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (검증 완료)
+  - Kubernetes 1.22.x / 1.23.x (검증 진행)
 
 
 * 지원 CRI (Kubernetes Container Runtime Interface)
@@ -131,6 +132,7 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
 * 배포
 
   ```bash
+  $ cp accuinsight.pem ~/
   $ ansible-playbook -i inventory/accuinsight/hosts.<OS> accuk8s.yaml --flush-cache
   ```
 
@@ -158,5 +160,7 @@ git clone https://dev.k8s.bns.co.kr:10443/sk/accuinsight.git
   xxx.xxx.xxx.xxx pc.accuinsight.io
   # Prometheus Alertmanager
   xxx.xxx.xxx.xxx pa.accuinsight.io
+  # Keycloak
+  xxx.xxx.xxx.xxx idp.accuinsight.io
   ```
   > xxx.xxx.xxx.xxx 는 VIP 또는 Master 노드의 IP로 대체
