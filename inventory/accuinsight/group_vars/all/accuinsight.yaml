@@ -33,11 +33,13 @@ kube_proxy_mode: iptables
 kube_master_node_taint: true
 
 # Kubernetes Data Directory
-kube_data_dir_cri: /data/cri             # default: /var/lib/docker
+kube_data_dir_cri:     /data/cri         # default: /var/lib/docker
 kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
-kube_data_dir_etcd: /data/k8s/etcd       # default: /var/lib/etcd
+kube_data_dir_etcd:    /data/k8s/etcd    # default: /var/lib/etcd
 
 # Kubernetes admin users
+# These users can use kubectl, crictl and cri commands such as docker, ctr, podman.
+# If the user listed up here are invalid, it will be ignored.
 kube_admin_users:
   - "{{ ansible_user }}"
   - "root"
