@@ -428,7 +428,7 @@ accu_mariadb_metrics_enabled: true
 
 
 # AccuInsight+ Keycloak
-accu_keycloak_enabled: true
+accu_keycloak_enabled: false
 accu_keycloak_version: 14.0.1
 accu_keycloak_release: accu-keycloak
 accu_keycloak_namespace: "{{ accu_service_namespace }}"

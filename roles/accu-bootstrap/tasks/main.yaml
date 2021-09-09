@@ -6,6 +6,7 @@
     dest: "{{ ansible_env.HOME }}/accuinsight.pem"
     mode: '0600'
   delegate_to: localhost
+  run_once: true
 
 
 - name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes (managed)
