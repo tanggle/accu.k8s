@@ -56,8 +56,8 @@ images:
     list:
       - tags: docker.io/jboss/keycloak:14.0.0
         dest: kube-worker
-#      - tags: "{{ accu_keycloak_theme }}"
-#        dest: kube-worker
+      - tags: "{{ accu_keycloak_theme }}"
+        dest: kube-worker
 
   - component: accu-load-balancer
     list:
@@ -164,7 +164,7 @@ images:
         dest: kube-master
       - tags: k8s.gcr.io/etcd:{{ supported_etcd }}
         dest: kube-master
-      - tags: k8s.gcr.io/coredns:{{ supported_coredns }}
+      - tags: k8s.gcr.io/{% if kube_version is version('1.21', '>=') %}coredns/coredns{% else %}coredns{% endif %}:{{ supported_coredns }}
         dest: kube-cluster
       - tags: k8s.gcr.io/pause:{{ supported_pause }}
         dest: kube-cluster

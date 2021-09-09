@@ -52,29 +52,20 @@
   when: ansible_os_family == 'Debian'
 
 
-# TODO: consider if it is better using template for default configuration.
-- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd (1/2)
+# DOCS: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd
+#       https://github.com/containerd/containerd/blob/release/1.5/docs/cri/config.md
+#       https://github.com/containerd/containerd/issues/4900
+# NOTE: To check if containerd set properly to use systemd cgroup driver, use systemd-cgls command.
+#       We will see that kubernetes containers are running under kubepod.slice at the systemd root cgroup instead of containerd.service.
+#       but static pods which were started by containerd level will still be shown under containerd.service.
+- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd
   become: yes
-  shell: |
-      containerd config default > /etc/containerd/config.toml
-  args:
-    executable: /bin/bash
-  notify:
-    - CRI | Containerd | Restart
-    - CRI | Containerd | Wait for Ready
-
-
-- name: AccuInsight+ Kubernetes | Generate default configuration for Containerd (2/2)
-  become: yes
-  lineinfile:
-    dest: /etc/containerd/config.toml
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  loop:
-    - { regexp: '^root =', line: 'root = "{{ kube_data_dir_cri }}/root"' }
-    - { regexp: '^state =', line: 'state = "{{ kube_data_dir_cri }}/state"' }
-  loop_control:
-    label: "{{ item.line }}"
+  template:
+    src: "containerd-config-{{ containerd_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2') }}.x.toml.j2"
+    dest: "/etc/containerd/config.toml"
+    owner: root
+    group: root
+    mode: '0644'
   notify:
     - CRI | Containerd | Restart
     - CRI | Containerd | Wait for Ready

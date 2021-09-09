@@ -1,10 +1,18 @@
 ---
 
-# TODO: NEED TO CHECK IF PYTHON IS INSTALLED IN ANSIBLE MANAGED NODES.
+- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes (control)
+  copy:
+    src: "{{ inventory_dir }}/../../accuinsight.pem"
+    dest: "{{ ansible_env.HOME }}/accuinsight.pem"
+    mode: '0600'
+  delegate_to: localhost
 
-- name: AccuInsight+ OS Default Settings | Print OS Information
-  debug:
-    msg: "{{ ansible_os_family }} : {{ ansible_distribution }} : {{ ansible_distribution_version }} : {{ ansible_kernel }}"
+
+- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes (managed)
+  copy:
+    src: "{{ inventory_dir }}/../../accuinsight.pem"
+    dest: "{{ ansible_env.HOME }}/accuinsight.pem"
+    mode: '0600'
 
 
 - name: AccuInsight+ OS Default Settings | Create ansible temporary directory
@@ -14,20 +22,9 @@
     state: directory
 
 
-#- name: AccuInsight+ OS Default Settings | Change permission of SSH KEY
-#  file:
-#    path: "{{ inventory_dir }}/../../accuinsight.pem"
-#    mode: '0600'
-#  delegate_to: localhost
-#  run_once: true
-
-
-- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes
-  copy:
-    src: "{{ inventory_dir }}/../../accuinsight.pem"
-    dest: "{{ ansible_env.HOME }}/.ssh/id_rsa.accuinsight"
-    mode: '0600'
-    backup: yes
+- name: AccuInsight+ OS Default Settings | Print OS Information
+  debug:
+    msg: "{{ ansible_os_family }} : {{ ansible_distribution }} : {{ ansible_distribution_version }} : {{ ansible_kernel }}"
 
 
 #- name: AccuInsight+ OS Default Settings | Synchronize SSH KEY to nodes

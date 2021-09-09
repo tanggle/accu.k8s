@@ -70,6 +70,7 @@
         executable: /bin/bash
 
 
+    # NOTE: Before go ahead, MUST be checked where kube-apiserver is healthy
     # SOURCE: https://github.com/NVIDIA/nvidia-container-toolkit/blob/master/oci-nvidia-hook.json
     - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (cri-o)
       when:
@@ -101,6 +102,7 @@
         - K8S | Wait for APIServer
 
 
+    # NOTE: Before go ahead, MUST be checked where kube-apiserver is healthy
     - name: AccuInsight+ GPU Accelerator | Configure CRI for NVIDIA (docker)
       when:
         - kube_cri == 'docker'
@@ -134,7 +136,7 @@
       when:
         - kube_cri == 'containerd'
       template:
-        src: "containerd-config-{{ containerd_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2') }}.x.patch"
+        src: "containerd-config-{{ containerd_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2') }}.x.patch.j2"
         dest: "{{ accu_manifests_location }}/{{ component }}/containerd-config.patch"
         owner: root
         group: root

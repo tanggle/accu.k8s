@@ -18,7 +18,7 @@ ext_lb_addr: "{{ accu_load_balancer_addr }}"
 ext_lb_port: 8443
 
 # 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (experimental)
-kube_version: 1.19.14
+kube_version: 1.21.4
 
 # NOTE: kube_pod_cidr and kube_svc_cidr MUST NOT be overlaped with customer's existing network subnet.
 # DOCS: https://en.wikipedia.org/wiki/Private_network
@@ -122,7 +122,7 @@ accu_service_source: "{{ inventory_dir }}/../../data/service"
 accu_service_target: /data/accuinsight/service
 
 # AccuInsight+ Collector
-accu_collector_target: /accuinsight/collector
+accu_collector_target: /data/accuinsight/collector
 accu_collector_gathering_deployer: true
 accu_collector_gathering_packages: true
 accu_collector_gathering_charts: true
@@ -296,7 +296,7 @@ accu_nfs_provisioner_enabled: true
 accu_nfs_provisioner_release: accu-nfs-provisioner
 accu_nfs_provisioner_version: 1.2.11
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
-accu_nfs_provisioner_server: "{{ groups['accu-nfs-server'][0] }}"
+accu_nfs_provisioner_server: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }}"
 accu_nfs_provisioner_path: /nfs
 accu_nfs_provisioner_replicas: 2
 accu_nfs_provisioner_storageclass_name: accu-nfs
@@ -421,6 +421,7 @@ accu_mariadb_default_user_pass: AccuInsight+k8s
 accu_mariadb_default_user_database: accuinsight
 accu_mariadb_storage_class: accu-ceph-cephfs
 accu_mariadb_storage_size: 50Gi
+accu_mariadb_storage_mode: ReadWriteMany
 accu_mariadb_slave_enabled: true
 accu_mariadb_slave_replicas: 2
 accu_mariadb_metrics_enabled: true
@@ -444,6 +445,6 @@ accu_keycloak_db_port: 3306
 accu_keycloak_db_name: keycloak
 accu_keycloak_db_user: keycloak
 accu_keycloak_db_pass: AccuInsight+k8s
-accu_keycloak_theme: harbor.accuinsight.io/accuinsight/keycloak-themes:1.0
+accu_keycloak_theme: docker.io/tanggle/keycloak-themes:1.0
 
 

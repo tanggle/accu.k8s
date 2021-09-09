@@ -58,10 +58,12 @@
       - '--set master.persistence.enabled=true'
       - '--set master.persistence.size={{ accu_mariadb_storage_size }}'
       - '--set master.persistence.storageClass={{ accu_mariadb_storage_class }}'
+      - '--set master.persistence.accessModes[0]={{ accu_mariadb_storage_mode }}'
       - '--set slave.replicas={{ accu_mariadb_slave_replicas }}'
       - '--set slave.persistence.enabled=true'
       - '--set slave.persistence.size={{ accu_mariadb_storage_size }}'
       - '--set slave.persistence.storageClass={{ accu_mariadb_storage_class }}'
+      - '--set slave.persistence.accessModes[0]={{ accu_mariadb_storage_mode }}'
       - '--set metrics.enabled={{ accu_mariadb_metrics_enabled }}'
   run_once: yes
 

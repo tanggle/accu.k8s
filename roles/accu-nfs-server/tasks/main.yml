@@ -1,5 +1,15 @@
 ---
 
+
+- name: AccuInsight+ NFS Server | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }} {{ groups['accu-nfs-server'][0] }}"
+
+
 - import_tasks: redhat.yaml
   when: ansible_os_family == 'RedHat'
 

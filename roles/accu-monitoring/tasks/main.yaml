@@ -160,6 +160,7 @@
 - name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (MariaDB)
   when:
     - accu_mariadb_enabled | bool
+    - accu_mariadb_metrics_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   template:

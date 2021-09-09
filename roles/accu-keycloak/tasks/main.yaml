@@ -1,12 +1,12 @@
 ---
 
-#- name: AccuInsight+ Keycloak | Add FQDN to /etc/hosts file
-#  become: yes
-#  lineinfile:
-#    dest: /etc/hosts
-#    insertafter: EOF
-#    state: present
-#    line: "{{ accu_load_balancer_addr }} {{ accu_keycloak_fqdn }}"
+- name: AccuInsight+ Keycloak | Add FQDN to /etc/hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    insertafter: EOF
+    state: present
+    line: "{{ accu_load_balancer_addr }} {{ accu_keycloak_fqdn }}"
 
 
 - name: AccuInsight+ Keycloak | Create manifests directory for {{ component }}

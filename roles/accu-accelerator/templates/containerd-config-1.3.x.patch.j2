@@ -1,0 +1,26 @@
+--- config.toml.org	2021-09-02 01:11:01.555371361 +0900
++++ config.toml.new	2021-09-02 01:15:38.607988063 +0900
+@@ -65,7 +65,7 @@
+     disable_proc_mount = false
+     [plugins."io.containerd.grpc.v1.cri".containerd]
+       snapshotter = "overlayfs"
+-      default_runtime_name = "runc"
++      default_runtime_name = "nvidia"
+       no_pivot = false
+       [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
+         runtime_type = ""
+@@ -78,6 +78,14 @@
+         runtime_root = ""
+         privileged_without_host_devices = false
+       [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
++        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia]
++          runtime_type = "io.containerd.runc.v1"
++          runtime_engine = ""
++          runtime_root = ""
++          privileged_without_host_devices = false
++          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
++            BinaryName = "/usr/bin/nvidia-container-runtime"
++            SystemdCgroup = {% if cri_cgroup_driver == 'systemd' %}true{{'\n'}}{% else %}false{{'\n'}}{% endif %}
+         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+           runtime_type = "io.containerd.runc.v1"
+           runtime_engine = ""
