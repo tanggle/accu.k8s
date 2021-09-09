@@ -135,7 +135,7 @@
     - 'storage/nfs'
 
 
-- name: AccuInsight+ Storage Ceph | Create manifest for Ceph Dashboard (password)
+- name: AccuInsight+ Storage Ceph | Create manifests for Ceph Dashboard (password)
   when:
     - accu_rook_ceph_monitor_dashboard_enabled | bool
     - inventory_hostname in groups['kube-master']

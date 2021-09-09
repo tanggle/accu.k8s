@@ -22,7 +22,7 @@
     recurse: true
 
 
-- name: AccuInsight+ Keycloak | Create manifest for {{ component }}
+- name: AccuInsight+ Keycloak | Create manifests for {{ component }}
   when:
     - accu_mariadb_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -35,6 +35,21 @@
     mode: '0644'
   loop:
     - 'config.yaml'
+    - 'mariadb.sql'
+
+
+#- name: AccuInsight+ Keycloak | Create databases for {{ component }}
+#  when:
+#    - accu_mariadb_enabled | bool
+#    - inventory_hostname in groups['kube-master']
+#  become: yes
+#  shell: |
+#      kubectl -n {{ accu_mariadb_namespace }} exec -it {{ accu_mariadb_release }}-master-0 -- mysql -uroot -p{{ accu_mariadb_admin_pass }} < {{ accu_manifests_location}}/{{ component }}/{{ item }}
+#  args:
+#    executable: /bin/bash
+#  loop:
+#    - 'mariadb.sql'
+#  run_once: yes
 
 
 - name: AccuInsight+ Keycloak | Add Chart Repository 'codecentric'

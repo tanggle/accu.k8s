@@ -120,7 +120,7 @@
 ################################################################################
 # Deploy Prometheus ServiceMonitor for Ceph                        ### BEGIN ###
 ################################################################################
-- name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (Ceph)
+- name: AccuInsight+ Monitoring | Create manifests for ServiceMonitors (Ceph)
   when:
     - accu_rook_ceph_enabled | bool
     - inventory_hostname in groups['kube-master']
@@ -157,7 +157,7 @@
 ################################################################################
 # Deploy Prometheus ServiceMonitor for MariaDB                     ### BEGIN ###
 ################################################################################
-- name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (MariaDB)
+- name: AccuInsight+ Monitoring | Create manifests for ServiceMonitors (MariaDB)
   when:
     - accu_mariadb_enabled | bool
     - accu_mariadb_metrics_enabled | bool
@@ -193,7 +193,7 @@
 ################################################################################
 # Deploy Prometheus ServiceMonitor for GPU Accelerator             ### BEGIN ###
 ################################################################################
-- name: AccuInsight+ Monitoring | Create manifest for ServiceMonitors (GPU)
+- name: AccuInsight+ Monitoring | Create manifests for ServiceMonitors (GPU)
   when:
     - accu_accelerator_enabled | bool
     - inventory_hostname in groups['kube-master']

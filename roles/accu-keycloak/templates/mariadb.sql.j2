@@ -1,0 +1,7 @@
+
+CREATE DATABASE {{ accu_keycloak_db_name }};
+
+GRANT all ON {{ accu_keycloak_db_name }}.* TO {{ accu_keycloak_db_user }}  IDENTIFIED BY '{{ accu_keycloak_db_pass }}';
+
+FLUSH PRIVILEGES;
+
