@@ -9,6 +9,9 @@
     - [저장공간 스펙](#저장공간-스펙)
     - [네트워크 포트](#네트워크-포트)
 - [**AccuInsight+ Kubernetes 배포**](#accuinsight-kubernetes-배포)
+  - [배포를 위한 데이터 수집](#배포를-위한-데이터-수집)
+    - [배포를 위한 데이터 수집 (설정)](#배포를-위한-데이터-수집-설정)
+    - [배포를 위한 데이터 수집 (실행)](#배포를-위한-데이터-수집-실행)
   - [배포를 위한 준비](#배포를-위한-준비)
     - [Ansible Managed 노드에서의 준비](#ansible-managed-노드에서의-준비)
     - [Ansible Control 노드에서의 준비](#ansible-control-노드에서의-준비)
@@ -118,12 +121,18 @@ Air-gapped 환경의 필수 운영 요소를 제공합니다.
  | 운영체제 |     버전      | 비고                   | 필수 사항                                    |
  | -------- | :-----------: | ---------------------- | -------------------------------------------- |
  | Ubuntu   | 18.04 / 20.04 | LTS                    |                                              |
- | RHEL     |   7.8 / 8.2   | 스트림별 현재 안정버전 | 7.x 의 경우 커널 3.10.0-1127.el7.x86_64 이상 |
+ | RHEL     |   7.x / 8.x   | 스트림별 현재 안정버전 | 7.x 의 경우 커널 3.10.0-1127.el7.x86_64 이상 |
  | CentOS   |   7.8 / 8.2   | 스트림별 현재 안정버전 | 7.x 의 경우 커널 3.10.0-1127.el7.x86_64 이상 |
 
-> `중요`: RHEL 7.x / CentOS 7.x 에서 Ceph 스토리지를 사용할 경우, **`커널버전은 반드시 3.10.0-1127.el7.x86_64 이상`** 이어야 합니다.
+> `중요`: RHEL 7.x / CentOS 7.x 에서 Ceph 스토리지를 사용할 경우, **`커널버전은 반드시 3.10.0-1127.el7.x86_64 이상`** 필수 !
 
 > x86_64 아키텍쳐만 지원하며, 물리머신 또는 VM머신(AWS EC2포함)은 무관합니다.
+
+> RHEL의 경우, 아래의 버전이 검증되었습니다.
+> - 7.6 / 7.7 / 7.8 / 7.9
+> - 8.0 / 8.1 / 8.2 / 8.3
+
+> CentOS의 경우, 2020년 12월 Discontinue 발표 후 7.8 / 8.2 외의 추가지원은 중단합니다.
 
 
 ### 하드웨어 스펙
@@ -135,28 +144,30 @@ Air-gapped 환경의 필수 운영 요소를 제공합니다.
  | Storage Ceph | 4 / 16G        | 2 / 8G         | 개별 노드로 분리할 경우                                    |
  | Storage NFS  | 2 / 16G        | 2 / 8G         | 개별 노드로 분리할 경우                                    |
 
-> 30노드 이하의 Kubernetes 플랫폼이 원활히 작동하기 위한 사양이며, 비지니스 워크로드는 제외입니다.
+> 30노드 이하의 Kubernetes 플랫폼이 원활히 작동하기 위한 사양이며, `비지니스 워크로드는 제외`입니다.
 
 
 ### 저장공간 스펙
 
 
-| 구분          | 파티션          | 권장   | 최소   | 비고                               |
-| ------------- | --------------- | ------ | ------ | ---------------------------------- |
-| Master 노드 | /var/lib/docker | 1 TB   | 500 GB | CRI Images and Container Ephemeral |
-|               | /var/lib/kublet | 1 TB   | 500 GB | K8S Container Ephemeral            |
-| Worker 노드 | /var/lib/docker | 1 TB   | 500 GB | CRI Images and Container Ephemeral |
-|               | /var/lib/kublet | 1 TB   | 500 GB | K8S Container Ephemeral            |
-| Storage 노드 | RAW 디스크      | 적당량 | 적당량 | 고객 데이터                        |
+| 구분         | 파티션     | 권장   | 최소   | 비고                               |
+| ------------ | ---------- | ------ | ------ | ---------------------------------- |
+| Master 노드  | /data      | 200 GB | 100 GB | CRI Images and Container Ephemeral |
+|              |            |        |        | K8S Container Ephemeral            |
+| Worker 노드  | /data      | 1 TB   | 500 GB | CRI Images and Container Ephemeral |
+|              |            |        |        | K8S Container Ephemeral            |
+| Storage 노드 | RAW 디스크 | 적당량 | 적당량 | 고객 데이터                        |
 
-> 파티션 위치는 선택한 CRI에 따라 상이할 수 있습니다.
+> 파티션 위치는 설정가능하며, 기본 위치는 CRI (/data/cri), K8S (/data/k8s) 하위 위치에 구성됩니다.
+
+> `Master 노드`의 요구사항은 K8S Master 전용으로 구성할 때의 예시이며, K8S Master가 비지니스 워크로드를 동시에 처리하는 환경이라면, `Worker 노드`의 예시를 적용합니다.
 
 
 ### 네트워크 포트
 
 | 프로토콜 | 포트 범위   | 용도                          |
 | -------- | ----------- | ----------------------------- |
-| TCP      | 6443        | Kubernetes API Server         |
+| TCP      | 6443,8443   | Kubernetes API Server         |
 | TCP      | 2379-2381   | ETCD                          |
 | TCP      | 10250       | Kubelet API                   |
 | TCP      | 10251,10259 | Kubernetes Scheduler          |
@@ -164,15 +175,42 @@ Air-gapped 환경의 필수 운영 요소를 제공합니다.
 | TCP      | 10249       | Kube Proxy                    |
 | TCP      | 30000-32767 | Service, NodePort             |
 
-> Kubernetes 노드 간에는 모든 통신이 가능하도록 방화벽 해제가 권장됩니다.
+> `Kubernetes 노드 간에는 모든 통신이 가능`하도록 방화벽 해제가 권장됩니다.
 
-
+> `8443` 포트는 accu-load-balancer 사용 시, `6443` 포트로 Forwarding 하기위한 포트입니다.
 
 
 
 # **AccuInsight+ Kubernetes 배포**
 
-Kubernetes 공식 배포툴인 kubeadm을 이용하여 배포합니다. 모든 바이너리는 제공자(Kubernetes, Docker 등등)의 공식 저장소에서 운영체제 패키지를 통해 설치하며, 기타 컴포넌트도 공식 저장소 (Helm)에서 제공하는 순수 버전을 사용합니다.
+Kubernetes 공식 배포툴인 kubeadm을 이용하여 배포합니다. 모든 바이너리는 제공자(Kubernetes, Docker, NVIDIA, Ceph 등)의 공식 저장소에서 운영체제 패키지를 통해 설치하며, 기타 컴포넌트도 공식 저장소 (Helm)에서 제공하는 순수 버전을 사용합니다.
+
+## 배포를 위한 데이터 수집
+
+- 고객사에 구성될 환경과 동일하게 AWS에서 노드를 구성합니다.
+- 고객사에 반입할 데이터 (이미지, 차트, 패키지, 파일)등을 수집합니다.
+- 고객사에 반입할 데이터를 준비합니다.
+
+### 배포를 위한 데이터 수집 (설정)
+
+- inventory/accuinsight/group_vars/all/accuinsight.yaml
+- inventory/accuinsight/group_vars/all/collector-*.yaml
+
+> K8S 버전, GPU 드라이버 버전, 기타 컴포넌트 버전등을 설정합니다.
+
+### 배포를 위한 데이터 수집 (실행)
+
+```bash
+$ ansible-playbook -i inventory/accuinsight/hosts.<OS> plays/accu-collector.yaml --flush-cache
+```
+> OS 버전에 맞는 패키지, 이미지, 차트, 기타 파일 및 디플로이어 (Python & Ansible)이 수집됩니다.
+
+> 위의 명령 수행시, 인벤토리 설정의 `[accu-pkg-server]` 섹션에 명시된 첫 번째 호스트에서 수행됩니다.
+
+```bash
+$ ./accuk8s.media
+```
+> 수집된 모든 데이터는 accu.k8s.tar.gz 파일로 생성이됩니다. 이 파일을 고객사에 반입을 요청합니다. 
 
 ## 배포를 위한 준비
 
@@ -180,41 +218,45 @@ Kubernetes 공식 배포툴인 kubeadm을 이용하여 배포합니다. 모든 �
 - Ansible Managed 노드의 `사용자`는 패스워드 없이 sudo 명령 사용이 가능해야 합니다.
 - Ansible Control 노드는 모든 Ansible Managed 노드의 `사용자`로 SSH 접근이 가능해야 합니다.
 
+
 ### Ansible Managed 노드에서의 준비
 
 - 사용자 생성
 ```bash
-$ sudo adduser accuinsight
+$ sudo adduser accu
 ```
 - sudo 허용
 ```bash
-$ echo "accuinsight ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/accuinsight
+$ echo "accu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/accu
 ```
 
 ### Ansible Control 노드에서의 준비
 - SSH 허용
 ```bash
-$ ssh-copy-id -i accuinsight.pub accuinsight@<IP-ADDR-OF-MANAGED-NODE>
+$ ssh-copy-id -i accuinsight.pub accu@<IP-ADDR-OF-MANAGED-NODE>
 ```
 > ssh-copy-id 명령을 수행하기 위해서는 Ansible Managed 노드는 패스워드를 통한 SSH 접근이 가능해야 합니다. 위의 명령이 실패할 경우, accuinsight.pub 파일을 모든 Ansible Managed 노드로 복사하고 `사용자`로 아래의 명령을 수행합니다.
 >
 >```bash
 >$ cat accuinsight.pub >> ~/.ssh/authorized_keys
 >```
+- 배포 데이터 압축 해제
+```bash
+$ tar xvzf accu.k8s.tar.gz
+```
+- 배포 환경 생성 (deployer)
+```bash
+$ data/deployer/accu.k8s.deployer-<OS>.sh
+```
+> 고객사의 Ansible Control 노드에 Python 및 Ansible 실행을 위한 환경을 생성합니다.
 
-- Ansible 설치
-
-  - RHEL 또는 CentOS
-  ```bash
-  $ sudo yum install ansible
-  ```
-  - Ubuntu
-  ```
-  $ sudo apt update
-  $ sudo apt install software-properties-common
-  $ sudo apt-add-repository --yes --update ppa:ansible/ansible
-  $ sudo apt install ansible
-  ```
+> 노드의 환경과 격리된 Python Virtual Environment 하위의 Ansible 실행 환경이 생성됩니다.
+- 배포 환경 활성화 및 확인 (deployer)
+```bash
+$ source data/deployer/deployer/bin/activate
+$ ansible --version
+```
+> ansible 명령을 사용하려면, 처음 로그인 후 Python Virtual Environment 환경을 활성화 해야합니다.
 
 ## 배포를 위한 설정
 
@@ -232,6 +274,7 @@ $ ssh-copy-id -i accuinsight.pub accuinsight@<IP-ADDR-OF-MANAGED-NODE>
 #
 # <hostname>:
 # 배포 과정에서 지정한 이름이 호스트 이름으로 설정됩니다.
+# 고객이 내부 정책에 맞게 제공한 호스트 이름이 있다면, 해당 이름으로 대체합니다.
 #
 # ansible_host:
 # Control 에서 SSH로 연결할 Managed 노드의 주소를 설정합니다.
@@ -245,13 +288,13 @@ $ ssh-copy-id -i accuinsight.pub accuinsight@<IP-ADDR-OF-MANAGED-NODE>
 # 참고: Ansible Control 노드와 Managed 노드가 동일한 네트워크에 있다면
 #      ansible_host 와 private_ip 는 동일하게 지정할 수 있습니다.
 #
-accu-k8s-m01 ansible_host=13.125.0.10 ansible_user=accuinsight private_ip=172.31.0.10
-accu-k8s-m02 ansible_host=13.125.0.11 ansible_user=accuinsight private_ip=172.31.0.11
-accu-k8s-m03 ansible_host=13.125.0.12 ansible_user=accuinsight private_ip=172.31.0.12
-accu-k8s-w01 ansible_host=13.125.0.13 ansible_user=accuinsight private_ip=172.31.0.13
-accu-k8s-w02 ansible_host=13.125.0.14 ansible_user=accuinsight private_ip=172.31.0.14
-accu-k8s-w03 ansible_host=13.125.0.15 ansible_user=accuinsight private_ip=172.31.0.15
-accu-k8s-x01 ansible_host=13.125.0.16 ansible_user=accuinsight private_ip=172.31.0.16
+accu-k8s-m01 ansible_host=13.125.0.10 ansible_user=accu private_ip=172.31.0.10
+accu-k8s-m02 ansible_host=13.125.0.11 ansible_user=accu private_ip=172.31.0.11
+accu-k8s-m03 ansible_host=13.125.0.12 ansible_user=accu private_ip=172.31.0.12
+accu-k8s-w01 ansible_host=13.125.0.13 ansible_user=accu private_ip=172.31.0.13
+accu-k8s-w02 ansible_host=13.125.0.14 ansible_user=accu private_ip=172.31.0.14
+accu-k8s-w03 ansible_host=13.125.0.15 ansible_user=accu private_ip=172.31.0.15
+accu-k8s-x01 ansible_host=13.125.0.16 ansible_user=accu private_ip=172.31.0.16
 
 # 수정 금지
 [kube-cluster:children]
@@ -283,20 +326,14 @@ accu-k8s-w03
 # GPU 워크로드를 담당할 K8S Worker로 설정이 됩니다.
 #
 [accu-nvidia]
-accu-k8s-x01
+accu-k8s-w01
+accu-k8s-w02
+accu-k8s-w03
 
 # 수정 금지
 [accu-server:children]
-accu-alb-server
 accu-pkg-server
 accu-nfs-server
-
-# 소프트웨어 로드밸런서로 설정될 호스트 목록
-#
-# 하드웨어 로드밸런서가 없을 경우만 지정하며, 하드웨어 로드밸런서가 있다면 생략합니다.
-#
-[accu-alb-server]
-accu-k8s-x01
 
 # 운영체제 패키지 저장소로 설정될 호스트 목록
 #
@@ -304,7 +341,7 @@ accu-k8s-x01
 # 다수의 호스트를 지정하면 저장소가 HA로 구성됩니다.
 #
 [accu-pkg-server]
-accu-k8s-x01
+accu-k8s-w01
 
 # NFS 서버로 설정될 호스트
 #
@@ -325,7 +362,7 @@ accu-k8s-w02
 accu-k8s-w03
 ```
 
-> `[섹션]`의 호스트 목록은 없을 수 있지만, `[섹션]`은 삭제하면 안됩니다.
+> `[섹션]`의 호스트 목록은 없을 수 있지만, `[섹션]` 자체를 삭제하면 안됩니다.
 
 
 ### AccuInsight+ Kubernetes 상세옵션 설정
@@ -333,172 +370,380 @@ accu-k8s-w03
 상세옵션 파일 위치는 `inventory/accuinsight/group_vars/all/accuinsight.yaml`입니다.
 
 ```yaml
+################################################################################
 # AccuInsight+ Kubernetes Environment ################################ BEGIN ###
-
-# K8S Cluster 노드 OS 기본 설정: OS 업데이트
-os_update: false
-
-# K8S Cluster 노드 OS 기본 설정: OS 타임존
-os_timezone: "Asia/Seoul"
-
-# K8S 서비스 : 버전
-kube_version: 1.18.8
-# K8S 서비스: POD CIDR
-kube_pod_cidr: 10.0.0.0/16
-# K8S 서비스: SVC CIDR
-kube_svc_cidr: 10.10.0.0/16
-# K8S 서비스: PROXY MODE
-kube_proxy_mode: iptables
-# K8S 서비스: CGROUP DRIVER
-kube_cgroup_driver: "{{ cri_cgroup_driver }}"
+################################################################################
 
 # K8S 로드밸런서: 도메인
 ext_lb_fqdn: "{{ accu_load_balancer_fqdn }}"
 # K8S 로드밸런서: 주소
 ext_lb_addr: "{{ accu_load_balancer_addr }}"
 # K8S 로드밸런서: 포트
-ext_lb_port: 6443
+ext_lb_port: 8443
 
-# K8S CRI: 컨테이너 런타임 종류
-kube_cri: docker
-# K8S CRI: 컨테이너 런타임 버전
-kube_cri_version: 19.03.11
-# K8S CRI: 컨테이너 런타임 소켓위치
-kube_cri_sock: /var/run/dockershim.sock
+# K8S 서비스 : 버전
+kube_version: 1.21.4
+# K8S 서비스: POD CIDR
+kube_pod_cidr: 10.0.0.0/16
+# K8S 서비스: SVC CIDR
+kube_svc_cidr: 10.1.0.0/16
+# K8S 서비스: PROXY MODE
+kube_proxy_mode: iptables
+
+# K8S Master 노드 Tatint 여부
+kube_master_node_taint: true
+
+# Kubernetes Data Directory
+kube_data_dir_cri:     /data/cri         # default: /var/lib/docker
+kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
+kube_data_dir_etcd:    /data/k8s/etcd    # default: /var/lib/etcd
+
+# Kubernetes admin users
+kube_admin_users:
+  - "{{ ansible_user }}"
+  - "root"
+  - "ec2-user" # for redhat on AWS
+  - "ubuntu"   # for ubuntu on AWS
+
+###############################
+# AccuInsight+ Kubernetes CNI #
+###############################
 
 # K8S CNI: 컨테이너 네트워크 선택
 kube_cni: calico
-
-# K8S CNI: Calico MTU
-cni_calico_mtu: 1440
 # K8S CNI: Calico 버전
-cni_calico_version: "3.15.2"
+cni_calico_version: 3.17.1
+# K8S CNI: Calico MTU
+cni_calico_mtu: 0
 # K8S CNI: Calico iptable 백엔드
-cni_calico_iptablesbackend: "Auto"
+cni_calico_iptablesbackend: Auto
+cni_calico_cidr_autodetection_method: default
 
+
+###############################
+# AccuInsight+ Kubernetes CRI #
+###############################
+
+# K8S CRI: 컨테이너 런타임 종류
+kube_cri: containerd
+# K8S CRI: 컨테이너 런타임 버전
+kube_cri_version:
 # K8S CRI 옵션: Cgroup 드라이버 선택
-cri_cgroup_driver: systd
+cri_cgroup_driver: systemd
 # K8S CRI 옵션: Insecure 레지스트리
 cri_insecure_registries:
-  - "{{ accu_registry_fqdn }}"
   - "0.0.0.0/0"
 
-# AccuInsight+ Offline Mode
-accu_offline_enabled: false
-accu_offline_source: "{{ playbook_dir }}/../data.offline"
-accu_offline_target: "/accuinsight/offline"
-accu_service_source: "{{ playbook_dir }}/../data.service"
-accu_service_target: "/accuinsight/service"
+kube_default_domain: accuinsight.io
+
+################################################################################
+######################################################################## END ###
+################################################################################
+
+# AccuInsight+ Offline Materials
+accu_offline_enabled: true
+accu_offline_source: "{{ inventory_dir }}/../../data/offline"
+accu_offline_target: /data/accuinsight/offline
+
+# AccuInsight+ Offline Registry Mirror
+accu_offline_image_mirror: true
+
+# AccuInsight+ Service Materials
+accu_service_source: "{{ inventory_dir }}/../../data/service"
+accu_service_target: /data/accuinsight/service
+
+# AccuInsight+ Collector
+accu_collector_target: /data/accuinsight/collector
+accu_collector_gathering_deployer: true
+accu_collector_gathering_packages: true
+accu_collector_gathering_charts: true
+accu_collector_gathering_files: true
+accu_collector_gathering_images: true
+accu_collector_cleanup: true
 
 # AccuInsight+ Menifess Location
-accu_manifests_location: "/etc/kubernetes/accuinsight"
+accu_manifests_location: /etc/kubernetes/accuinsight
+
+# AccuInsight+ Certificates Location
+accu_certificates_location: /etc/kubernetes/accuinsight/accu-certificates
+accu_certificates_bits: 2048
+accu_certificates_expiration: 3650 # specify in days
+accu_certificates_recreation: false
 
 # AccuInsight+ Namespace
-accu_system_namespace: "accu-system"
-
-######################################################################## END ###
+accu_system_namespace: accu-system
+accu_service_namespace: accu
 
 # AccuInsight+ Package Repository
-accu_package_repository_enabled: false
-accu_package_repository_path: "/repo"
+accu_package_repository_enabled: true
+accu_package_repository_path: /repo
 accu_package_repository_port: 1234
+accu_package_repository_online_handling: all_disable
 
 # AccuInsight+ K8S Tools
 accu_tools_enabled: true
+accu_tools_powerline_version: 1.21.0 # https://github.com/justjanne/powerline-go
+accu_tools_kubectx_version: 0.9.4    # https://github.com/ahmetb/kubectx
+accu_tools_kubens_version: 0.9.4     # https://github.com/ahmetb/kubectx
+accu_tools_k9scli_version: 0.24.15   # https://k9scli.io/
+accu_tools_kubestr_version: 0.4.17   # https://kubestr.io/
 
 # AccuInsight+ Helm
 accu_helm_enabled: true
-accu_helm_version: "2.15.2"
+accu_helm_version: 3.6.1
 accu_helm_max_history: 10
+accu_helm_stable_repo: "https://charts.helm.sh/stable"
 
 # AccuInsight+ Load Balancer
+accu_vip_manager_enabled: false
+accu_vip_manager_version: 2.0.20
+accu_vip_manager_nic: eth0
 accu_load_balancer_enabled: true
-accu_load_balancer_fqdn: "k8s.accuinsight.io"
-accu_load_balancer_addr: "{{ hostvars[groups['accu-alb-server'][0]]['private_ip'] }}"
-# Currently this is IP address of internal load balancer but should be devided for internal and external
+accu_load_balancer_version: 2.2.5
+accu_load_balancer_namespace: "{{ accu_system_namespace }}"
+accu_load_balancer_stats: true
+accu_load_balancer_stats_port: 8888
+accu_load_balancer_stats_user: admin
+accu_load_balancer_stats_pass: AccuInsight+k8s
+accu_load_balancer_vip: xxx.xxx.xxx.xxx
+accu_load_balancer_fqdn: k8s.accuinsight.io
+accu_load_balancer_addr: "{% if accu_vip_manager_enabled | bool %}{{ accu_load_balancer_vip }}{% else %}{{ hostvars[groups['kube-master'][0]]['private_ip'] }}{% endif %}"
+accu_load_balancer_config_location: "/etc/accuinsight"
 
 # AccuInsight+ Metrics Server
 accu_metrics_server_enabled: true
-accu_metrics_server_release: "accu-metrics-server"
-accu_metrics_server_version: "2.11.1"
+accu_metrics_server_release: accu-metrics-server
+accu_metrics_server_version: 2.11.4
 accu_metrics_server_namespace: "{{ accu_system_namespace }}"
+accu_metrics_server_replicas: 2
 
 # AccuInsight+ Ingress Controller
 accu_ingress_controller_enabled: true
-accu_ingress_controller_release: "accu-ingress"
-accu_ingress_controller_version: "1.41.3"
+accu_ingress_controller_release: accu-ingress
+accu_ingress_controller_version: 3.29.0
 accu_ingress_controller_namespace: "{{ accu_system_namespace }}"
+accu_ingress_controller_replicas: 2
+accu_ingress_controller_tlssecret: tls.accuinsight.io
 accu_ingress_controller_nodeport_insecure: 30080
 accu_ingress_controller_nodeport_secure: 30443
+accu_ingress_backend_enabled: true
+accu_ingress_backend_replicas: 1
 
 # AccuInsight+ NFS Server
 accu_nfs_server_enabled: true
+accu_nfs_server_export_path: /nfs
+accu_nfs_server_export_opts: "*(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
 
 # AccuInsight+ Rook Ceph
 accu_rook_ceph_enabled: true
-accu_rook_ceph_release: "accu-rook-ceph"
-accu_rook_ceph_version: "1.4.2"
-accu_rook_ceph_namespace: "rook-ceph"
+accu_rook_ceph_release: accu-rook-ceph
+accu_rook_ceph_version: 1.5.9
+accu_rook_ceph_namespace: rook-ceph
+accu_rook_ceph_hostnetwork: false
 accu_rook_ceph_node_taint: false
-accu_ceph_block_storage_enabled: true
-accu_ceph_object_storage_enabled: true
-accu_ceph_file_storage_enabled: true
-accu_ceph_storage_device_name: nvme1n1
+accu_rook_ceph_admin_fqdn: ceph.accuinsight.io
+accu_rook_ceph_admin_pass: AccuInsight+k8s
+
+accu_rook_ceph_image_version: 15.2.9
+accu_rook_ceph_monitor_count: 3
+
+accu_rook_ceph_storage_devices:
+  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: hdd }
+  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: hdd }
+  - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: hdd }
+
+# AccuInsight+ Ceph Block Storage (rbd)
+accu_rook_ceph_block_storage_enabled: true
+accu_rook_ceph_block_storage_failuredomain: host
+accu_rook_ceph_block_pool_name: accu-block
+accu_rook_ceph_block_pool_type: r
+accu_rook_ceph_block_pool_meta_deviceclass: hdd
+accu_rook_ceph_block_pool_data_deviceclass: hdd
+accu_rook_ceph_block_pool_replication_size: 3
+accu_rook_ceph_block_storage_class_name: accu-ceph-block
+accu_rook_ceph_block_storage_class_reclaimpolicy: Retain
+accu_rook_ceph_block_stroage_class_fstype: ext4
+
+# AccuInsight+ Ceph Filesystem Storage (cephfs)
+accu_rook_ceph_filesystem_storage_enabled: true
+accu_rook_ceph_filesystem_storage_failuredomain: host
+accu_rook_ceph_filesystem_pool_name: accu-cephfs
+accu_rook_ceph_filesystem_pool_type: r
+accu_rook_ceph_filesystem_pool_meta_deviceclass: hdd
+accu_rook_ceph_filesystem_pool_data_deviceclass: hdd
+accu_rook_ceph_filesystem_pool_replication_size: 3
+accu_rook_ceph_filesystem_storage_class_name: accu-ceph-cephfs
+accu_rook_ceph_filesystem_storage_class_reclaimpolicy: Retain
+accu_rook_ceph_filesystem_mount_on_masters: false
+
+# AccuInsight+ Ceph Object Storage (s3)
+accu_rook_ceph_object_storage_enabled: true
+accu_rook_ceph_object_storage_failuredomain: host
+accu_rook_ceph_object_storage_instances: 3
+accu_rook_ceph_object_storage_fqdn: s3.accuinsight.io
+accu_rook_ceph_object_storage_port: 8080
+accu_rook_ceph_object_pool_name: accu-object
+accu_rook_ceph_object_pool_type: r
+accu_rook_ceph_object_pool_meta_deviceclass: hdd
+accu_rook_ceph_object_pool_data_deviceclass: hdd
+accu_rook_ceph_object_pool_replication_size: 3
+
+# AccuInsight+ Ceph NFS Ganesha
+accu_rook_ceph_ganesha_enabled: false
+accu_rook_ceph_ganesha_failuredomain: host
+accu_rook_ceph_ganesha_instances: 1
+accu_rook_ceph_ganesha_pool_name: accu-ganesha
+accu_rook_ceph_ganesha_pool_replication_size: 3
+accu_rook_ceph_ganesha_pool_namespace: conf-ganesha
+accu_rook_ceph_ganesha_export_path: ganesha
 
 # AccuInsight+ NFS Provisioner
 accu_nfs_provisioner_enabled: true
-accu_nfs_provisioner_release: "accu-nfs-provisioner"
-accu_nfs_provisioner_version: "1.2.9"
+accu_nfs_provisioner_release: accu-nfs-provisioner
+accu_nfs_provisioner_version: 1.2.11
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
-accu_nfs_provisioner_server: "{{ groups['accu-nfs-server'][0] }}"
-accu_nfs_provisioner_path: "/nfs"
+accu_nfs_provisioner_server: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }}"
+accu_nfs_provisioner_path: /nfs
+accu_nfs_provisioner_replicas: 2
+accu_nfs_provisioner_storageclass_name: accu-nfs
+accu_nfs_provisioner_storageclass_reclaimpolicy: Retain
+accu_nfs_provisioner_mount_on_masters: false
+
+# AccuInsight+ Harbor
+accu_harbor_enabled: true
+accu_harbor_release: accu-harbor
+accu_harbor_version: 1.7.2
+accu_harbor_namespace: accu-harbor
+accu_harbor_fqdn_core: harbor.accuinsight.io
+accu_harbor_fqdn_notary: notary.accuinsight.io
+accu_harbor_pass: AccuInsight+k8s
+accu_harbor_registry_storage_class: accu-ceph-cephfs
+accu_harbor_registry_storage_size: 100Gi
+accu_harbor_registry_storage_mode: ReadWriteMany
+accu_harbor_chartmuseum_storage_class: accu-ceph-cephfs
+accu_harbor_chartmuseum_storage_size: 1Gi
+accu_harbor_chartmuseum_storage_mode: ReadWriteMany
+accu_harbor_jobservice_storage_class: accu-ceph-cephfs
+accu_harbor_jobservice_storage_size: 1Gi
+accu_harbor_jobservice_storage_mode: ReadWriteMany
+accu_harbor_database_storage_class: accu-ceph-cephfs
+accu_harbor_database_storage_size: 10Gi
+accu_harbor_database_storage_mode: ReadWriteMany
+accu_harbor_redis_storage_class: accu-ceph-cephfs
+accu_harbor_redis_storage_size: 10Gi
+accu_harbor_redis_storage_mode: ReadWriteMany
+accu_harbor_trivy_storage_class: accu-ceph-cephfs
+accu_harbor_trivy_storage_size: 1Gi
+accu_harbor_trivy_storage_mode: ReadWriteNany
 
 # AccuInsight+ Docker Registry
 accu_registry_enabled: true
-accu_registry_release: "accu-registry"
-accu_registry_version: "1.9.4"
+accu_registry_release: accu-registry
+accu_registry_version: 1.9.6
 accu_registry_namespace: "{{ accu_system_namespace }}"
-accu_registry_fqdn: "images.accuinsight.io"
-accu_registry_user: "dpcore"
-accu_registry_pass: "dpcore"
+accu_registry_replicas: 2
+accu_registry_storage_class: accu-ceph-cephfs
+accu_registry_storage_mode: ReadWriteMany
+accu_registry_storage_size: 50Gi
+accu_registry_fqdn: images.accuinsight.io
 
 # AccuInsight+ Chartmuseum
-accu_chartmuseum_enabled: true
-accu_chartmuseum_release: "accu-chartmuseum"
-accu_chartmuseum_version: "2.13.2"
+accu_chartmuseum_enabled: false
+accu_chartmuseum_release: accu-chartmuseum
+accu_chartmuseum_version: 2.14.2
 accu_chartmuseum_namespace: "{{ accu_system_namespace }}"
-accu_chartmuseum_fqdn: "charts.accuinsight.io"
-accu_chartmuseum_name: "accu-repo"
-accu_chartmuseum_user: "dpcore"
-accu_chartmuseum_pass: "dpcore"
+accu_chartmuseum_replicas: 2
+accu_chartmuseum_storage_class: accu-ceph-cephfs
+accu_chartmuseum_storage_mode: ReadWriteMany
+accu_chartmuseum_storage_size: 1Gi
+accu_chartmuseum_fqdn: charts.accuinsight.io
+accu_chartmuseum_name: accuinsight
+accu_chartmuseum_user: accuinsight
+accu_chartmuseum_pass: AccuInsight+k8s
 
 # AccuInsight+ Prometheus
 accu_monitoring_enabled: true
-accu_monitoring_release: "accu-monitor"
-accu_monitoring_version: "9.3.1"
-accu_monitoring_namespace: "accu-monitor"
-accu_monitoring_prometheus_fqdn: "accupc.accuinsight.io"
-accu_monitoring_grafana_fqdn: "accupm.accuinsight.io"
-accu_monitoring_grafana_pass: "dpcore"
+accu_monitoring_release: accu-monitor
+accu_monitoring_version: 18.0.1
+accu_monitoring_namespace: accu-monitor
+accu_monitoring_prometheus_fqdn: pc.accuinsight.io
+accu_monitoring_prometheus_retention: 4w
+accu_monitoring_prometheus_storage_class: accu-ceph-cephfs
+accu_monitoring_prometheus_storage_mode: ReadWriteMany
+accu_monitoring_prometheus_storage_size: 50Gi
+accu_monitoring_alertmanager_fqdn: pa.accuinsight.io
+accu_monitoring_alertmanager_retention: 120h
+accu_monitoring_alertmanager_storage_class: accu-ceph-cephfs
+accu_monitoring_alertmanager_storage_mode: ReadWriteMany
+accu_monitoring_alertmanager_storage_size: 50Gi
+accu_monitoring_grafana_fqdn: pm.accuinsight.io
+accu_monitoring_grafana_pass: AccuInsight+k8s
+accu_monitoring_grafana_storage_class: accu-ceph-cephfs
+accu_monitoring_grafana_storage_mode: ReadWriteMany
+accu_monitoring_grafana_storage_size: 1Gi
 
 # AccuInsight+ GPU Accelerator
 accu_accelerator_enabled: true
 accu_accelerator_namespace: "{{ accu_system_namespace }}"
-accu_accelerator_node_taint: true
+accu_accelerator_node_taint: false
 accu_accelerator_nvidia_type: tesla
-accu_accelerator_driver_version: "418.126.02"
-accu_accelerator_device_plugin_type: nvidia
-accu_accelerator_driver_centos: "{{ accu_registry_fqdn }}/accu-nvidia-driver-centos:accu"
-accu_accelerator_device_plugin: "{{ accu_registry_fqdn }}/accu-nvidia-device-plugin:{{ accu_accelerator_device_plugin_type }}"
-accu_accelerator_device_metric: "{{ accu_registry_fqdn }}/accu-nvidia-device-metric:1.7.2"
+accu_accelerator_driver_version: 450.51.06
+accu_accelerator_kernel_version:
+  - "{{ ansible_kernel }}"
+accu_accelerator_device_plugin_version: v0.9.0
+accu_accelerator_device_metric_version: 2.1.4-2.3.1-ubuntu18.04
+
+
+################################################################################
+#                                                                              #
+# AccuInsight+ Solution Requirements                                           #
+#                                                                              #
+################################################################################
+
+# AccuInsight+ MariaDB
+accu_mariadb_enabled: true
+accu_mariadb_version: 7.10.4
+accu_mariadb_release: accu-mariadb
+accu_mariadb_namespace: "{{ accu_service_namespace }}"
+accu_mariadb_admin_pass: AccuInsight+k8s
+accu_mariadb_default_user_name: accuinsight
+accu_mariadb_default_user_pass: AccuInsight+k8s
+accu_mariadb_default_user_database: accuinsight
+accu_mariadb_storage_class: accu-ceph-cephfs
+accu_mariadb_storage_size: 50Gi
+accu_mariadb_storage_mode: ReadWriteMany
+accu_mariadb_slave_enabled: true
+accu_mariadb_slave_replicas: 2
+accu_mariadb_metrics_enabled: true
+
+# AccuInsight+ Keycloak
+accu_keycloak_enabled: false
+accu_keycloak_version: 14.0.1
+accu_keycloak_release: accu-keycloak
+accu_keycloak_namespace: "{{ accu_service_namespace }}"
+accu_keycloak_fqdn: idp.accuinsight.io
+accu_keycloak_replicas: 2
+accu_keycloak_discovery: DNS_PING # DNS_PING or KUBE_PING
+accu_keycloak_admin_name: admin
+accu_keycloak_admin_pass: AccuInsight+k8s
+accu_keycloak_nodeport_insecure: 32080
+accu_keycloak_nodeport_secure: 32443
+accu_keycloak_db_vendor: mariadb
+accu_keycloak_db_addr: "{{ accu_mariadb_release }}.{{ accu_mariadb_namespace }}"
+accu_keycloak_db_port: 3306
+accu_keycloak_db_name: keycloak
+accu_keycloak_db_user: keycloak
+accu_keycloak_db_pass: AccuInsight+k8s
+accu_keycloak_theme: docker.io/tanggle/keycloak-themes:1.0
 ```
 
 ## 배포를 위한 파일
 
-| 위치         | 용도                              |
-| ------------ | --------------------------------- |
-| data.offline | 오프라인 배포시 필요한 파일들     |
-| data.service | AccuInsight+ 서비스를 위한 파일들 |
+| 위치          | 용도                                                               |
+| ------------- | ------------------------------------------------------------------ |
+| data/deployer | 오프라인 배포시 필요한 파일들 (Python & Ansible)                   |
+| data/offline  | 오프라인 배포시 필요한 파일들 (Images & Charts & Packages & Files) |
+| data/service  | AccuInsight+ 서비스를 위한 파일들 (Modeler & Pipeline)             |
 
 ## 배포를 위한 확인
 
@@ -524,70 +769,94 @@ AccuInsight+ Kubernetes 배포를 위한 상세 설정을 설명합니다. 설�
 설정파일 위치: `inventory/accuinsight/group_vars/all/accuinsight.yaml`
 
 ```yaml
+################################################################################
 # AccuInsight+ Kubernetes Environment ################################ BEGIN ###
-
-# K8S Cluster 노드 OS 기본 설정: OS 업데이트
-os_update: false
-
-# K8S Cluster 노드 OS 기본 설정: OS 타임존
-os_timezone: "Asia/Seoul"
-
-# K8S 서비스 : 버전
-kube_version: 1.18.8
-# K8S 서비스: POD CIDR
-kube_pod_cidr: 10.0.0.0/16
-# K8S 서비스: SVC CIDR
-kube_svc_cidr: 10.10.0.0/16
-# K8S 서비스: PROXY MODE
-kube_proxy_mode: iptables
-# K8S 서비스: CGROUP DRIVER
-kube_cgroup_driver: "{{ cri_cgroup_driver }}"
+################################################################################
 
 # K8S 로드밸런서: 도메인
 ext_lb_fqdn: "{{ accu_load_balancer_fqdn }}"
 # K8S 로드밸런서: 주소
 ext_lb_addr: "{{ accu_load_balancer_addr }}"
 # K8S 로드밸런서: 포트
-ext_lb_port: 6443
+ext_lb_port: 8443
 
-# K8S CRI: 컨테이너 런타임 종류
-kube_cri: docker
-# K8S CRI: 컨테이너 런타임 버전
-#kube_cri_version: 19.03.11
-# K8S CRI: 컨테이너 런타임 소켓위치
-kube_cri_sock: /var/run/dockershim.sock
+# K8S 서비스 : 버전
+kube_version: 1.21.4
+# K8S 서비스: POD CIDR
+kube_pod_cidr: 10.0.0.0/16
+# K8S 서비스: SVC CIDR
+kube_svc_cidr: 10.1.0.0/16
+# K8S 서비스: PROXY MODE
+kube_proxy_mode: iptables
+
+# K8S Master 노드 Tatint 여부
+kube_master_node_taint: true
+
+# Kubernetes Data Directory
+kube_data_dir_cri:     /data/cri         # default: /var/lib/docker
+kube_data_dir_kubelet: /data/k8s/kubelet # default: /var/lib/kubelet
+kube_data_dir_etcd:    /data/k8s/etcd    # default: /var/lib/etcd
+
+# Kubernetes admin users
+kube_admin_users:
+  - "{{ ansible_user }}"
+  - "root"
+  - "ec2-user" # for redhat on AWS
+  - "ubuntu"   # for ubuntu on AWS
+
+###############################
+# AccuInsight+ Kubernetes CNI #
+###############################
 
 # K8S CNI: 컨테이너 네트워크 선택
 kube_cni: calico
-
-# K8S CNI: Calico MTU
-cni_calico_mtu: 1440
 # K8S CNI: Calico 버전
-cni_calico_version: "3.15.2"
+cni_calico_version: 3.17.1
+# K8S CNI: Calico MTU
+cni_calico_mtu: 0
 # K8S CNI: Calico iptable 백엔드
-cni_calico_iptablesbackend: "Auto"
+cni_calico_iptablesbackend: Auto
+cni_calico_cidr_autodetection_method: default
 
+
+###############################
+# AccuInsight+ Kubernetes CRI #
+###############################
+
+# K8S CRI: 컨테이너 런타임 종류
+kube_cri: containerd
+# K8S CRI: 컨테이너 런타임 버전
+kube_cri_version:
 # K8S CRI 옵션: Cgroup 드라이버 선택
 cri_cgroup_driver: systemd
 # K8S CRI 옵션: Insecure 레지스트리
 cri_insecure_registries:
-  - "{{ accu_registry_fqdn }}"
   - "0.0.0.0/0"
 
-# AccuInsight+ 오프라인 모드 환경 설정
-accu_offline_enabled: false
-accu_offline_source: "{{ playbook_dir }}/../data.offline"
-accu_offline_target: "/accuinsight/offline"
-accu_service_source: "{{ playbook_dir }}/../data.service"
-accu_service_target: "/accuinsight/service"
+kube_default_domain: accuinsight.io
 
-# AccuInsight+ 메니페스트 위치
-accu_manifests_location: "/etc/kubernetes/accuinsight"
-
-# AccuInsight+ 네임스페이스
-accu_system_namespace: "accu-system"
-
+################################################################################
 ######################################################################## END ###
+################################################################################
+
+# AccuInsight+ Offline Materials
+accu_offline_enabled: true
+accu_offline_source: "{{ inventory_dir }}/../../data/offline"
+accu_offline_target: /data/accuinsight/offline
+
+# AccuInsight+ Offline Registry Mirror
+accu_offline_image_mirror: true
+
+# AccuInsight+ Service Materials
+accu_service_source: "{{ inventory_dir }}/../../data/service"
+accu_service_target: /data/accuinsight/service
+
+# AccuInsight+ Menifess Location
+accu_manifests_location: /etc/kubernetes/accuinsight
+
+# AccuInsight+ Namespace
+accu_system_namespace: accu-system
+accu_service_namespace: accu
 ```
 
 ## Kubernetes 환경 설정
@@ -600,27 +869,33 @@ accu_system_namespace: "accu-system"
 
 **`accu_offline_source`**
 
-오프라인 설치시 사용될 데이터 소스 위치입니다. 기본값은 "`{{ playbook_dir }}/../data.offline`" 입니다.
+오프라인 설치시 사용될 데이터 소스 위치입니다. 기본값은 "`{{ inventory_dir }}/../../data/offline`" 입니다.
 
 **`accu_offline_target`**
 
-오프라인 설치시 사용될 데이터 타겟(리모트) 위치입니다. 기본값은 "`/accuinsight/offline`" 입니다.
+오프라인 설치시 사용될 데이터 타겟(리모트) 위치입니다. 기본값은 "`/data/accuinsight/offline`" 입니다.
+> 해당 노드의 역할에 맞게 필요한 데이터들이 복사되며, 배포 후에는 삭제해도 무방합니다.
 
 **`accu_service_source`**
 
-AccuInsight+ 구동에 필요한 데이터 소스 위치입니다. 기본값은 "`{{ playbook_dir }}/../data.service`" 입니다.
+AccuInsight+ 구동에 필요한 데이터 소스 위치입니다. 기본값은 "`{{ inventory_dir }}/../../data/service`" 입니다.
 
 **`accu_service_target`**
 
-AccuInsight+ 구동에 필요한 데이터 타겟(리모트) 위치입니다. 기본값은 "`/accuinsight/service`" 입니다.
+AccuInsight+ 구동에 필요한 데이터 타겟(리모트) 위치입니다. 기본값은 "`/data/accuinsight/service`" 입니다.
+> 해당 노드의 역할에 맞게 필요한 데이터들이 복사되며, 배포 후에는 삭제해도 무방합니다.
 
 **`accu_manifests_location`**
 
-Kubernetes 배포과정에서 생성된 Manifest 파일들이 저장될 위치입니다. 기본값은 "`/etc/kubernetes/accuinsight`" 입니다. 배포된 시점의 설정값들을 참고할 수 있습니다.
+Kubernetes 배포과정에서 생성된 Manifest 파일들이 저장될 위치입니다. 기본값은 "`/etc/kubernetes/accuinsight`" 입니다. 배포된 시점의 설정값들을 참고할 수 있으며, 차후 특정 오브젝트의 재생성이 필요하면 사용할 수 있습니다.
 
 **`accu_system_namespace`**
 
 순수 Kubernetes 외에 추가된 컴포넌트들의 네임스페이스 입니다. 기본값은 "`accu-system`" 입니다. 순수 Kubernetes 의 컴포넌트들의 네임스페이스는 "`kube-system`" 입니다.
+
+**`accu_service_namespace`**
+
+AccuInsight+ 서비스 (modeler, pipeline) 및 서비스를 위한 컴포넌트 (MariaDB, Keycloak)를 위한 네임스페이스를 지정합니다.
 
 ## Kubernetes 노드 설정
 
@@ -650,7 +925,7 @@ Kubernetes POD들이 사용할 서브 네트워크 범위를 설정합니다. �
 
 **`kube_svc_cidr`**
 
-Kubernetes Service가 사용할 서브 네트워크 범위를 설정합니다. 기본값은 "`10.10.0.0/16`" 입니다.
+Kubernetes Service가 사용할 서브 네트워크 범위를 설정합니다. 기본값은 "`10.1.0.0/16`" 입니다.
 
 > 사설 네트워크의 범위와 중복되지 않고 라우팅에 문제가 없는 범위를 지정해야합니다.
 
@@ -660,13 +935,49 @@ Kubernetes Service가 사용할 서브 네트워크 범위를 설정합니다. �
 
 Kubernetes의 내부 트래픽의 라우팅을 담당하는 kube_proxy의 작동 모드를 설정합니다. 기본값은 "`iptables`" 입니다.
 
-**`kube_cgroup_driver`**
+**`kube_master_node_taint`**
+
+(**true** / false)
+
+K8S Master 노드의 전용여부를 설정합니다. 기본값은 "`true`" 입니다. K8S Master 컴포넌트 (etcd, apiserver, controller, schedule) 외의 비지니스 워크로드를 수용하려면 반드시 "`false`" 로 설정해야 합니다.
+
+> 대부분의 고객사는 고사양 머신을 제공하기에 `false` 로 설정하여 K8S Master 노드가 일반 K8S Worker 노드의 역할도 수행하게 설정합니다. 가능하면 K8S Master 는 적정사양의 작은 머신을 전용으로 사용하는 것이 안정성 측면에서 권장됩니다.
+
+**`kube_data_dir_cri`**
+
+컨테이너 런타임이 사용할 스토리지(이미지 및 컨테이너 임시파일 저장) 위치를 지정합니다
+
+| 런타임     | 기본 스토리지 위치  |
+| ---------- | ------------------- |
+| docker     | /var/lib/docker     |
+| containerd | /var/lib/containerd |
+| cri-o      | /var/lib/containers |
+> 파일시스템 구성 요구조건을 간소화하고, 유연한 공간 사용을 위해 K8S, ETCD, CRI 의 공간을 통합합니다.
+
+**`kube_data_dir_kubelet`**
+
+K8S에서 사용할 스토리지(컨테이너 임시파일 및 원격 스토리지 마운트) 위치를 지정합니다. 기본값은 "`/var/lib/kubelet`" 입니다.
+> 파일시스템 구성 요구조건을 간소화하고, 유연한 공간 사용을 위해 K8S, ETCD, CRI 의 공간을 통합합니다.
+
+**`kube_data_dir_etcd`**
+
+K8S 메타정보를 저장하는 ETCD가 사용할 스토리지 위치를 저정합니다. 기본값은 "`/var/lib/etcd`" 입니다.
+> 파일시스템 구성 요구조건을 간소화하고, 유연한 공간 사용을 위해 K8S, ETCD, CRI 의 공간을 통합합니다.
+
+**`kube_admin_users`**
+
+쿠버네티스 및 컨테이너 런타임을 관리할 사용자를 지정합니다. 기본값은 "`{{ ansible_user }}`" 입니다.
+지정된 사용자는 쿠버네티스 관리자 권한으로 kubectl 명령 및 컨테이너 툴(docker, ctr, podman) 명령 사용이 가능한 권한으로 설정됩니다. K8S Master 노드에만 적용됩니다.
+
+> 나열된 사용자는 실제 시스템상에 계정이 있을 경우만 설정되며, 존재하지 않는 계정은 무시됩니다.
+
+> 특정 고객사의 경우, 배포 시에는 root 사용자 권한을 제공하지만 운영 환경으로 전환 시 root 사용자 권한을 제한합니다. 일반 사용자로 쿠버네티스 및 컨테이너를 관리해야 한다면, 해당 사용자를 나열하면 됩니다. 
+
+**`[DEPRECATED: cri_cgroup_driver 와 통합] kube_cgroup_driver`**
 
 (**systemd** / cgroupfs)
 
 [cgroup](https://en.wikipedia.org/wiki/Cgroups) 드라이버를 선택합니다. 기본값은 "`systemd`" 입니다.
-
-> 반드시 `cri_cgroup_driver` 값과 동일한 값을 지정해야 합니다.
 
 > 참고: [Cgroup drivers](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cgroup-drivers)
 
@@ -694,31 +1005,34 @@ HA로 구성된 Kubernetes API Server 앞단의 로드밸런서 포트를 지정
 
 **`kube_cri`**
 
-(**docker** / cri-o)
+(docker / **containerd** / cri-o)
 
-컨테이너 런타임을 설정합니다. 기본값은 "`docker`" 입니다.
+컨테이너 런타임을 설정합니다. 기본값은 "`containerd`" 입니다.
 
 **`kube_cri_version`**
 
-`kube_cri` 에 지정한 컨테이너 런타임의 버전을 설정합니다. 온라인 모드에서는 모든 버전이 가능하며, 오프라인 모드에서는  18.09.9 / 19.03.4 / 19.03.11 / 19.03.12 중에서 선택 가능합니다. 설정을 생략하면 `kube_version` 값으로 설정된 Kubernetes 버전에서 권장하는 런타임 버전으로 자동 설치됩니다.
+`kube_cri` 에 지정한 컨테이너 런타임의 버전을 설정합니다. 설정을 생략하면 `kube_version` 값으로 설정된 Kubernetes 버전에서 권장하는 런타임 버전으로 자동 설치됩니다.
 
-| kube_version | docker                                                                                                   | cri-o                                                                         |
-| ------------ | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 1.19         | [19.03.12](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker)           | [1.19](https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes) |
-| 1.18         | [19.03.11](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker)           | [1.18](https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes) |
-| 1.17         | [19.03.4](https://v1-17.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker) | [1.17](https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes) |
-| 1.16         | [18.09.9](https://v1-16.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker) | [1.16](https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes) |
-| 1.15         | [18.09.9](https://v1-15.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker) | [1.15](https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes) |
+| kube_version | docker   | containerd | cri-o |
+| ------------ | -------- | ---------- | ----- |
+| 1.21         | 20.10.7  | 1.4.9      | 1.21  |
+| 1.20         | 19.03.14 | 1.4.9      | 1.20  |
+| 1.19         | 19.03.14 | 1.4.9      | 1.19  |
+| 1.18         | 19.03.11 | 1.4.9      | 1.18  |
+| 1.17         | 19.03.4  | 1.3.9      | 1.17  |
+| 1.16         | 18.09.9  | 1.3.9      | 1.16  |
 
+> 자세한 버전 호환성은 `inventory/accuinsight/group_vars/all/compatible-matrix.yaml` 파일을 참고합니다.
 
-**`kube_cri_sock`**
+**`[DEPRECATED: 자동 설정으로 변경] kube_cri_sock`**
 
 Kubelet이 컨테이너 런타밍과 통신하기 위한 유닉스 도메인 소켓 위치를 지정합니다.
 
-| 런타임 | 유닉스 도메인 소켓       |
-| ------ | ------------------------ |
-| docker | /var/run/dockershim.sock |
-| cri-o  | /var/run/crio/crio.sock  |
+| 런타임     | 유닉스 도메인 소켓              |
+| ---------- | ------------------------------- |
+| docker     | /var/run/dockershim.sock        |
+| containerd | /run/containerd/containerd.sock |
+| cri-o      | /var/run/crio/crio.sock         |
 
 > 참고: [Runtime Unix Domain Socket](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#installing-runtime)
 
@@ -728,7 +1042,7 @@ Kubelet이 컨테이너 런타밍과 통신하기 위한 유닉스 도메인 소
 
 [cgroup](https://en.wikipedia.org/wiki/Cgroups) 드라이버를 선택합니다. 기본값은 "`systemd`" 입니다.
 
-> 반드시 `kube_cgroup_driver` 값과 동일한 값을 지정해야 합니다
+> Kubernetes / Container Runtime 모두 동일한 값으로 설정됩니다.
 
 > 참고: [Cgroup drivers](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cgroup-drivers)
 

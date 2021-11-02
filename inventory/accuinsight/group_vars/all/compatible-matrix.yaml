@@ -34,7 +34,7 @@ matrix_pause:
   '1.20': "3.2"   # https://github.com/kubernetes/kubernetes/blob/release-1.20/cmd/kubeadm/app/constants/constants_unix.go#L26
   '1.21': "3.4.1" # https://github.com/kubernetes/kubernetes/blob/release-1.21/cmd/kubeadm/app/constants/constants.go#L403
   '1.22': "3.5"   # https://github.com/kubernetes/kubernetes/blob/release-1.22/cmd/kubeadm/app/constants/constants.go#L397
-  '1.23': "3.5"   # https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants.go#L402
+  '1.23': "3.6"   # https://github.com/kubernetes/kubernetes/blob/master/cmd/kubeadm/app/constants/constants.go#L402
 
 supported_pause: "{{ matrix_pause[kube_version | regex_replace('^([0-9])\\.([0-9]*).*', '\\1.\\2')] }}"
 
@@ -87,7 +87,7 @@ docker_matrix: # docker_matrix['kube_version']
   # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
   # You can find the latest validated version of Docker in this dependencies file.
   # https://github.com/kubernetes/kubernetes/blob/v1.21.2/vendor/k8s.io/system-validators/validators/docker_validator.go#L52
-  '1.21': "20.10.7"
+  '1.21': "20.10.10"
   # NOTE: https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/
   # If you’re rolling your own clusters, you will also need to make changes to avoid your clusters breaking.
   # At v1.20, you will get a deprecation warning for Docker. When Docker runtime support is removed in a future release

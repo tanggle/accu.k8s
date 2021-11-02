@@ -44,6 +44,7 @@
       - '--set storageClass.defaultClass=false'
       - '--set storageClass.provisionerName=accu-nfs-provisioner'
       - '--set storageClass.allowVolumeExpansion=true'
+      - '--set storageClass.reclaimPolicy={{ accu_nfs_provisioner_storageclass_reclaimpolicy }}'
       - '--set storageClass.archiveOnDelete=false'
   run_once: yes
 

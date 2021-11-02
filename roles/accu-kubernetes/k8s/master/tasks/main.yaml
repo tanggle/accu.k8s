@@ -97,6 +97,7 @@
           if [ "{{ kube_cri }}" == "docker" ]
           then
             setfacl -m user:{{ item }}:rw /var/run/docker.sock
+            setfacl -m user:{{ item }}:rw /var/run/dockershim.sock
           fi
 
           if [ "{{ kube_cri }}" == "containerd" ]

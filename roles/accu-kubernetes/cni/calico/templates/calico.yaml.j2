@@ -3614,6 +3614,10 @@ spec:
             # Auto-detect the BGP IP address.
             - name: IP
               value: "autodetect"
+{% if cni_calico_autodetection_method_flags_enabled | bool %}
+            - name: IP_AUTODETECTION_METHOD
+              value: "{{ cni_calico_autodetection_method_flags }}"
+{% endif %}
             # Enable IPIP
             - name: CALICO_IPV4POOL_IPIP
               value: "Always"

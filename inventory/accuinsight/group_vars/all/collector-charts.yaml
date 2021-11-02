@@ -60,11 +60,11 @@ charts:
 
   - component: accu-nfs-provisioner
     list:
-      - name: stable/nfs-client-provisioner
+      - name: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
         version: "{{ accu_nfs_provisioner_version }}"
         dest: kube-master
-        repo_name: stable
-        repo_url: https://charts.helm.sh/stable
+        repo_name: nfs-subdir-external-provisioner
+        repo_url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
 
   - component: accu-registry
     list:

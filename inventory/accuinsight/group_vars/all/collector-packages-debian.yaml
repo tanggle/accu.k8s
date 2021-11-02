@@ -37,8 +37,9 @@ debian:
     reqs:
       # for ansible
       - 'rsync'
-      # for kubernetes
-      - 'skopeo'
+      # for accu-kubernetes
+      - 'acl'
+      #- 'skopeo'
       # for accu-accelerator (multiple versions of kernel)
       - '{% for kv in accu_accelerator_kernel_version %} linux-image-{{ kv }} linux-headers-{{ kv }} {% endfor %}'
       - 'build-essential'

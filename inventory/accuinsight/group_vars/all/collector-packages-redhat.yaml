@@ -36,15 +36,10 @@ redhat:
     reqs:
       # for ansible
       - 'rsync'
-      # for kubernetes
+      # for accu-kubernetes
+      - 'acl'
       #- 'skopeo'
       # for accu-accelerator (multiple versions of kernel)
-  #    - '{% for kv in accu_accelerator_kernel_version %} kernel-{{ kv }} kernel-devel-{{ kv }} kernel-tools-{{ kv }} kernel-tools-libs-{{ kv }} kernel-headers-{{ kv }} {% endfor %}'
-  #    - 'kernel-{{ accu_accelerator_kernel_version }}'
-  #    - 'kernel-devel-{{ accu_accelerator_kernel_version }}'
-  #    - 'kernel-tools-{{ accu_accelerator_kernel_version }}'
-  #    - 'kernel-tools-libs-{{ accu_accelerator_kernel_version }}'
-  #    - 'kernel-headers-{{ accu_accelerator_kernel_version }}'
       - 'elfutils-libelf-devel'
       - 'gcc'
       - 'make'

@@ -58,4 +58,4 @@ parameters:
 # to restart your application pods. Therefore, this option is not recommended.
 #mounter: rbd-nbd
 allowVolumeExpansion: true
-reclaimPolicy: Delete
+reclaimPolicy: {{ accu_rook_ceph_block_storage_class_reclaimpolicy }}

@@ -18,7 +18,7 @@ accu:
       - 'libaprutil1-dbd-sqlite3_*'
       - 'libaprutil1-ldap_*'
       - 'liblua5.2-0_*'
-      - 'ssl-cert_*'
+      #- 'ssl-cert_*'
 
   repo:
     - name: AccuInsight

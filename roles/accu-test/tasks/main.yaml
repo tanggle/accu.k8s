@@ -1,6 +1,7 @@
 ---
 
 - name: Print OS Information
+  become: true
   debug:
     msg: "{{ inventory_hostname }} : {{ ansible_distribution }} {{ ansible_distribution_version }} : {{ ansible_kernel }}"
 

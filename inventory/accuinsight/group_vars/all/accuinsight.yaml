@@ -17,7 +17,7 @@ ext_lb_fqdn: "{{ accu_load_balancer_fqdn }}"
 ext_lb_addr: "{{ accu_load_balancer_addr }}"
 ext_lb_port: 8443
 
-# 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x (experimental)
+# 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x / 1.22.x (experimental)
 kube_version: 1.21.4
 
 # NOTE: kube_pod_cidr and kube_svc_cidr MUST NOT be overlaped with customer's existing network subnet.
@@ -45,6 +45,7 @@ kube_admin_users:
   - "root"
   - "ec2-user" # for redhat on AWS
   - "ubuntu"   # for ubuntu on AWS
+  - "centos"   # for centos on AWS
 
 ###############################
 # AccuInsight+ Kubernetes CNI #
@@ -68,6 +69,23 @@ cni_calico_iptablesbackend: Auto
 
 # The method to use to autodetect the IPv4 address for nodes.
 #
+# This is for complex network environment. check with 'ifconfig' command.
+# for example, nodes have multiple physical interfaces, or possibly multiple IP addresses configured on a physical interface, or use different cidr.
+# for more details, refer to https://docs.projectcalico.org/reference/node/configuration
+#
+# If nodes have single network interface, 'cni_calico_autodetection_method_flags_enabled' might be 'false' but setting explicit flags is recommended.
+#
+# Examples:
+# cni_calico_autodetection_method: "interface=eth0"
+# cni_calico_autodetection_method: "cidr=10.0.1.0/24,10.0.2.0/24"
+# cni_calico_autodetection_method: "can-reach={{ hostvars[groups['kube-master'][0]]['private_ip'] }}"
+#
+cni_calico_autodetection_method_flags_enabled: true
+cni_calico_autodetection_method_flags: "interface=eth0"
+
+# The method to use to autodetect the IPv4 address for nodes.
+# NOTE: THIS PARAMETER IS JUST FOR TEST. LEAVE THIS AS 'default'.
+#
 # default:
 #   default method provided by calico.
 #
@@ -83,7 +101,7 @@ cni_calico_cidr_autodetection_method: default
 ###############################
 
 # containerd | cri-o | docker
-kube_cri: containerd
+kube_cri: docker
 
 # NOTE: Specify cri version to be installed.
 # This will be calculated automatically according to cri compatible matrix if leave it blank.
@@ -160,13 +178,13 @@ accu_tools_enabled: true
 accu_tools_powerline_version: 1.21.0 # https://github.com/justjanne/powerline-go
 accu_tools_kubectx_version: 0.9.4    # https://github.com/ahmetb/kubectx
 accu_tools_kubens_version: 0.9.4     # https://github.com/ahmetb/kubectx
-accu_tools_k9scli_version: 0.24.14   # https://k9scli.io/
+accu_tools_k9scli_version: 0.24.15   # https://k9scli.io/
 accu_tools_kubestr_version: 0.4.17   # https://kubestr.io/
 
 
 # AccuInsight+ Helm
 accu_helm_enabled: true
-accu_helm_version: 3.6.1
+accu_helm_version: 3.7.1
 accu_helm_max_history: 10
 accu_helm_stable_repo: "https://charts.helm.sh/stable"
 
@@ -258,6 +276,7 @@ accu_rook_ceph_block_pool_meta_deviceclass: hdd
 accu_rook_ceph_block_pool_data_deviceclass: hdd
 accu_rook_ceph_block_pool_replication_size: 3
 accu_rook_ceph_block_storage_class_name: accu-ceph-block
+accu_rook_ceph_block_storage_class_reclaimpolicy: Retain # Retain / Delete
 accu_rook_ceph_block_stroage_class_fstype: ext4
 
 # AccuInsight+ Ceph Filesystem Storage (cephfs)
@@ -269,6 +288,7 @@ accu_rook_ceph_filesystem_pool_meta_deviceclass: hdd
 accu_rook_ceph_filesystem_pool_data_deviceclass: hdd
 accu_rook_ceph_filesystem_pool_replication_size: 3
 accu_rook_ceph_filesystem_storage_class_name: accu-ceph-cephfs
+accu_rook_ceph_filesystem_storage_class_reclaimpolicy: Retain # Retain / Delete
 accu_rook_ceph_filesystem_mount_on_masters: false
 
 # AccuInsight+ Ceph Object Storage (s3)
@@ -296,12 +316,13 @@ accu_rook_ceph_ganesha_export_path: ganesha
 # AccuInsight+ NFS Provisioner
 accu_nfs_provisioner_enabled: true
 accu_nfs_provisioner_release: accu-nfs-provisioner
-accu_nfs_provisioner_version: 1.2.11
+accu_nfs_provisioner_version: 4.0.14
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
 accu_nfs_provisioner_server: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }}"
 accu_nfs_provisioner_path: /nfs
 accu_nfs_provisioner_replicas: 2
 accu_nfs_provisioner_storageclass_name: accu-nfs
+accu_nfs_provisioner_storageclass_reclaimpolicy: Retain # Retain / Delete
 accu_nfs_provisioner_mount_on_masters: false
 
 
@@ -395,6 +416,7 @@ accu_accelerator_driver_version: 450.51.06 # NH & KIS are using 418.197.02.
 # Check 'uname -r' output of all GPU nodes and list up them as list.
 accu_accelerator_kernel_version:
   - "{{ ansible_kernel }}"
+  - "3.10.0-1160.42.2.el7.x86_64"
   # for RedHat 7.x family, kernel version must be 3.10.0-1127.el7.x86_64 at least for ceph.
   #- "3.10.0-1127.el7.x86_64"
 # NVIDIA K8S Device Plugin Version
@@ -430,7 +452,7 @@ accu_mariadb_metrics_enabled: true
 
 
 # AccuInsight+ Keycloak
-accu_keycloak_enabled: true
+accu_keycloak_enabled: false
 accu_keycloak_version: 14.0.1
 accu_keycloak_release: accu-keycloak
 accu_keycloak_namespace: "{{ accu_service_namespace }}"

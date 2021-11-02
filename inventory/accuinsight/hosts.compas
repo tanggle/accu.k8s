@@ -1,0 +1,36 @@
+k8s-tanggle-compas-m01 ansible_host=3.36.26.28 ansible_user=centos private_ip=172.31.10.190
+k8s-tanggle-compas-w01 ansible_host=13.124.224.131 ansible_user=centos private_ip=172.31.12.1
+k8s-tanggle-compas-w02 ansible_host=3.35.227.26 ansible_user=centos private_ip=172.31.32.236
+k8s-tanggle-compas-w03 ansible_host=13.209.16.124 ansible_user=centos private_ip=172.31.11.52
+
+[kube-cluster:children]
+kube-master
+kube-worker
+
+[kube-master]
+k8s-tanggle-compas-m01
+
+[kube-worker:children]
+accu-worker
+accu-nvidia
+accu-ceph
+
+[accu-worker]
+k8s-tanggle-compas-w01
+k8s-tanggle-compas-w02
+k8s-tanggle-compas-w03
+
+[accu-nvidia]
+
+[accu-server:children]
+accu-pkg-server
+accu-nfs-server
+
+[accu-pkg-server]
+k8s-tanggle-compas-w01
+
+[accu-nfs-server]
+k8s-tanggle-compas-m01
+
+[accu-ceph]
+

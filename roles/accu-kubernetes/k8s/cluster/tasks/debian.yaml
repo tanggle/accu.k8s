@@ -51,6 +51,7 @@
       - 'kubeadm'
       - 'kubectl'
       - 'cri-tools'
+      - 'acl' # setfacl for setting 'kube_admin_users'
     state: present
   notify:
     - Kubelet | Restart

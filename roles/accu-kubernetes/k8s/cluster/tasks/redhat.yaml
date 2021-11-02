@@ -42,6 +42,7 @@
       - 'kubeadm-{{ kube_version }}'
       - 'kubectl-{{ kube_version }}'
       - 'cri-tools'
+      - 'acl' # setfacl for setting 'kube_admin_users'
     state: present
     disable_excludes: AccuInsight-Kubernetes
   notify:

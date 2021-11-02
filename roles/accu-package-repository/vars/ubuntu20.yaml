@@ -19,7 +19,7 @@ accu:
       - 'libaprutil1-ldap_*'
       - 'libjansson4_*'
       - 'liblua5.2-0_*'
-      - 'ssl-cert_*'
+      #- 'ssl-cert_*'
 
   repo:
     - name: AccuInsight
