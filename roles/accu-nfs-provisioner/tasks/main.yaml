@@ -13,11 +13,11 @@
     - inventory_hostname in groups['kube-master']
   set_fact:
     chartname: >-
-      {% if accu_offline_enabled | bool                                                                           %}
-      {{ accu_offline_target }}/{{ component }}/charts/nfs-client-provisioner-{{ accu_nfs_provisioner_version }}.tgz
-      {% else                                                                                                     %}
-      stable/nfs-client-provisioner
-      {% endif                                                                                                    %}
+      {% if accu_offline_enabled | bool                                                                                    %}
+      {{ accu_offline_target }}/{{ component }}/charts/nfs-subdir-external-provisioner-{{ accu_nfs_provisioner_version }}.tgz
+      {% else                                                                                                              %}
+      nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+      {% endif                                                                                                             %}
   run_once: yes
 
 

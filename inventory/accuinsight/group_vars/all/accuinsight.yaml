@@ -319,7 +319,7 @@ accu_nfs_provisioner_release: accu-nfs-provisioner
 accu_nfs_provisioner_version: 4.0.14
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
 accu_nfs_provisioner_server: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }}"
-accu_nfs_provisioner_path: /nfs
+accu_nfs_provisioner_path: /nfs/k8s # /export_path_of_nfs_server/subdir : subdir MUST exist on nfs server !!!
 accu_nfs_provisioner_replicas: 2
 accu_nfs_provisioner_storageclass_name: accu-nfs
 accu_nfs_provisioner_storageclass_reclaimpolicy: Retain # Retain / Delete

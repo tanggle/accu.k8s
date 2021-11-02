@@ -2,5 +2,5 @@
 
 chmod 600 accuinsight.pem
 
-tar cvzf accu.k8s.tar.gz accuinsight.pem accuinsight.pub accuk8s.yaml ansible.cfg data inventory library plays roles
+tar cvzf accu.k8s.tar.gz --transform 's,^,accu.k8s/,' accuinsight.pem accuinsight.pub accuk8s.yaml ansible.cfg data inventory library plays roles
 

@@ -27,7 +27,7 @@ accu-pkg-server
 accu-nfs-server
 
 [accu-pkg-server]
-k8s-tanggle-compas-w01
+k8s-tanggle-compas-m01
 
 [accu-nfs-server]
 k8s-tanggle-compas-m01
