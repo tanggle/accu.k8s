@@ -402,6 +402,20 @@ accu_monitoring_grafana_storage_class: accu-ceph-cephfs
 accu_monitoring_grafana_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_monitoring_grafana_storage_size: 1Gi
 
+# AccuInsight+ Loki
+accu_loki_enabled: true
+accu_loki_release: accu-loki
+accu_loki_version: 2.5.0
+accu_loki_chunk_size: 524288
+accu_loki_namespace: accu-loki
+accu_loki_syslog_volume_name: syslog
+accu_loki_syslog_volume_path: /var/log
+accu_loki_syslog_mount_name: syslog
+accu_loki_syslog_mount_path: /var/syslog
+accu_loki_syslog_job_name: system
+accu_loki_syslog_label_job: syslog
+accu_loki_syslog_label_host: localhost
+accu_loki_syslog_label_path: /var/syslog/syslog
 
 # AccuInsight+ GPU Accelerator
 accu_accelerator_enabled: true
