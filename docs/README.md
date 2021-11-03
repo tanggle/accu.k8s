@@ -41,6 +41,10 @@
     - [AccuInsight+ Storage NFS 설정](#accuinsight-storage-nfs-설정)
   - [AccuInsight+ Storage Ceph](#accuinsight-storage-ceph)
     - [AccuInsight+ Storage Ceph 설정](#accuinsight-storage-ceph-설정)
+      - [AccuInsight+ Storage Ceph 설정 (Block Storage)](#accuinsight-storage-ceph-설정-block-storage)
+      - [AccuInsight+ Storage Ceph 설정 (Filesystem Storage)](#accuinsight-storage-ceph-설정-filesystem-storage)
+      - [AccuInsight+ Storage Ceph 설정 (Object Storage)](#accuinsight-storage-ceph-설정-object-storage)
+      - [AccuInsight+ Storage Ceph 설정 (NFS Ganesha)](#accuinsight-storage-ceph-설정-nfs-ganesha)
     - [AccuInsight+ Storage Ceph 스토리지 클래스](#accuinsight-storage-ceph-스토리지-클래스)
     - [AccuInsight+ Storage Ceph 사용](#accuinsight-storage-ceph-사용)
   - [AccuInsight+ NFS Provisioner](#accuinsight-nfs-provisioner)
@@ -755,6 +759,9 @@ ansible -i inventory/accuinsight/hosts all -m "ping"
 ## 배포
 
 ```bash
+cp -av accuinsight.pem ~/
+```
+```bash
 ansible-playbook -i inventory/accuinsight/hosts accuk8s.yaml --flush-cache
 ```
 
@@ -945,7 +952,9 @@ K8S Master 노드의 전용여부를 설정합니다. 기본값은 "`true`" 입�
 
 **`kube_data_dir_cri`**
 
-컨테이너 런타임이 사용할 스토리지(이미지 및 컨테이너 임시파일 저장) 위치를 지정합니다
+(**/data/cri**)
+
+컨테이너 런타임이 사용할 스토리지(이미지 및 컨테이너 임시파일 저장) 위치를 지정합니다.
 
 | 런타임     | 기본 스토리지 위치  |
 | ---------- | ------------------- |
@@ -956,10 +965,14 @@ K8S Master 노드의 전용여부를 설정합니다. 기본값은 "`true`" 입�
 
 **`kube_data_dir_kubelet`**
 
+(**/data/k8s/kubelet**)
+
 K8S에서 사용할 스토리지(컨테이너 임시파일 및 원격 스토리지 마운트) 위치를 지정합니다. 기본값은 "`/var/lib/kubelet`" 입니다.
 > 파일시스템 구성 요구조건을 간소화하고, 유연한 공간 사용을 위해 K8S, ETCD, CRI 의 공간을 통합합니다.
 
 **`kube_data_dir_etcd`**
+
+(**/data/k8s/etcd**)
 
 K8S 메타정보를 저장하는 ETCD가 사용할 스토리지 위치를 저정합니다. 기본값은 "`/var/lib/etcd`" 입니다.
 > 파일시스템 구성 요구조건을 간소화하고, 유연한 공간 사용을 위해 K8S, ETCD, CRI 의 공간을 통합합니다.
@@ -1015,7 +1028,7 @@ HA로 구성된 Kubernetes API Server 앞단의 로드밸런서 포트를 지정
 
 | kube_version | docker   | containerd | cri-o |
 | ------------ | -------- | ---------- | ----- |
-| 1.21         | 20.10.7  | 1.4.9      | 1.21  |
+| 1.21         | 20.10.10 | 1.4.9      | 1.21  |
 | 1.20         | 19.03.14 | 1.4.9      | 1.20  |
 | 1.19         | 19.03.14 | 1.4.9      | 1.19  |
 | 1.18         | 19.03.11 | 1.4.9      | 1.18  |
@@ -1088,16 +1101,15 @@ AccuInsight+ 서비스에서 GPU 가속을 사용하기 위한 설정입니다. 
 ```yaml
 # AccuInsight+ GPU Accelerator
 accu_accelerator_enabled: true
-accu_accelerator_namespace: "accu-system"
-accu_accelerator_node_taint: true
-accu_accelerator_nvidia_type: tesla # tesla or gtx
-accu_accelerator_driver_version: "418.126.02"
-accu_accelerator_device_plugin_type: nvidia # google or nvidia
-accu_accelerator_driver_centos: "{{ accu_registry_fqdn }}/accu-nvidia-driver-centos:accu"
-accu_accelerator_driver_ubuntu: "{{ accu_registry_fqdn }}/accu-nvidia-driver-ubuntu:accu"
-
-accu_accelerator_device_plugin: "{{ accu_registry_fqdn }}/accu-nvidia-device-plugin:{{ accu_accelerator_device_plugin_type }}"
-accu_accelerator_device_metric: "{{ accu_registry_fqdn }}/accu-nvidia-device-metric:1.7.2"
+accu_accelerator_namespace: "{{ accu_system_namespace }}"
+accu_accelerator_node_taint: false
+accu_accelerator_nvidia_type: tesla
+accu_accelerator_driver_version: 450.51.06
+accu_accelerator_kernel_version:
+  - "{{ ansible_kernel }}"
+  - "3.10.0-1160.42.2.el7.x86_64"
+accu_accelerator_device_plugin_version: v0.9.0
+accu_accelerator_device_metric_version: 2.1.4-2.3.1-ubuntu18.04
 ```
 
 ### AccuInsight+ GPU Acclerator 설정
@@ -1114,7 +1126,7 @@ AccuInsight+ GPU Accelerator 가 배포될 네임스페이스를 지정합니다
 
 **`accu_accelerator_node_taint`**
 
-(**true** / false)
+(true / **false**)
 
 GPU 하드웨어가 장착된 노드가 GPU 워크로드만을 수용할지 여부를 설정합니다. 기본값은 "`true`" 이며, 이 경우 GPU 워크로드만을 위한 전용 노드로 설정됩니다.
 
@@ -1122,7 +1134,7 @@ GPU 하드웨어가 장착된 노드가 GPU 워크로드만을 수용할지 여�
 
 **`accu_accelerator_nvidia_type`**
 
-(gtx / tesla)
+(gtx / **tesla**)
 
 NVIDIA 하드웨어 플랫폼 타입을 지정합니다.
 
@@ -1148,44 +1160,25 @@ NVIDIA 하드웨어 플랫폼 타입을 지정합니다.
 
 > 참고: [CUDA Compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/index.html)
 
-**`accu_accelerator_device_plugin_type`**
+**`accu_accelerator_kernel_version`**
 
-(**nvidia** / google)
+`[accu-nvidia]` 섹션에 지정된 호스트의 커널 버전을 지정합니다. 커널버전이 다양한 경우, 각각의 버전들을 리스트 형태로 나열합니다.
 
-NVIDIA 디바이스 플러그인 타입을 지정합니다. 기본값은 "`nvidia`" 입니다.
+> NVIDIA 드라이버 설치 시 필요한 kernel headers 및 kernel development 패키지등이 각각 호스트들의 커널버전에 맞게 수집/설치 됩니다. `RedHat 7.x (rhel / centos) 계열에서 Ceph 를 사용할 경우, 커널버전은 반드시 3.10.0-1127.el7.x86_64 이상`이어야 합니다.
 
-- nvidia
-  - CentOS / RHEL / Ubuntu 지원
-  - GPU 노드에 커널 헤더 및 빌드를 위한 패키지 설치함
-  - GPU 노드에서 드라이버를 직접 설치하고 드라이버 모듈을 빌드하여 노드에서 사용
-  - GPU 리소스 모니터링 (DCGM Exporter) 지원
-- google
-  - CentOS / Ubuntu 지원 (`RHEL 미지원`)
-  - GPU 노드에 추가적인 패키지 설치 없음
-  - POD 내부에서 드라이버 모듈을 빌드하여 노드에서 사용
-  - GPU 리소스 모니터링 (DCGM Exporter) `미지원`
+**`accu_accelerator_device_plugin_version`**
+
+GPU 가속 지원을 위한 디바이스 플러그인 이미지 버전을 지정합니다.
 
 > 참고: [Kubernetes GPU Support](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#deploying-nvidia-gpu-device-plugin)
 
-> 참고: [DCGM exporter](https://github.com/NVIDIA/gpu-monitoring-tools)
+> 참고: [NVIDIA device plugin](https://github.com/NVIDIA/k8s-device-plugin)
 
-**`accu_accelerator_driver_centos`** (수정 금지)
+**`accu_accelerator_device_metric_version`**
 
-`google` 타입에서 드라이버 모듈 빌드에 사용할 CentOS 이미지를 지정합니다.
+GPU 리소스 모니터링을 위한 DCGM Exporter 이미지 버전을 지정합니다.
 
-
-**`accu_accelerator_driver_ubuntu`** (수정 금지)
-
-`google` 타입에서 드라이버 모듈 빌드에 사용할 Ubuntu 이미지를 지정합니다.
-
-**`accu_accelerator_device_plugin`** (수정 금지)
-
-GPU 가속 지원을 위한 디바이스 플러그인 이미지를 지정합니다.
-
-**`accu_accelerator_device_metric`** (수정 금지)
-
-GPU 리소스 모니터링을 위한 DCGM Exporter 이미지를 지정합니다.
-
+> 참고: [NVIDIA DCGM exporter](https://github.com/NVIDIA/gpu-monitoring-tools)
 
 
 
@@ -1196,11 +1189,15 @@ Ingress Controller는 Kubernetes 네트웍 외부에서의 요청을 내부 서�
 ```yaml
 # AccuInsight+ Ingress Controller
 accu_ingress_controller_enabled: true
-accu_ingress_controller_release: "accu-ingress"
-accu_ingress_controller_version: "1.41.3"
-accu_ingress_controller_namespace: "accu-system"
+accu_ingress_controller_release: accu-ingress
+accu_ingress_controller_version: 3.29.0
+accu_ingress_controller_namespace: "{{ accu_system_namespace }}"
+accu_ingress_controller_replicas: 2
+accu_ingress_controller_tlssecret: tls.accuinsight.io
 accu_ingress_controller_nodeport_insecure: 30080
 accu_ingress_controller_nodeport_secure: 30443
+accu_ingress_backend_enabled: true
+accu_ingress_backend_replicas: 1
 ```
 
 ### AccuInsight+ Ingress Controller 설정
@@ -1217,11 +1214,21 @@ Helm 을 통해 표시될 릴리즈 이름을 설정합니다.
 
 **`accu_ingress_controller_version`**
 
-Helm 차트 버전을 설정합니다. 오프라인 모드에서는 "`1.41.3`"만 선택 가능합니다.
+Helm 차트 버전을 설정합니다.
 
 **`accu_ingress_controller_namespace`**
 
 Ingress Controller 가 배포될 네임스페이스를 지정합니다. 기본적으로 AccuInsight+ 컨트롤러는 "`accu-system`" 네임스페이스에 배포됩니다.
+
+**`accu_ingress_controller_replicas`**
+
+Ingress Controller의 복제본 개수를 지정합니다. 고가용 보장을 위해 최소 `2개 이상`이 권장됩니다.
+
+**`accu_ingress_controller_tlssecret`**
+
+Ingress Controller가 사용할 인증서가 저장될 Secret 이름을 지정합니다. 기본값은 "`tls.accuinsight.io`" 입니다.
+
+> 참고: 기본 인증서는 accu-certificate 롤에서 생성됩니다.
 
 **`acc_ingress_controller_nodeport_insecure`**
 
@@ -1231,59 +1238,124 @@ Ingress Controller가 사용할 HTTP 서비스의 NodePort를 지정합니다. 3
 
 Ingress Controller가 사용할 HTTPS 서비스의 NodePort를 지정합니다. 3000 부터 32767 범위에서 사용하지 않는 포트를 지정합니다. 기본값은 "`30443`" 입니다.
 
+**`accu_ingress_backend_enabled`**
 
+(**true** / false)
+
+HTTP 404 발생 시 요청을 처리할 백엔드 사용 여부를 설정합니다.
+
+**`accu_ingress_backend_replicas`**
+
+Ingress Backend의 복제본 개수를 지정합니다. 기본값은 "`1`" 입니다.
 
 
 ## AccuInsight+ Load Balancer
 
-별도의 로드밸런서가 없을 경우 사용할 수 있는 소프트웨어 로드밸런서 입니다. HA로 구성된 Kubernetes API Server 및 Ingress Controller 의 트래픽을 가용한 서버로 분배합니다. 오픈소스 소프트웨어인 HAProxy 가 부하분산을 담당하며, Keepalived 로 HAProxy 자체의 가용성을 보장합니다. 보다 나은 퍼포먼스를 위해서 하드웨어 로드밸런서 사용을 권장합니다.
+별도의 로드밸런서가 없을 경우 사용할 수 있는 소프트웨어 로드밸런서 입니다. HA로 구성된 Kubernetes API Server 및 Ingress Controller 의 트래픽을 가용한 서버로 분배합니다. 오픈소스 소프트웨어인 HAProxy 가 부하분산을 담당하며, Keepalived 로 VIP를 사용한 HAProxy 자체의 가용성을 보장합니다. 보다 나은 퍼포먼스를 위해서 하드웨어 로드밸런서 사용을 권장합니다.
 
-인벤토리 설정파일의 `[accu-alb-server]` 섹션에 나열한 호스트들이 로드밸런서 서버로 구성됩니다.
+인벤토리 설정파일의 `[kube-master]` 섹션에 나열한 호스트들이 로드밸런서 서버로 구성됩니다.
 
 ```yaml
 # AccuInsight+ Load Balancer
+accu_vip_manager_enabled: false
+accu_vip_manager_version: 2.0.20
+accu_vip_manager_nic: eth0
 accu_load_balancer_enabled: true
-accu_load_balancer_keepalived: false
-accu_load_balancer_fqdn: "k8s.accuinsight.io"
-accu_load_balancer_virtualip: "xxx.xxx.xxx.xxx"
+accu_load_balancer_version: 2.2.5
+accu_load_balancer_namespace: "{{ accu_system_namespace }}"
+accu_load_balancer_stats: true
+accu_load_balancer_stats_port: 8888
+accu_load_balancer_stats_user: admin
+accu_load_balancer_stats_pass: AccuInsight+k8s
+accu_load_balancer_vip: xxx.xxx.xxx.xxx
+accu_load_balancer_fqdn: k8s.accuinsight.io
+accu_load_balancer_addr: "{% if accu_vip_manager_enabled | bool %}{{ accu_load_balancer_vip }}{% else %}{{ hostvars[groups['kube-master'][0]]['private_ip'] }}{% endif %}"
+accu_load_balancer_config_location: "/etc/accuinsight"
 ```
 
 ### AccuInsight+ Load Balancer 설정
 
-**`accu_load_balancer_enabled`**
-
-(**true** / false)
-
-Load Balancer 구성여부를 설정합니다.
+**`accu_vip_manager_enabled`**
 
 (true / **false**)
 
-**`accu_load_balancer_keepalived`**
+Load Balancer 자체의 가용성 보장을 위한 VIP Manager 구성여부를 설정합니다.
 
-Load Balancer 자체의 가용성 보장을 위한 keepalived 구성여부를 서정합니다.
+> VIP Manager 사용을 위해서는 네트워크 관리자가 `반드시 VIP가 제공`해야하며, 모든 로드밸러서와 VIP는 동일할 서브 네트워크에서 운영되어야 합니다.
 
-> keepalived 를 구성하기 위해서는 네트워크 관리자가 `Virtual IP`를 제공해야하며, 모든 로드밸런서는 반드시 동일한 서브 네트워크에서 운영되어야 합니다.
+**`accu_vip_manager_version`**
+
+VIP Manager (keepalive) 이미지의 버전을 지정합니다.
+
+> 참고: [Docker Hub - keepalived](https://hub.docker.com/r/osixia/keepalived/tags)
+
+**`accu_vip_manager_nic`**
+
+VIP Manager가 사용할 네트워크 인터페이스를 지정합니다.
+
+> 다수의 네트워크 인터페이스가 있을 경우, 외부로 부터 유입이 가능한 인터페이스를 지정합니다.
+
+**`accu_load_balancer_enabled`**
+
+(true / **false**)
+
+Load Balancer 구성여부를 설정합니다.
+
+**`accu_load_balancer_version`**
+
+Load Balancer (haproxy) 이미지의 버전을 지정합니다.
+
+> 참고: [Docker Hub - haproxy](https://hub.docker.com/_/haproxy)
+
+**`accu_load_balancer_namespace`**
+
+VIP Manager와 Load Balancer 가 배포될 네임스페이스를 지정합니다. 기본적으로 AccuInsight+ 컨트롤러는 "`accu-system`" 네임스페이스에 배포됩니다.
+
+**`accu_load_balancer_stats`**
+
+Load Balancer 상태를 보여주는 stats 페이지 사용여부를 설정합니다.
+
+> http://`[VIP or Master Node IP]:[Port]/stats` 로 접근 가능합니다.
+
+**`accu_load_balancer_stats_port`**
+
+Load Balancer 상태를 보여주는 stats 페이지 접근을 위한 포트를 지정합니다.
+
+**`accu_load_balancer_stats_user`**
+
+Load Balancer 상태를 보여주는 stats 페이지 접근을 위한 사용자 이름을 지정합니다.
+
+**`accu_load_balancer_stats_pass`**
+
+Load Balancer 상태를 보여주는 stats 페이지 접근을 위한 사용자 패스워드를 지정합니다.
+
+**`accu_load_balancer_vip`**
+
+Load Balancer 가 사용할 `VIP`를 지정합니다. 이 값은 Kubernetes 배포시 자동생성되는 인증서의 SAN (Subject Alternative Name) 목록에 포합니다.
 
 **`accu_load_balancer_fqdn`**
 
 Kubernetes API Server의 도메인을 지정합니다. 이 값은 Kubernetes 배포시 자동생성되는 인증서의 SAN (Subject Alternative Name) 목록에 포합니다.
 
-**`accu_load_balancer_virtualip`**
+**`accu_load_balancer_addr`** (수정금지)
 
-Load Balancer 가 사용할 `Virtual IP`를 지정합니다. 이 값은 Kubernetes 배포시 자동생성되는 인증서의 SAN (Subject Alternative Name) 목록에 포합니다.
+VIP를 설정하면 VIP로, VIP를 설정하지 않으면 Kubernetes Master 1번의 IP로 지정됩니다.
 
+**`accu_load_balancer_config_location`**
 
-
+VIP Manager 설정파일 (`accu-vip-manager.conf`)과 Load Balancer 설정파일 (`accu-load-balancer.conf`)이 위치할 경로를 지정합니다. 기본값은 "`/etc/accuinsight`" 입니다.
 
 ## AccuInsight+ Metrics Server
 
 Kubernetes HPA (Horizontal Pod Autoscaling)를 위해 노드 및 컨테이너의 리소스 사용률 정보를 제공하는 메트릭스 서버를 설정합니다.
 
 ```yaml
+# AccuInsight+ Metrics Server
 accu_metrics_server_enabled: true
-accu_metrics_server_release: "accu-metrics-server"
-accu_metrics_server_version: "2.11.1"
-accu_metrics_server_namespace: "accu-system"
+accu_metrics_server_release: accu-metrics-server
+accu_metrics_server_version: 2.11.4
+accu_metrics_server_namespace: "{{ accu_system_namespace }}"
+accu_metrics_server_replicas: 2
 ```
 
 ### AccuInsight+ Metrics Server 설정
@@ -1306,6 +1378,10 @@ Helm 차트 버전을 설정합니다. 오프라인 모드에서는 "`2.11.1`"�
 
 Metrics Server 서비스가 배포될 네임스페이스를 지정합니다. 기본값은 "`accu-system`" 입니다.
 
+**`accu_metrics_server_replicas`**
+
+Metrics Server의 복제본 개수를 지정합니다. 고가용 보장을 위해 최소 `2개 이상`이 권장됩니다.
+
 ### AccuInsight+ Metrics Server 사용
 
 아래의 명령으로 노드 및 컨테이너의 상태를 확인할 수 있습니다.
@@ -1314,9 +1390,6 @@ Metrics Server 서비스가 배포될 네임스페이스를 지정합니다. 기
 kubectl top nodes
 kubectl top pods 
 ```
-
-
-
 
 ## AccuInsight+ Storage NFS
 
@@ -1327,8 +1400,10 @@ kubectl top pods
 > NFS 특성상 HA 구성이 불가하며, 반드시 하나의 호스트만 지정해야 합니다.
 
 ```yaml
+# AccuInsight+ NFS Server
 accu_nfs_server_enabled: true
-accu_nfs_server_option: "/nfs    *(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
+accu_nfs_server_export_path: /nfs
+accu_nfs_server_export_opts: "*(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
 ```
 
 ### AccuInsight+ Storage NFS 설정
@@ -1339,9 +1414,13 @@ accu_nfs_server_option: "/nfs    *(rw,sync,no_root_squash,fsid=0,no_subtree_chec
 
 NFS 서버 구성여부를 설정합니다
 
-**`accu_nfs_server_option`**
+**`accu_nfs_server_export_path`**
 
-NFS 서버가 제공할 파일시스템 위치와 Export 옵션을 설정합니다.
+NFS 서버의 Export 경로를 설정합니다.
+
+**`accu_nfs_server_export_opts`**
+
+NFS 서버의 Export 옵션을 설정합니다.
 
 
 
@@ -1352,7 +1431,7 @@ Ceph 고가용성과 확장성을 제공하는 오픈소스 분산 네트워크 
 
 인벤토리 설정파일의 `[accu-ceph]` 섹션에 나열한 호스트들이 Ceph 스토리지 서버로 구성됩니다.
 
-> 정족수 충족을 위해 스토리지 노드는 3개 이상으로 홀수로 저정합니다.
+> 정족수 충족을 위해 스토리지 노드는 3개 이상으로 홀수로 지정합니다.
 
 다음과 같은 3가지 타입의 스토리지를 지원합니다.
 
@@ -1369,16 +1448,78 @@ Ceph 고가용성과 확장성을 제공하는 오픈소스 분산 네트워크 
 ```yaml
 # AccuInsight+ Rook Ceph
 accu_rook_ceph_enabled: true
-accu_rook_ceph_release: "accu-rook-ceph"
-accu_rook_ceph_version: "1.4.2"
-accu_rook_ceph_namespace: "rook-ceph"
+accu_rook_ceph_release: accu-rook-ceph
+accu_rook_ceph_version: 1.5.9
+accu_rook_ceph_namespace: rook-ceph
+accu_rook_ceph_hostnetwork: false
 accu_rook_ceph_node_taint: false
-accu_rook_ceph_admin_fqdn: "ceph.accuinsight.io"
-accu_rook_ceph_admin_pass: "dpcore"
-accu_ceph_block_storage_enabled: true
-accu_ceph_object_storage_enabled: true
-accu_ceph_file_storage_enabled: true
-accu_ceph_storage_device_name: nvme1n1
+accu_rook_ceph_admin_fqdn: ceph.accuinsight.io
+accu_rook_ceph_admin_pass: AccuInsight+k8s
+
+accu_rook_ceph_image_version: 15.2.9
+
+accu_rook_ceph_monitor_count: 3 # Must be an odd number (1,3,5,...)
+
+# NOTE: THIS PARAMETERS SHOULD BE CONFIGURED ACCORDING TO CUSTOMER SYSTEM ENVIRONMENT !!!
+accu_rook_ceph_storage_devices:
+
+# The following values work only with VMs created by terraform on AWS and 3 Ceph nodes.
+  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: hdd }
+  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: hdd }
+  - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: hdd }
+
+# for example
+#  - { host: k8s-tanggle-redhat-w01, device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w01, device: nvme2n1, class: hdd }
+#  - { host: k8s-tanggle-redhat-w02, device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w02, device: nvme2n1, class: hdd }
+#  - { host: k8s-tanggle-redhat-w03, device: nvme1n1, class: ssd }
+#  - { host: k8s-tanggle-redhat-w03, device: nvme2n1, class: hdd }
+
+# AccuInsight+ Ceph Block Storage (rbd)
+accu_rook_ceph_block_storage_enabled: true
+accu_rook_ceph_block_storage_failuredomain: host # host / osd
+accu_rook_ceph_block_pool_name: accu-block
+accu_rook_ceph_block_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
+accu_rook_ceph_block_pool_meta_deviceclass: hdd
+accu_rook_ceph_block_pool_data_deviceclass: hdd
+accu_rook_ceph_block_pool_replication_size: 3
+accu_rook_ceph_block_storage_class_name: accu-ceph-block
+accu_rook_ceph_block_storage_class_reclaimpolicy: Retain # Retain / Delete
+accu_rook_ceph_block_stroage_class_fstype: ext4
+
+# AccuInsight+ Ceph Filesystem Storage (cephfs)
+accu_rook_ceph_filesystem_storage_enabled: true
+accu_rook_ceph_filesystem_storage_failuredomain: host # host / osd
+accu_rook_ceph_filesystem_pool_name: accu-cephfs
+accu_rook_ceph_filesystem_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
+accu_rook_ceph_filesystem_pool_meta_deviceclass: hdd
+accu_rook_ceph_filesystem_pool_data_deviceclass: hdd
+accu_rook_ceph_filesystem_pool_replication_size: 3
+accu_rook_ceph_filesystem_storage_class_name: accu-ceph-cephfs
+accu_rook_ceph_filesystem_storage_class_reclaimpolicy: Retain # Retain / Delete
+accu_rook_ceph_filesystem_mount_on_masters: false
+
+# AccuInsight+ Ceph Object Storage (s3)
+accu_rook_ceph_object_storage_enabled: true
+accu_rook_ceph_object_storage_failuredomain: host # host / osd
+accu_rook_ceph_object_storage_instances: 3
+accu_rook_ceph_object_storage_fqdn: s3.accuinsight.io
+accu_rook_ceph_object_storage_port: 8080
+accu_rook_ceph_object_pool_name: accu-object
+accu_rook_ceph_object_pool_type: r # 'e' for Erasure Coding, 'r' for Replication
+accu_rook_ceph_object_pool_meta_deviceclass: hdd
+accu_rook_ceph_object_pool_data_deviceclass: hdd
+accu_rook_ceph_object_pool_replication_size: 3
+
+# AccuInsight+ Ceph NFS Ganesha
+accu_rook_ceph_ganesha_enabled: false
+accu_rook_ceph_ganesha_failuredomain: host # host / osd
+accu_rook_ceph_ganesha_instances: 1
+accu_rook_ceph_ganesha_pool_name: accu-ganesha
+accu_rook_ceph_ganesha_pool_replication_size: 3
+accu_rook_ceph_ganesha_pool_namespace: conf-ganesha
+accu_rook_ceph_ganesha_export_path: ganesha
 ```
 
 ### AccuInsight+ Storage Ceph 설정
@@ -1403,6 +1544,12 @@ Ceph 서비스가 배포될 네임스페이스를 지정합니다. 기본값은 
 
 > rook-ceph operator 구조상 기본값 사용이 권장됩니다.
 
+**`accu_rook_ceph_hostnetwork`**
+
+(true / **false**)
+
+HostNetwork 사용여부를 설정합니다. "`true`"로 설정할 경우, CNI 네트워크 대시 노드의 네트워크를 사용합니다. 명확한 의도가 아니라면 기본값 "`false`"로 설정을 권장합니다.
+
 **`accu_rook_ceph_node_taint`**
 
 (true / **false**)
@@ -1419,31 +1566,237 @@ Ceph 스토리지 모니터링 및 관리를 위한 콘솔 도메인 이름을 �
 
 Ceph 스토리리 관리페이지  접근을 위한 패스워드를 지정합니다. 기본 사용자명은 "`admin`" 입니다.
 
-**`accu_ceph_block_storage_enabled`**
+
+**`accu_rook_ceph_storage_devices`**
+
+Ceph 스토리지로 구성할 호스트, 호스트별 디스크, 디스크 종류를 나열합니다.
+
+```
+  - { host: "{{ groups['accu-ceph'][0] }}", device: nvme1n1, class: ssd }
+  - { host: "{{ groups['accu-ceph'][0] }}", device: sda, class: hdd }
+  - { host: "{{ groups['accu-ceph'][1] }}", device: nvme1n1, class: ssd }
+  - { host: "{{ groups['accu-ceph'][1] }}", device: sda, class: hdd }
+  - { host: "{{ groups['accu-ceph'][2] }}", device: nvme1n1, class: ssd }
+  - { host: "{{ groups['accu-ceph'][2] }}", device: sda, class: hdd }
+```
+
+> `주의`: 지정된 디바이스는 저수준 포맷이 되고, **`존재하는 모든 데이터는 삭제됩니다 !!!`**
+
+#### AccuInsight+ Storage Ceph 설정 (Block Storage)
+
+**`accu_rook_ceph_block_storage_enabled`**
 
 RBD (블럭 디바이스) 구성 여부를 설정합니다.
 
-**`accu_ceph_object_storage_enabled`**
+**`accu_rook_ceph_block_storage_failuredomain`**
 
-S3 스토리지 구성 여부를 설정합니다.
+(**host** / osd)
 
-**`accu_ceph_file_storage_enabled`**
+데이터 복제본이 host를 기준으로 분산 저장될지, osd를 기준으로 분산 저장될지를 설정합니다. 안정성을 위해 "`host`"가 권장됩니다.
 
-CEPHFS(공유 파일시스템) 구성 여부를 설정합니다.
+**`accu_rook_ceph_block_pool_name`**
 
-**`accu_ceph_storage_device_name`**
+RBD (블럭 디바이스) 데이터가 저장될 POOL 이름을 지정합니다.
 
-Ceph 스토리지로 사용할 다바이스명을 지정합니다. 지정한 디바이스명은 Ceph 를 위한 디바이스로 구성됩니다.
+**`accu_rook_ceph_block_pool_type`**
 
-> `주의`: 지정된 디바이스는 저수준 포맷이 되고, **`존재하는 모든 데이터는 삭제됩니다 !!!`**
+(**r** / e)
+
+RBD (블럭 디바이스) 데이터가 저장될 POOL이 구성될 방식을 지정합니다.
+
+`r`은 Replication (RAID 1)으로 구성되며 데이터 안정성이 우선이며, `e`는 Erasure Coding (RAID 5)으로 디스크 가용용량 우선입니다.
+
+**`accu_rook_ceph_block_pool_meta_deviceclass`**
+
+RBD (블럭 디바이스) 메타정보가 저장될 class 이름을 지정합니다. 메타정보는 퍼포먼스 향상을 위해 `ssd`에 저장이 권장됩니다.
+
+> `accu_rook_ceph_storage_devices` 설정을 참고합니다.
+
+**`accu_rook_ceph_block_pool_data_deviceclass`**
+
+RBD (블럭 디바이스) 데이터가 저장될 class 이름을 지정합니다.
+
+> `accu_rook_ceph_storage_devices` 설정을 참고합니다.
+
+**`accu_rook_ceph_block_pool_replication_size`**
+
+RBD (블럭 디바이스) 데이터 복제본 개수를 지정합니다. 운영 데이터의 안정성을 위해 `최소 2` 또는 `권장 3` 입니다.
+
+**`accu_rook_ceph_block_storage_class_name`**
+
+Kubernetes CSI (Container Storage Interfac)로 제공될 StorageClass 이름을 설정합니다. 기본값은 "`accu-ceph-block`" 입니다.
+
+**`accu_rook_ceph_block_storage_class_reclaimpolicy`**
+
+(**Retain** / Delete)
+
+Kubernetes CSI (Container Storage Interfac)로 제공될 StorageClass의 Reclaim Policy를 설정합니다. 기본값은 "`Retain`" 입니다.
+
+> 참고: [Kubernetes Persistent Volume - Reclaiming](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaiming)
+
+**`accu_rook_ceph_block_stroage_class_fstype`**
+
+(**ext4** / xfs)
+
+RBD (블럭 디바이스) 파일시스템을 지정합니다.
+
+
+#### AccuInsight+ Storage Ceph 설정 (Filesystem Storage)
+
+**`accu_rook_ceph_filesystem_storage_enabled`**
+
+CEPHFS (공유 파일시스템) 구성 여부를 설정합니다.
+
+**`accu_rook_ceph_filesystem_storage_failuredomain`**
+
+(**host** / osd)
+
+데이터 복제본이 host를 기준으로 분산 저장될지, osd를 기준으로 분산 저장될지를 설정합니다. 안정성을 위해 "`host`"가 권장됩니다.
+
+**`accu_rook_ceph_filesystem_pool_name`**
+
+CEPHFS (공유 파일시스템) 데이터가 저장될 POOL 이름을 지정합니다.
+
+**`accu_rook_ceph_filesystem_pool_type`**
+
+(**r** / e)
+
+CEPHFS (공유 파일시스템) 데이터가 저장될 POOL이 구성될 방식을 지정합니다.
+
+`r`은 Replication (RAID 1)으로 구성되며 데이터 안정성이 우선이며, `e`는 Erasure Coding (RAID 5)으로 디스크 가용용량 우선입니다.
+
+**`accu_rook_ceph_filesystem_pool_meta_deviceclass`**
+
+CEPHFS (공유 파일시스템) 메타정보가 저장될 class 이름을 지정합니다. 메타정보는 퍼포먼스 향상을 위해 `ssd`에 저장이 권장됩니다.
+
+> `accu_rook_ceph_storage_devices` 설정을 참고합니다.
+
+**`accu_rook_ceph_filesystem_pool_data_deviceclass`**
+
+CEPHFS (공유 파일시스템) 데이터가 저장될 class 이름을 지정합니다.
+
+> `accu_rook_ceph_storage_devices` 설정을 참고합니다.
+
+**`accu_rook_ceph_filesystem_pool_replication_size`**
+
+CEPHFS (공유 파일시스템) 데이터 복제본 개수를 지정합니다. 운영 데이터의 안정성을 위해 `최소 2` 또는 `권장 3` 입니다.
+
+**`accu_rook_ceph_filesystem_storage_class_name`**
+
+Kubernetes CSI (Container Storage Interfac)로 제공될 StorageClass 이름을 설정합니다. 기본값은 "`accu-ceph-cephfs`" 입니다.
+
+**`accu_rook_ceph_filesystem_storage_class_reclaimpolicy`**
+
+(**Retain** / Delete)
+
+Kubernetes CSI (Container Storage Interfac)로 제공될 StorageClass의 Reclaim Policy를 설정합니다. 기본값은 "`Retain`" 입니다.
+
+> 참고: [Kubernetes Persistent Volume - Reclaiming](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaiming)
+
+**`accu_rook_ceph_filesystem_mount_on_masters`**
+
+(true / **false**)
+
+CEPHFS (공유 파일시스템)을 Kubernetes Master 노드에 자동 마운트 여부를 설정합니다. 기본값은 "`false`" 이고 기본값 사용을 권장합니다.
+
+> `주의`: `accu_rook_ceph_hostnetwork` 설정이 `false`일 경우 Ceph Monitor는 Kubernetes CNI 네트워크를 사용하여 Kubernetes 가 초기화 되기전엔 접근이 불가합니다. 이 경우 노드의 리부팅시 부팅이 실패합니다.
+
+
+#### AccuInsight+ Storage Ceph 설정 (Object Storage)
+
+**`accu_rook_ceph_object_storage_enabled`**
+
+S3 (오브젝트 스토리지) 구성 여부를 설정합니다.
+
+**`accu_rook_ceph_object_storage_failuredomain`**
+
+(**host** / osd)
+
+데이터 복제본이 host를 기준으로 분산 저장될지, osd를 기준으로 분산 저장될지를 설정합니다. 안정성을 위해 "`host`"가 권장됩니다.
+
+**`accu_rook_ceph_object_storage_instances`**
+
+S3 (오브젝트 스토리지) 접근을 위한 HTTP 프론트엔드 RGW (Rados Gateway)의 인스턴스 개수를 지정합니다. 가용성 보장을 위해 `최소 2 이상`을 권장합니다.
+
+**`accu_rook_ceph_object_storage_fqdn`**
+
+S3 (오브젝트 스토리지) 접근을 위한 도메인을 설정합니다. 설정된 도메인은 Kubernetes Ingress로 설정됩니다. 기본값은 내부도메인 "`s3.accuinsight.io`" 입니다.
+
+**`accu_rook_ceph_object_storage_port`**
+
+S3 (오브젝트 스토리지) 접근을 위한 HTTP 프론트엔드 RGW (Rados Gateway)의 컨테이너 포트를 지정합니다. 기본값은 "`8080`"이며, Kubernetes Ingress를 통해 라우팅됩니다.
+
+**`accu_rook_ceph_object_pool_name`**
+
+S3 (오브젝트 스토리지) 데이터가 저장될 POOL 이름을 지정합니다.
+
+**`accu_rook_ceph_object_pool_type`**
+
+(**r** / e)
+
+S3 (오브젝트 스토리지) 데이터가 저장될 POOL이 구성될 방식을 지정합니다.
+
+`r`은 Replication (RAID 1)으로 구성되며 데이터 안정성이 우선이며, `e`는 Erasure Coding (RAID 5)으로 디스크 가용용량 우선입니다.
+
+**`accu_rook_ceph_object_pool_meta_deviceclass`**
+
+S3 (오브젝트 스토리지) 메타정보가 저장될 class 이름을 지정합니다. 메타정보는 퍼포먼스 향상을 위해 `ssd`에 저장이 권장됩니다.
+
+> `accu_rook_ceph_storage_devices` 설정을 참고합니다.
+
+**`accu_rook_ceph_object_pool_data_deviceclass`**
+
+S3 (오브젝트 스토리지) 데이터가 저장될 class 이름을 지정합니다.
+
+> `accu_rook_ceph_storage_devices` 설정을 참고합니다.
+
+**`accu_rook_ceph_object_pool_replication_size`**
+
+S3 (오브젝트 스토리지) 데이터 복제본 개수를 지정합니다. 운영 데이터의 안정성을 위해 `최소 2` 또는 `권장 3` 입니다.
+
+#### AccuInsight+ Storage Ceph 설정 (NFS Ganesha)
+
+NFS Ganesha는 NFS 데이터를 Ceph RADOS 오브젝트로 저장하는 유저스페이스 NFS 서버입니다. 공유 파일스스템 목적이라면 CEPHFS (공유 파일스스템) 사용을 권장합니다.
+
+**`accu_rook_ceph_ganesha_enabled`**
+
+(true / **false**))
+
+NFS Ganesha 구성여부를 설정합니다.
+
+**`accu_rook_ceph_ganesha_failuredomain`**: host # host / osd
+
+(**host** / osd)
+
+데이터 복제본이 host를 기준으로 분산 저장될지, osd를 기준으로 분산 저장될지를 설정합니다. 안정성을 위해 "`host`"가 권장됩니다.
+
+**`accu_rook_ceph_ganesha_instances`**
+
+NFS Ganesha 서버의 인스턴스 개수를 지정합니다.
+
+**`accu_rook_ceph_ganesha_pool_name`**
+
+NFS Ganesha 데이터가 저장될 POOL 이름을 지정합니다.
+
+**`accu_rook_ceph_ganesha_pool_replication_size`**
+
+NFS Ganesha 데이터 복제본 개수를 지정합니다. 운영 데이터의 안정성을 위해 `최소 2` 또는 `권장 3` 입니다.
+
+**`accu_rook_ceph_ganesha_pool_namespace`**
+
+NFS Ganesha 설정이 저장될 RADOS 네임스페이스를 지정합니다. 기본값은 "`conf-ganesha`" 입니다.
+
+**`accu_rook_ceph_ganesha_export_path`**
+
+NFS Ganesha가 NFS 클라이언트에 제공할 export 경로를 설정합니다.
 
 ### AccuInsight+ Storage Ceph 스토리지 클래스
 
 설정에 따라 다음과 같은 Kubernetes Storage Class 가 생성됩니다. 용도에 맞게 PVC 생성시 선택합니다.
 
-- rook-ceph-block
+- accu-ceph-block
   - 블럭 디바이스를 위한 스토리지 클래스
-- rook-cephfs 
+- accu-ceph-cephfs 
   - 공유 파일시스템을 위한 스토리지 클래스
 
 ### AccuInsight+ Storage Ceph 사용
@@ -1463,9 +1816,7 @@ Ceph 스토리지로 사용할 다바이스명을 지정합니다. 지정한 디
 xxx.xxx.xxx.xxx    ceph.accuinsight.io
 ```
 
-> `IP Address` 는 Load Balancer 의 IP 또는 Virtual IP를 설정하고, Domain Name 은 `accu_rook_ceph_admin_fqdn` 에 지정한 가상 도메인을 설정합니다.
-
-
+> `IP Address` 는 Load Balancer 의 IP 또는 VIP를 설정하고, Domain Name 은 `accu_rook_ceph_admin_fqdn` 에 지정한 가상 도메인을 설정합니다.
 
 
 
@@ -1476,11 +1827,15 @@ Kubernetes CSI (Container Storage Interface) 표준으로 NFS 서버에 대한 �
 ```yaml
 # AccuInsight+ NFS Provisioner
 accu_nfs_provisioner_enabled: true
-accu_nfs_provisioner_release: "accu-nfs-provisioner"
-accu_nfs_provisioner_version: "1.2.9"
-accu_nfs_provisioner_namespace: "accu-system"
-accu_nfs_provisioner_server: "{{ groups['accu-nfs-server'][0] }}"
-accu_nfs_provisioner_path: "/nfs"
+accu_nfs_provisioner_release: accu-nfs-provisioner
+accu_nfs_provisioner_version: 4.0.14
+accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
+accu_nfs_provisioner_server: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }}"
+accu_nfs_provisioner_path: /nfs/k8s
+accu_nfs_provisioner_replicas: 2
+accu_nfs_provisioner_storageclass_name: accu-nfs
+accu_nfs_provisioner_storageclass_reclaimpolicy: Retain
+accu_nfs_provisioner_mount_on_masters: false
 ```
 
 ### AccuInsight+ NFS Provisioner 설정
@@ -1495,7 +1850,7 @@ Helm 을 통해 표시될 릴리즈 이름을 설정합니다.
 
 **`accu_nfs_provisioner_version`**
 
-Helm 차트 버전을 설정합니다. 오프라인 모드에서는 "`1.4.2`"만 선택 가능합니다.
+Helm 차트 버전을 설정합니다.
 
 **`accu_nfs_provisioner_namespace`**
 
@@ -1509,10 +1864,31 @@ NFS 서버의 도메인 또는 주소를 지정합니다.
 
 NFS 서버에서 Export 설정된 경로를 지정합니다.
 
+> "`/export_path_of_nfs_server/subdir`" 포맷으로 subdir 을 지정하려면, NFS 서버상에 `반드시 해당 디렉토리가 존재`해야 합니다.
+
 > `showmount -e 서버주소` 명령으로 서버에 설정된 Export 경로를 확인할 수 있습니다.
 
+**`accu_nfs_provisioner_replicas`**
 
+NFS Provisioner의 복제본 개수를 설정합니다. 고가용성을 위해서는 `최소 2 이상`을 권장합니다.
 
+**`accu_nfs_provisioner_storageclass_name`**
+
+Kubernetes CSI (Container Storage Interfac)로 제공될 StorageClass 이름을 설정합니다. 기본값은 "`accu-nfs`" 입니다.
+
+**`accu_nfs_provisioner_storageclass_reclaimpolicy`**
+
+(**Retain** / Delete)
+
+Kubernetes CSI (Container Storage Interfac)로 제공될 StorageClass의 Reclaim Policy를 설정합니다. 기본값은 "`Retain`" 입니다.
+
+> 참고: [Kubernetes Persistent Volume - Reclaiming](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaiming)
+
+**`accu_nfs_provisioner_mount_on_masters`**
+
+(true / **false**)
+
+NFS 서버의 export 경로를 Kubernetes Master 노드에 자동 마운트 여부를 설정합니다. 기본값은 "`false`" 이고 기본값 사용을 권장합니다.
 
 
 ## AccuInsight+ Monitoring
@@ -1520,14 +1896,26 @@ NFS 서버에서 Export 설정된 경로를 지정합니다.
 Kubernetes 리소스 사용 모니터링을 제공합니다. Kubernetes 모니터링의 표준인 오픈소스 Prometheus 입니다. 동적으로 구성가능한 컨트롤러가 포함된 Prometheus Operator 버전을 사용합니다.
 
 ```yaml
-# AccuInsight+ Monitoring
+# AccuInsight+ Prometheus
 accu_monitoring_enabled: true
-accu_monitoring_release: "accu-monitor"
-accu_monitoring_version: "9.3.1"
-accu_monitoring_namespace: "accu-monitor"
-accu_monitoring_prometheus_fqdn: "accupc.accuinsight.io"
-accu_monitoring_grafana_fqdn: "accupm.accuinsight.io"
-accu_monitoring_grafana_pass: "dpcore
+accu_monitoring_release: accu-monitor
+accu_monitoring_version: 18.0.1
+accu_monitoring_namespace: accu-monitor
+accu_monitoring_prometheus_fqdn: pc.accuinsight.io
+accu_monitoring_prometheus_retention: 4w
+accu_monitoring_prometheus_storage_class: accu-ceph-cephfs
+accu_monitoring_prometheus_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
+accu_monitoring_prometheus_storage_size: 50Gi
+accu_monitoring_alertmanager_fqdn: pa.accuinsight.io
+accu_monitoring_alertmanager_retention: 120h
+accu_monitoring_alertmanager_storage_class: accu-ceph-cephfs
+accu_monitoring_alertmanager_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
+accu_monitoring_alertmanager_storage_size: 50Gi
+accu_monitoring_grafana_fqdn: pm.accuinsight.io
+accu_monitoring_grafana_pass: AccuInsight+k8s
+accu_monitoring_grafana_storage_class: accu-ceph-cephfs
+accu_monitoring_grafana_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
+accu_monitoring_grafana_storage_size: 1Gi
 ```
 
 ### AccuInsight+ Monitoring 설정
@@ -1544,7 +1932,7 @@ Helm 을 통해 표시될 릴리즈 이름을 설정합니다.
 
 **`accu_monitoring_version`**
 
-Helm 차트 버전을 설정합니다. 오프라인 모드에서는 "`9.3.1`"만 선택 가능합니다.
+Helm 차트 버전을 설정합니다.
 
 **`accu_monitoring_namespace`**
 
@@ -1554,13 +1942,71 @@ Helm 차트 버전을 설정합니다. 오프라인 모드에서는 "`9.3.1`"만
 
 Prometheus 의 메트릭스 데이터를 조회하고, PromQL 을 테스트할 수 있는 콘솔의 도메인을 지정합니다.
 
+**`accu_monitoring_prometheus_retention`**
+
+Prometheus에 저장되는 메트릭스 데이터의 보존기간을 설정합니다. 예) 120h, 7d, 4w, 1m, 1y
+
+**`accu_monitoring_prometheus_storage_class`**
+
+Prometheus가 사용할 StorageClass를 지정합니다.
+
+**`accu_monitoring_prometheus_storage_mode`**
+
+Prometheus가 사용할 스토리지의 모드를 설정합니다.
+
+> 공유 파일시스템 (accu-nfs, accu-ceph-ceph)은 ReadWriteMany, 블럭 디바이스 (accu-ceph-block)은 ReadWriteOnce를 지원합니다.
+
+**`accu_monitoring_prometheus_storage_size`**
+
+Prometheus가 사용할 스토리지의 사이즈를 설정합니다.
+
+**`accu_monitoring_alertmanager_fqdn`**: pa.accuinsight.io
+
+AlertManager 접근을 위한 도메인을 설정합니다.
+
+> 지정한 도메인으로 Kubernetes Ingress가 설정됩니다.
+
+**`accu_monitoring_alertmanager_retention`**
+
+AlertManager에 저장되는 알람 데이터의 보존기간을 설정합니다. 예) 120h, 7d, 4w, 1m, 1y
+
+**`accu_monitoring_alertmanager_storage_class`**
+
+AlertManager가 사용할 StorageClass를 지정합니다.
+
+**`accu_monitoring_alertmanager_storage_mode`**
+
+AlertManager가 사용할 스토리지의 모드를 설정합니다.
+
+> 공유 파일시스템 (accu-nfs, accu-ceph-ceph)은 ReadWriteMany, 블럭 디바이스 (accu-ceph-block)은 ReadWriteOnce를 지원합니다.
+
+**`accu_monitoring_alertmanager_storage_size`**
+
+AlertManager가 사용할 스토리지의 사이즈를 설정합니다.
+
 **`accu_monitoring_grafana_fqdn`**
 
-Grafana 접근을 위한 도메인을 지정합니다.
+Grafana 접근을 위한 도메인을 설정합니다.
 
 **`accu_monitoring_grafana_pass`**
 
+> 지정한 도메인으로 Kubernetes Ingress가 설정됩니다.
+
 Grafana 접근을 위한 패스워드를 지정합니다. 기본 사용자명은 "`admin`" 입니다.
+
+**`accu_monitoring_grafana_storage_class`**
+
+Grafana가 사용할 StorageClass를 지정합니다.
+
+**`accu_monitoring_grafana_storage_mode`**
+
+Grafana가 사용할 스토리지의 모드를 설정합니다.
+
+> 공유 파일시스템 (accu-nfs, accu-ceph-ceph)은 ReadWriteMany, 블럭 디바이스 (accu-ceph-block)은 ReadWriteOnce를 지원합니다.
+
+**`accu_monitoring_grafana_storage_size`**
+
+Grafana가 사용할 스토리지의 사이즈를 설정합니다.
 
 ### AccuInsight+ Monitoring 사용
 
@@ -1576,11 +2022,12 @@ Grafana 접근을 위한 패스워드를 지정합니다. 기본 사용자명은
 
 ```
 # IP Address       Domain Name
-xxx.xxx.xxx.xxx    accupc.accuinsight.io
-xxx.xxx.xxx.xxx    accupm.accuinsight.io
+xxx.xxx.xxx.xxx    pc.accuinsight.io
+xxx.xxx.xxx.xxx    pm.accuinsight.io
+xxx.xxx.xxx.xxx    pa.accuinsight.io
 ```
 
-> `IP Address` 는 Load Balancer 의 IP 또는 Virtual IP를 설정하고, Domain Name 은 `accu_monitoring_prometheus_fqdn` 와 `accu_monitoring_grafana_fqdn` 에 지정한 가상 도메인을 설정합니다.
+> `IP Address` 는 Load Balancer 의 IP 또는 Virtual IP를 설정하고, Domain Name 은 `accu_monitoring_prometheus_fqdn`, `accu_monitoring_alertmanager_fqdn`, 그리고 `accu_monitoring_grafana_fqdn` 에 지정한 가상 도메인을 설정합니다.
 
 
 
@@ -1588,23 +2035,19 @@ xxx.xxx.xxx.xxx    accupm.accuinsight.io
 
 ## AccuInsight+ Container Registry
 
-- [AccuInsight+ Container Registry](#accuinsight-container-registry)
-  - [AccuInsight+ Container Registry 설정](#accuinsight-container-registry-설정)
-  - [AccuInsight+ Container Registry 사용](#accuinsight-container-registry-사용)
-
-컨테이너 이미지를 저장할 로컬 레지스트리 서버를 구성합니다.
-
-> 보다 원할한 서비스를 위해 `Harbor`로 교체 예정
+컨테이너 이미지를 저장할 로컬 레지스트리 서버를 구성합니다. Air-gapped 환경에서 docker.io / gcr.io / quay.io 을 에뮬레이션하는 미러링 레지스트리입니다. AccuInsight+ Kubernetes 운영을 위한 이미지들만 미러링하며, 사용자 이미지는 `accu-harbor`를 사용합니다.
 
 ```yaml
 # AccuInsight+ Docker Registry
 accu_registry_enabled: true
-accu_registry_release: "accu-registry"
-accu_registry_version: "1.9.4"
-accu_registry_namespace: "accu-system"
-accu_registry_fqdn: "images.accuinsight.io"
-accu_registry_user: "dpcore"
-accu_registry_pass: "dpcore"
+accu_registry_release: accu-registry
+accu_registry_version: 1.9.6
+accu_registry_namespace: "{{ accu_system_namespace }}"
+accu_registry_replicas: 2
+accu_registry_storage_class: accu-ceph-cephfs
+accu_registry_storage_mode: ReadWriteMany
+accu_registry_storage_size: 50Gi
+accu_registry_fqdn: images.accuinsight.io
 ```
 
 ### AccuInsight+ Container Registry 설정
@@ -1621,11 +2064,29 @@ Helm 을 통해 표시될 릴리즈 이름을 설정합니다.
 
 **`accu_registry_version`**
 
-Helm 차트 버전을 설정합니다. 오프라인 모드에서는 "`1.9.4`"만 선택 가능합니다.
+Helm 차트 버전을 설정합니다.
 
 **`accu_registry_namespace`**
 
 Container Registry 서비스가 배포될 네임스페이스를 지정합니다. 기본값은 "`accu-system`" 입니다.
+
+**`accu_registry_replicas`**
+
+Container Registry 서비스의 복제본 개수를 지정합니다. 고갸용성을 위해 "`최소 2 이상`"을 권장합니다.
+
+**`accu_registry_storage_class`**
+
+Container Registry 서비스가 사용할 StorageClass를 지정합니다.
+
+**`accu_registry_storage_mode`**
+
+Container Registry 서비스가 사용할 스토리지의 모드를 설정합니다.
+
+> 공유 파일시스템 (accu-nfs, accu-ceph-ceph)은 ReadWriteMany, 블럭 디바이스 (accu-ceph-block)은 ReadWriteOnce를 지원합니다.
+
+**`accu_registry_storage_size`**
+
+Container Registry 서비스가 사용할 스토리지의 사이즈를 설정합니다. "`최소 50Gi 이상`"을 권장합니다.
 
 **`accu_registry_fqdn`**
 
@@ -1633,13 +2094,6 @@ Container Registry 서비스의 접근하기 위한 도메인을 지정합니다
 
 > Ingress Controller를 통해 라우팅되므로 반드시 도메인을 지정해야합니다. (IP주소 불가)
 
-**`accu_registry_user`**
-
-Container Registry 서비스의 사용자명을 지정합니다.
-
-**`accu_registry_pass`**
-
-Container Registry 서비스의 패스워드를 지정합니다.
 
 ### AccuInsight+ Container Registry 사용
 
@@ -1748,8 +2202,8 @@ helm push mychart-0.0.1.tgz accu-repo
 
 | 운영체제 |     버전      |
 | -------- | :-----------: |
-| CentOS   |   7.8 / 8.2   |
-| RHEL     |   7.8 / 8.2   |
+| CentOS   |   7.x / 8.x   |
+| RHEL     |   7.x / 8.x   |
 | Ubuntu   | 18.04 / 20.04 |
 
 > 참고: `Ubuntu` 저장소는 구현중입니다.
