@@ -2,6 +2,13 @@
 
 images:
 
+  - component: accu-loki
+    list:
+      - tags: grafana/loki:v2.3.0
+        dest: kube-worker
+      - tags: grafana/promtail:v2.1.0
+        dest: kube-cluster
+  
   - component: accu-accelerator
     list:
       - tags: nvidia/k8s-device-plugin:{{ accu_accelerator_device_plugin_version }}
