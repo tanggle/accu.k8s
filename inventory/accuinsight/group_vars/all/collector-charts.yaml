@@ -2,13 +2,13 @@
 
 charts:
   
-  - componenet: accu-loki
+  - component: accu-loki
     list:
       - name: grafana/loki-stack
         version: "{{ accu_loki_version }} "
         dest: kube-master
         repo_name: grafana
-        repo_url: https://grafana.github.io/helm-charts  
+        repo_url: https://grafana.github.io/helm-charts
 
   - component: accu-chartmuseum
     list:

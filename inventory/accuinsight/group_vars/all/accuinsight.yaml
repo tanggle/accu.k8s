@@ -231,7 +231,7 @@ accu_ingress_backend_replicas: 1
 
 
 # AccuInsight+ NFS Server
-accu_nfs_server_enabled: true
+accu_nfs_server_enabled: false
 accu_nfs_server_export_path: /nfs
 accu_nfs_server_export_opts: "*(rw,sync,no_root_squash,fsid=0,no_subtree_check)"
 
@@ -314,7 +314,7 @@ accu_rook_ceph_ganesha_export_path: ganesha
 
 
 # AccuInsight+ NFS Provisioner
-accu_nfs_provisioner_enabled: true
+accu_nfs_provisioner_enabled: false
 accu_nfs_provisioner_release: accu-nfs-provisioner
 accu_nfs_provisioner_version: 4.0.14
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
@@ -407,7 +407,7 @@ accu_loki_enabled: true
 accu_loki_release: accu-loki
 accu_loki_version: 2.5.0
 accu_loki_chunk_size: 524288
-accu_loki_namespace: accu-loki
+accu_loki_namespace: accu-monitor
 accu_loki_syslog_volume_name: syslog
 accu_loki_syslog_volume_path: /var/log
 accu_loki_syslog_mount_name: syslog
@@ -418,7 +418,7 @@ accu_loki_syslog_label_host: localhost
 accu_loki_syslog_label_path: /var/syslog/syslog
 
 # AccuInsight+ GPU Accelerator
-accu_accelerator_enabled: true
+accu_accelerator_enabled: false
 accu_accelerator_namespace: "{{ accu_system_namespace }}"
 accu_accelerator_node_taint: false
 #accu_accelerator_node_taint_key: "accuinsight.io/accelerator"
@@ -466,7 +466,7 @@ accu_mariadb_metrics_enabled: true
 
 
 # AccuInsight+ Keycloak
-accu_keycloak_enabled: false
+accu_keycloak_enabled: true
 accu_keycloak_version: 14.0.1
 accu_keycloak_release: accu-keycloak
 accu_keycloak_namespace: "{{ accu_service_namespace }}"
