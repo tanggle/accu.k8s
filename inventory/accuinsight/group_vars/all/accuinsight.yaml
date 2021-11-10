@@ -412,8 +412,7 @@ accu_loki_storage_size: 50Gi
 accu_loki_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
 accu_loki_syslog_job_name: syslog
 accu_loki_syslog_label_job: syslog
-accu_loki_syslog_label_host: localhost
-accu_loki_syslog_label_path: "/var/log/{% if ansible_os_family == 'RedHat' %}messages{% elif ansible_os_family == 'Debian' %}syslog{% endif %}"
+accu_loki_syslog_label_log: "/var/log/{% if ansible_os_family == 'RedHat' %}messages{% elif ansible_os_family == 'Debian' %}syslog{% endif %}"
 
 # AccuInsight+ GPU Accelerator
 accu_accelerator_enabled: false

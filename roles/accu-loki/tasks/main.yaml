@@ -59,9 +59,19 @@
       - '--set promtail.volumeMounts[1].mountPath=/var/log'
       - '--set promtail.volumeMounts[1].readOnly=true'
       - '--set promtail.extraScrapeConfigs[0].job_name={{ accu_loki_syslog_job_name }}'
-      - '--set promtail.extraScrapeConfigs[0].static_configs[0].labels.job={{ accu_loki_syslog_label_job }}'
-      - '--set promtail.extraScrapeConfigs[0].static_configs[0].labels.host={{ accu_loki_syslog_label_host }}'
-      - '--set promtail.extraScrapeConfigs[0].static_configs[0].labels.__path__={{ accu_loki_syslog_label_path }}'
+      - '--set promtail.extraScrapeConfigs[0].static_configs[0].targets[0]=localhost'
+      - '--set promtail.extraScrapeConfigs[0].static_configs[1].labels.job={{ accu_loki_syslog_label_job }}'
+      - '--set promtail.extraScrapeConfigs[0].static_configs[1].labels.__path__={{ accu_loki_syslog_label_log }}'
   run_once: yes
 
+#      - '--set promtail.volumes[0].hostPath.path={{ kube_data_dir_cri }}'
+#      - '--set promtail.volumeMounts[0].mountPath={{ kube_data_dir_cri }}'
+
+#    - job_name: syslog
+#      static_configs:
+#      - targets:
+#          - localhost
+#      - labels:
+#          __path__: /var/log/{messages,syslog,secure}
+#          job: syslog
 
