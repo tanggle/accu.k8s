@@ -1,27 +1,29 @@
 ---
 
-- name: AccuInsight+ Loki | Add Chart Repository 'loki'
+- name: AccuInsight+ Loki | Add Chart Repository 'grafana'
   when:
     - not accu_offline_enabled | bool
     - inventory_hostname in groups['kube-master']
   become: yes
   helm_repository:
-    name: harbor
-    url: https://github.com/grafana/helm-charts/tree/main/charts/loki-stack
+    name: grafana
+    url: https://grafana.github.io/helm-charts
     state: present
   no_log: true
+
 
 - name: AccuInsight+ Loki | Set chart location
   when:
     - inventory_hostname in groups['kube-master']
   set_fact:
     chartname: >-
-      {% if accu_offline_enabled | bool                                                  %}
+      {% if accu_offline_enabled | bool                                                    %}
       {{ accu_offline_target }}/{{ component }}/charts/loki-stack-{{ accu_loki_version }}.tgz
-      {% else                                                                            %}
-      loki/loki
-      {% endif                                                                           %}
+      {% else                                                                              %}
+      grafana/loki-stack
+      {% endif                                                                             %}
   run_once: yes
+
 
 # READ: https://github.com/grafana/helm-charts/tree/main/charts/loki-stack
 - name: AccuInsight+ Loki | Deploy {{ accu_loki_release }}
@@ -39,14 +41,27 @@
     wait: true
     options:
       - '--set fullnameOverride={{ accu_loki_release }}'
+      - '--set loki.enabled=true'
+      - '--set loki.persistence.enabled=true'
+      - '--set loki.persistence.storageClassName={{ accu_loki_storage_class }}'
+      - '--set loki.persistence.size={{ accu_loki_storage_size }}'
+      - '--set loki.persistence.accessModes[0]={{ accu_loki_storage_mode }}'
       - '--set promtail.enabled=true'
       - '--set promtail.loki.serviceName={{ accu_loki_release }}' 
-      - '--set promtail.extraVolumes[0].name={{ accu_loki_syslog_volume_name }}'
-      - '--set promtail.extraVolumes[0].hostPath.path={{ accu_loki_syslog_volume_path }}'
-      - '--set promtail.extraVolumeMounts[0].name={{ accu_loki_syslog_mount_name }}'
-      - '--set promtail.extraVolumeMounts[0].mountPath={{ accu_loki_syslog_mount_path }}'
+      - '--set promtail.volumes[0].name=containers'
+      - '--set promtail.volumes[0].hostPath.path={{ kube_data_dir_cri }}'
+      - '--set promtail.volumes[1].name=logs'
+      - '--set promtail.volumes[1].hostPath.path=/var/log'
+      - '--set promtail.volumeMounts[0].name=containers'
+      - '--set promtail.volumeMounts[0].mountPath={{ kube_data_dir_cri }}'
+      - '--set promtail.volumeMounts[0].readOnly=true'
+      - '--set promtail.volumeMounts[1].name=logs'
+      - '--set promtail.volumeMounts[1].mountPath=/var/log'
+      - '--set promtail.volumeMounts[1].readOnly=true'
       - '--set promtail.extraScrapeConfigs[0].job_name={{ accu_loki_syslog_job_name }}'
       - '--set promtail.extraScrapeConfigs[0].static_configs[0].labels.job={{ accu_loki_syslog_label_job }}'
       - '--set promtail.extraScrapeConfigs[0].static_configs[0].labels.host={{ accu_loki_syslog_label_host }}'
       - '--set promtail.extraScrapeConfigs[0].static_configs[0].labels.__path__={{ accu_loki_syslog_label_path }}'
+  run_once: yes
+
 

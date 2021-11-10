@@ -143,12 +143,12 @@ accu_service_target: /data/accuinsight/service
 
 # AccuInsight+ Collector
 accu_collector_target: /data/accuinsight/collector
-accu_collector_gathering_deployer: true
-accu_collector_gathering_packages: true
+accu_collector_gathering_deployer: false
+accu_collector_gathering_packages: false
 accu_collector_gathering_charts: true
-accu_collector_gathering_files: true
+accu_collector_gathering_files: false
 accu_collector_gathering_images: true
-accu_collector_cleanup: true
+accu_collector_cleanup: false
 
 # AccuInsight+ Menifess Location
 accu_manifests_location: /etc/kubernetes/accuinsight
@@ -406,16 +406,14 @@ accu_monitoring_grafana_storage_size: 1Gi
 accu_loki_enabled: true
 accu_loki_release: accu-loki
 accu_loki_version: 2.5.0
-accu_loki_chunk_size: 524288
 accu_loki_namespace: accu-monitor
-accu_loki_syslog_volume_name: syslog
-accu_loki_syslog_volume_path: /var/log
-accu_loki_syslog_mount_name: syslog
-accu_loki_syslog_mount_path: /var/syslog
-accu_loki_syslog_job_name: system
+accu_loki_storage_class: accu-ceph-cephfs
+accu_loki_storage_size: 50Gi
+accu_loki_storage_mode: ReadWriteMany # ReadWriteMany / ReadWriteOnce
+accu_loki_syslog_job_name: syslog
 accu_loki_syslog_label_job: syslog
 accu_loki_syslog_label_host: localhost
-accu_loki_syslog_label_path: /var/syslog/syslog
+accu_loki_syslog_label_path: "/var/log/{% if ansible_os_family == 'RedHat' %}messages{% elif ansible_os_family == 'Debian' %}syslog{% endif %}"
 
 # AccuInsight+ GPU Accelerator
 accu_accelerator_enabled: false

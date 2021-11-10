@@ -1,5 +1,5 @@
 ---
-# Playbook for AccuInsight+ Harbor
+# Playbook for AccuInsight+ Loki
 
 - name: AccuInsight+ Loki
   hosts: kube-cluster

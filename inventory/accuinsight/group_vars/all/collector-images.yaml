@@ -4,9 +4,9 @@ images:
 
   - component: accu-loki
     list:
-      - tags: grafana/loki:v2.3.0
+      - tags: grafana/loki:2.3.0
         dest: kube-worker
-      - tags: grafana/promtail:v2.1.0
+      - tags: grafana/promtail:2.1.0
         dest: kube-cluster
   
   - component: accu-accelerator
@@ -175,5 +175,4 @@ images:
         dest: kube-cluster
       - tags: k8s.gcr.io/pause:{{ supported_pause }}
         dest: kube-cluster
-
 

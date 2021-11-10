@@ -108,9 +108,11 @@
 - import_playbook: plays/accu-monitoring.yaml
   when: accu_monitoring_enabled | bool
 
+
 # AccuInsight+ Loki
 - import_playbook: plays/accu-loki.yaml
   when: accu_loki_enabled | bool
+
 
 # AccuInsight+ GPU accelerator
 - import_playbook: plays/accu-accelerator.yaml
