@@ -143,12 +143,12 @@ accu_service_target: /data/accuinsight/service
 
 # AccuInsight+ Collector
 accu_collector_target: /data/accuinsight/collector
-accu_collector_gathering_deployer: false
-accu_collector_gathering_packages: false
+accu_collector_gathering_deployer: true
+accu_collector_gathering_packages: true
 accu_collector_gathering_charts: true
-accu_collector_gathering_files: false
+accu_collector_gathering_files: true
 accu_collector_gathering_images: true
-accu_collector_cleanup: false
+accu_collector_cleanup: true
 
 # AccuInsight+ Menifess Location
 accu_manifests_location: /etc/kubernetes/accuinsight
@@ -319,7 +319,7 @@ accu_nfs_provisioner_release: accu-nfs-provisioner
 accu_nfs_provisioner_version: 4.0.14
 accu_nfs_provisioner_namespace: "{{ accu_system_namespace }}"
 accu_nfs_provisioner_server: "{{ hostvars[groups['accu-nfs-server'][0]]['private_ip'] }}"
-accu_nfs_provisioner_path: /nfs/k8s # /export_path_of_nfs_server/subdir : subdir MUST exist on nfs server !!!
+accu_nfs_provisioner_path: /nfs/k8s # NOTE: /export_path_of_nfs_server/subdir : subdir MUST exist on nfs server !!!
 accu_nfs_provisioner_replicas: 2
 accu_nfs_provisioner_storageclass_name: accu-nfs
 accu_nfs_provisioner_storageclass_reclaimpolicy: Retain # Retain / Delete
@@ -463,7 +463,7 @@ accu_mariadb_metrics_enabled: true
 
 
 # AccuInsight+ Keycloak
-accu_keycloak_enabled: true
+accu_keycloak_enabled: false
 accu_keycloak_version: 14.0.1
 accu_keycloak_release: accu-keycloak
 accu_keycloak_namespace: "{{ accu_service_namespace }}"
