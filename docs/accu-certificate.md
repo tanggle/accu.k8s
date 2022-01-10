@@ -1,4 +1,4 @@
-1. Generate a CA certificate Private Key
+1. Generate a CA Private Key
 ```bash
 openssl genrsa -out ca.key 4096
 ```
@@ -8,7 +8,7 @@ openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 -subj "/C=KR/ST=/L=/O=SK holdings C&C/OU=/CN=AccuInsight+ Kubernetes" -key ca.key -out ca.crt
 ```
 
-3. Generate a Server Certificate
+3. Generate a Server Private Key
 ```bash
 openssl genrsa -out server.key 4096
 ```
