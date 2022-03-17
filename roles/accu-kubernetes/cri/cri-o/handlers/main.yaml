@@ -3,7 +3,7 @@
 - name: CRI | CRI-O | Restart
   become: yes
   systemd:
-    name: cri-o
+    name: crio
     state: restarted
     enabled: yes
     daemon_reload: yes

@@ -25,38 +25,38 @@ images:
 
   - component: accu-harbor
     list:
-      - tags: goharbor/chartmuseum-photon:v2.3.2
+      - tags: goharbor/chartmuseum-photon:v2.4.1
         dest: kube-worker
-      - tags: goharbor/harbor-core:v2.3.2
+      - tags: goharbor/harbor-core:v2.4.1
         dest: kube-worker
-      - tags: goharbor/harbor-db:v2.3.2
+      - tags: goharbor/harbor-db:v2.4.1
         dest: kube-worker
-      - tags: goharbor/harbor-exporter:v2.3.2
+      - tags: goharbor/harbor-exporter:v2.4.1
         dest: kube-worker
-      - tags: goharbor/harbor-jobservice:v2.3.2
+      - tags: goharbor/harbor-jobservice:v2.4.1
         dest: kube-worker
-      - tags: goharbor/harbor-portal:v2.3.2
+      - tags: goharbor/harbor-portal:v2.4.1
         dest: kube-worker
-      - tags: goharbor/harbor-registryctl:v2.3.2
+      - tags: goharbor/harbor-registryctl:v2.4.1
         dest: kube-worker
-      - tags: goharbor/notary-server-photon:v2.3.2
+      - tags: goharbor/notary-server-photon:v2.4.1
         dest: kube-worker
-      - tags: goharbor/notary-signer-photon:v2.3.2
+      - tags: goharbor/notary-signer-photon:v2.4.1
         dest: kube-worker
-      - tags: goharbor/redis-photon:v2.3.2
+      - tags: goharbor/redis-photon:v2.4.1
         dest: kube-worker
-      - tags: goharbor/registry-photon:v2.3.2
+      - tags: goharbor/registry-photon:v2.4.1
         dest: kube-worker
-      - tags: goharbor/trivy-adapter-photon:v2.3.2
+      - tags: goharbor/trivy-adapter-photon:v2.4.1
         dest: kube-worker
 
   - component: accu-ingress-controller
     list:
-      - tags: k8s.gcr.io/ingress-nginx/controller:v0.45.0
+      - tags: k8s.gcr.io/ingress-nginx/controller:v1.1.1
         dest: kube-worker
       - tags: k8s.gcr.io/defaultbackend-amd64:1.5
         dest: kube-worker
-      - tags: docker.io/jettech/kube-webhook-certgen:v1.5.1
+      - tags: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
         dest: kube-worker
 
   - component: accu-keycloak
@@ -90,33 +90,37 @@ images:
   - component: accu-monitoring
     list:
       # Prometheus Operator
-      - tags: quay.io/prometheus-operator/prometheus-operator:v0.50.0
+      - tags: quay.io/prometheus-operator/prometheus-operator:v0.50.0 # quay.io/prometheus-operator/prometheus-operator:v0.53.1
         dest: kube-worker
-      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.50.0
+      - tags: quay.io/prometheus-operator/prometheus-config-reloader:v0.50.0 # quay.io/prometheus-operator/prometheus-config-reloader:v0.53.1
         dest: kube-worker
-      - tags: jettech/kube-webhook-certgen:v1.5.2
+      - tags: jettech/kube-webhook-certgen:v1.5.2 # k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.0
         dest: kube-worker
-      - tags: quay.io/thanos/thanos:v0.17.2
+      - tags: quay.io/thanos/thanos:v0.17.2 # quay.io/thanos/thanos:v0.24.0
         dest: kube-worker
       # Prometheus and Alertmanager
-      - tags: quay.io/prometheus/prometheus:v2.28.1
+      - tags: quay.io/prometheus/prometheus:v2.28.1 # quay.io/prometheus/prometheus:v2.32.1
         dest: kube-worker
-      - tags: quay.io/prometheus/alertmanager:v0.22.2
+      - tags: quay.io/prometheus/alertmanager:v0.22.2 # quay.io/prometheus/alertmanager:v0.23.0
         dest: kube-worker
       # Prometheus Node Exporter
-      - tags: quay.io/prometheus/node-exporter:v1.2.2
+      - tags: quay.io/prometheus/node-exporter:v1.2.2 # quay.io/prometheus/node-exporter:v1.3.1
         dest: kube-cluster
       # Kube State Metrics
-      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.1.1
+      - tags: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.1.1 # k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.3.0
         dest: kube-worker
       # Grafana
-      - tags: grafana/grafana:8.1.0
+      - tags: grafana/grafana:8.1.0 # grafana/grafana:8.3.4
+        dest: kube-worker
+      #- tags: grafana/grafana-image-renderer:latest
+      #  dest: kube-worker
+      - tags: bats/bats:v1.4.1
         dest: kube-worker
       - tags: curlimages/curl:7.73.0
         dest: kube-worker
       - tags: busybox:1.31.1
         dest: kube-worker
-      - tags: quay.io/kiwigrid/k8s-sidecar:1.12.2
+      - tags: quay.io/kiwigrid/k8s-sidecar:1.12.2 # quay.io/kiwigrid/k8s-sidecar:1.15.1
         dest: kube-worker
 
   - component: accu-nfs-provisioner

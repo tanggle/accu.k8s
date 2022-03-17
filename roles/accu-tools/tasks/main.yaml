@@ -106,7 +106,7 @@
 
     - name: AccuInsight+ K8S Tools | Copy kubestr binary
       unarchive:
-        src: "{{ accu_offline_target }}/{{ component }}/files/kubestr-v{{ accu_tools_kubestr_version }}-linux-amd64.tar.gz"
+        src: "{{ accu_offline_target }}/{{ component }}/files/kubestr_{{ accu_tools_kubestr_version }}_Linux_amd64.tar.gz"
         dest: /usr/local/bin
         owner: root
         group: root

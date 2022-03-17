@@ -18,7 +18,7 @@ ext_lb_addr: "{{ accu_load_balancer_addr }}"
 ext_lb_port: 8443
 
 # 1.17.x / 1.18.x / 1.19.x / 1.20.x / 1.21.x / 1.22.x (experimental)
-kube_version: 1.21.4
+kube_version: 1.21.9
 
 # NOTE: kube_pod_cidr and kube_svc_cidr MUST NOT be overlaped with customer's existing network subnet.
 # DOCS: https://en.wikipedia.org/wiki/Private_network
@@ -178,13 +178,13 @@ accu_tools_enabled: true
 accu_tools_powerline_version: 1.21.0 # https://github.com/justjanne/powerline-go
 accu_tools_kubectx_version: 0.9.4    # https://github.com/ahmetb/kubectx
 accu_tools_kubens_version: 0.9.4     # https://github.com/ahmetb/kubectx
-accu_tools_k9scli_version: 0.24.15   # https://k9scli.io/
-accu_tools_kubestr_version: 0.4.17   # https://kubestr.io/
+accu_tools_k9scli_version: 0.25.18   # https://k9scli.io/
+accu_tools_kubestr_version: 0.4.31   # https://kubestr.io/
 
 
 # AccuInsight+ Helm
 accu_helm_enabled: true
-accu_helm_version: 3.7.1
+accu_helm_version: 3.8.0
 accu_helm_max_history: 10
 accu_helm_stable_repo: "https://charts.helm.sh/stable"
 
@@ -220,7 +220,7 @@ accu_metrics_server_replicas: 2
 # AccuInsight+ Ingress Controller
 accu_ingress_controller_enabled: true
 accu_ingress_controller_release: accu-ingress
-accu_ingress_controller_version: 3.29.0
+accu_ingress_controller_version: 4.0.16
 accu_ingress_controller_namespace: "{{ accu_system_namespace }}"
 accu_ingress_controller_replicas: 2
 accu_ingress_controller_tlssecret: tls.accuinsight.io
@@ -329,7 +329,7 @@ accu_nfs_provisioner_mount_on_masters: false
 # AccuInsight+ Harbor
 accu_harbor_enabled: true
 accu_harbor_release: accu-harbor
-accu_harbor_version: 1.7.2
+accu_harbor_version: 1.8.1
 accu_harbor_namespace: accu-harbor
 accu_harbor_fqdn_core: harbor.accuinsight.io
 accu_harbor_fqdn_notary: notary.accuinsight.io
