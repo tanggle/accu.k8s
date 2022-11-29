@@ -1,3 +1,21 @@
-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJJQk0gTWFya2V0cGxhY2UiLCJpYXQiOjE2NDExOTYxNjgsImp0aSI6IjRlM2VmYTVhODI5ZjQwN2FiZGUzOTM5N2U4YmE2NWVmIn0.Sp4TjMHNrAZix6WEnmXBzzkXxt2U1K2bKjLXbLm8fsM
+OpenShift Console:
+Host: console-openshift-console.apps.labs.ihost.com
+User: ocadmin
+Pass: ibmocp46
 
-C4rPo4ffNQ6k0BvEKUDiPt3ETk1E7sV7
+
+CP4I Console:
+Host: cpd-cp4i.apps.labs.ihost.com
+User: admin (Select 'IBM provided credentials'_
+Pass: C4rPo4ffNQ6k0BvEKUDiPt3ETk1E7sV7
+
+
+API Connect - Cloud Manager
+Host: apic-mgmt-admin-practicum.apps.labs.ihost.com
+User: admin (Select 'Cloud Manager User Registry')
+Pass: ^uoh3=7&m&M<?F*x|-8w*)us
+
+
+API Connect - API Manager
+apic-mgmt-api-manager-practicum.apps.labs.ihost.com
+User: a provider organization owner created in Cloud Manager
