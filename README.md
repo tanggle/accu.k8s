@@ -1,3 +1,9 @@
+# ***THIS REPOSITORY HAS NOT BEEN MANAGED SINCE THE LATEST COMMIT ON 19 NOVEMBER 2021.***
+# ***THE LATEST DOCUMENTATION IS [HERE](docs/README.md)***
+# https://github.com/tanggle/accu.k8s/blob/main/docs/README.md
+
+
+
 # 쿠버네티스 테스트 방법
 
 ### 쿠버네티스 클러스터 요구사항
